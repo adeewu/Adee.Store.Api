@@ -1,0 +1,62 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            // Use IntelliSense to find out which attributes exist for C# debugging
+            // Use hover for the description of the existing attributes
+            // For further information visit https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md
+            "name": "Api",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-api",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/src/Adee.Store.HttpApi.Host/bin/Debug/net5.0/Adee.Store.HttpApi.Host.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/Adee.Store.HttpApi.Host",
+            "stopAtEntry": false,
+            // Enable launching a web browser when ASP.NET Core starts. For more information: https://aka.ms/VSCode-CS-LaunchJson-WebBrowser
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
+        },
+        {
+            // Use IntelliSense to find out which attributes exist for C# debugging
+            // Use hover for the description of the existing attributes
+            // For further information visit https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md
+            "name": "IDS4",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-ids4",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/src/Adee.Store.IdentityServer/bin/Debug/net5.0/Adee.Store.IdentityServer.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/Adee.Store.IdentityServer",
+            "stopAtEntry": false,
+            // Enable launching a web browser when ASP.NET Core starts. For more information: https://aka.ms/VSCode-CS-LaunchJson-WebBrowser
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
+        }
+    ],
+    "compounds": [
+      {
+        "name": "Api/IDS4",
+        "configurations": ["Api", "IDS4"],
+        //"preLaunchTask": "${defaultBuildTask}"
+      }
+    ]
+}

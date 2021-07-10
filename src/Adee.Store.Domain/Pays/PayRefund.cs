@@ -1,0 +1,44 @@
+﻿using System;
+using System.Collections.Generic;
+using Volo.Abp.Domain.Entities.Auditing;
+using Volo.Abp.MultiTenancy;
+
+namespace Adee.Store.Pays
+{
+    /// <summary>
+    /// 支付订单退款记录
+    /// </summary>
+    public partial class PayRefund : AuditedAggregateRoot<Guid>, IMultiTenant
+    {
+        public PayRefund() { }
+
+        public PayRefund(Guid id) : this()
+        {
+            Id = id;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public Guid? TenantId { get; set; }
+        /// <summary>
+        /// 支付订单Id
+        /// </summary>
+        public Guid OrderId { get; set; }
+        /// <summary>
+        /// 退款金额
+        /// </summary>
+        public decimal Money { get; set; }
+        /// <summary>
+        /// 退款状态
+        /// </summary>
+        public PayTaskStatus Status { get; set; }
+        /// <summary>
+        /// 退款状态描述
+        /// </summary>
+        public string StatusMessage { get; set; }
+
+
+        public virtual PayOrder PayOrder { get; set; }
+    }
+}

@@ -1,6 +1,6 @@
 #See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
-FROM adeewu-docker.pkg.coding.net/adee.store/aspnet/runtime:5.0-alpine AS base
+FROM adeewu-docker.pkg.coding.net/adee.store/aspnet/runtime:5.0-alpine
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
@@ -24,7 +24,7 @@ RUN dotnet build "Adee.Store.HttpApi.Host.csproj" -c Release -o /app/build
 FROM build AS publish
 RUN dotnet publish "Adee.Store.HttpApi.Host.csproj" -c Release -o /app/publish
 
-FROM base
+FROM adeewu-docker.pkg.coding.net/adee.store/aspnet/runtime:5.0-alpine
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=2 /app/publish .
 ENTRYPOINT ["dotnet", "Adee.Store.HttpApi.Host.dll"]

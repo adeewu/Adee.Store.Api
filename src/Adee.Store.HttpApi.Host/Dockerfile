@@ -24,7 +24,7 @@ RUN dotnet build "Adee.Store.HttpApi.Host.csproj" -c Release -o /app/build
 FROM build AS publish
 RUN dotnet publish "Adee.Store.HttpApi.Host.csproj" -c Release -o /app/publish
 
-FROM base AS final
+FROM base
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "Adee.Store.HttpApi.Host.dll"]

@@ -20,6 +20,7 @@ namespace Adee.Store
                 .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
                 .Enrich.FromLogContext()
                 .WriteTo.Async(c => c.File("Logs/logs.txt"))
+                .WriteTo.Async(c => c.Console(LogEventLevel.Debug))
 #if DEBUG
                 .WriteTo.Async(c => c.Console())
 #endif

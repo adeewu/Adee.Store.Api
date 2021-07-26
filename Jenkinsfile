@@ -25,6 +25,7 @@ pipeline {
             dockerIDS4Image.push()
           }
         }
+
       }
     }
   }

@@ -5,6 +5,8 @@ using Volo.Abp.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore.Modeling;
 using Volo.Abp.Identity;
 using Volo.Abp.Users.EntityFrameworkCore;
+using Adee.Store.Orders;
+using Adee.Store.Products;
 
 namespace Adee.Store.EntityFrameworkCore
 {
@@ -22,9 +24,23 @@ namespace Adee.Store.EntityFrameworkCore
     {
         public DbSet<AppUser> Users { get; set; }
 
-        /* Add DbSet properties for your Aggregate Roots / Entities here.
-         * Also map them inside StoreDbContextModelCreatingExtensions.ConfigureStore
-         */
+        public virtual DbSet<Order> Order { get; set; }
+
+        public virtual DbSet<OrderInfo> OrderDetail { get; set; }
+
+        public virtual DbSet<Product> Product { get; set; }
+
+        public virtual DbSet<ProductSale> ProductSale { get; set; }
+
+        public virtual DbSet<ProductSaleInfo> ProductSaleInfo { get; set; }
+
+        public virtual DbSet<ProductStockOrder> ProductStockOrder { get; set; }
+
+        public virtual DbSet<ProductStock> ProductStock { get; set; }
+
+        public virtual DbSet<ProductStockLog> ProductStockLog { get; set; }
+
+        public virtual DbSet<ProductCatalog> ProductCatalog { get; set; }
 
         public StoreDbContext(DbContextOptions<StoreDbContext> options)
             : base(options)

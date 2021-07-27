@@ -9,14 +9,9 @@ namespace Adee.Store.EntityFrameworkCore
         {
             Check.NotNull(builder, nameof(builder));
 
-            /* Configure your own tables/entities inside here */
-
-            //builder.Entity<YourEntity>(b =>
-            //{
-            //    b.ToTable(StoreConsts.DbTablePrefix + "YourEntities", StoreConsts.DbSchema);
-            //    b.ConfigureByConvention(); //auto configure for the base class props
-            //    //...
-            //});
+            ModelCreatings.Pay.ConfigureStore(builder);
+            ModelCreatings.Order.ConfigureStore(builder);
+            ModelCreatings.Product.ConfigureStore(builder);
         }
     }
 }

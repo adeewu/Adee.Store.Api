@@ -49,7 +49,7 @@ namespace Adee.Store
             var hostingEnvironment = context.Services.GetHostingEnvironment();
 
             ConfigureConventionalControllers();
-            ConfigureAuthentication(context, configuration);
+            ConfigureAuthentication(context, configuration, hostingEnvironment);
             ConfigureLocalization();
             ConfigureCache(configuration);
             ConfigureVirtualFileSystem(context);
@@ -95,7 +95,7 @@ namespace Adee.Store
             });
         }
 
-        private void ConfigureAuthentication(ServiceConfigurationContext context, IConfiguration configuration)
+        private void ConfigureAuthentication(ServiceConfigurationContext context, IConfiguration configuration, IWebHostEnvironment hostingEnvironment)
         {
             context.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -103,6 +103,11 @@ namespace Adee.Store
                     options.Authority = configuration["AuthServer:Authority"];
                     options.RequireHttpsMetadata = Convert.ToBoolean(configuration["AuthServer:RequireHttpsMetadata"]);
                     options.Audience = "Store";
+
+                    if (hostingEnvironment.IsDevelopment())
+                    {
+                        options.RequireHttpsMetadata = false;
+                    }
                 });
         }
 
@@ -116,7 +121,7 @@ namespace Adee.Store
                 },
                 options =>
                 {
-                    options.SwaggerDoc("v1", new OpenApiInfo {Title = "Store API", Version = "v1"});
+                    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Store API", Version = "v1" });
                     options.DocInclusionPredicate((docName, description) => true);
                     options.CustomSchemaIds(type => type.FullName);
                 });

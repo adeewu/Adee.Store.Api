@@ -3,26 +3,27 @@ using System;
 using Adee.Store.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Volo.Abp.EntityFrameworkCore;
 
 namespace Adee.Store.Migrations
 {
-    [DbContext(typeof(StoreMigrationsDbContext))]
-    partial class StoreMigrationsDbContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(StoreDbContext))]
+    [Migration("20210823153637_Init")]
+    partial class Init
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("_Abp_DatabaseProvider", EfCoreDatabaseProvider.MySql)
                 .HasAnnotation("Relational:MaxIdentifierLength", 64)
-                .HasAnnotation("ProductVersion", "5.0.8");
+                .HasAnnotation("ProductVersion", "5.0.9");
 
             modelBuilder.Entity("Adee.Store.Orders.Order", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
                     b.Property<int>("BusinessType")
@@ -32,7 +33,7 @@ namespace Adee.Store.Migrations
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<DateTime>("CreationTime")
@@ -44,7 +45,7 @@ namespace Adee.Store.Migrations
                         .HasColumnName("CreatorId");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<DateTime?>("LastModificationTime")
@@ -58,7 +59,7 @@ namespace Adee.Store.Migrations
                     b.Property<string>("MerchantOrderId")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(50)")
                         .HasComment("支付业务号");
 
                     b.Property<decimal>("Money")
@@ -83,7 +84,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Payment")
                         .HasMaxLength(20)
-                        .HasColumnType("varchar(20) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(20)")
                         .HasComment("收款方式");
 
                     b.Property<decimal>("Quantity")
@@ -93,7 +94,7 @@ namespace Adee.Store.Migrations
                     b.Property<string>("RunningId")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(50)")
                         .HasComment("订单流水号");
 
                     b.Property<Guid?>("TenantId")
@@ -107,7 +108,7 @@ namespace Adee.Store.Migrations
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(255)")
                         .HasComment("订单标题");
 
                     b.Property<decimal?>("UnitPrice")
@@ -116,19 +117,18 @@ namespace Adee.Store.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AppOrder");
+                    b.ToTable("Order");
                 });
 
             modelBuilder.Entity("Adee.Store.Orders.OrderInfo", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<DateTime>("CreationTime")
@@ -146,15 +146,15 @@ namespace Adee.Store.Migrations
                     b.Property<string>("DataName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(50)")
                         .HasComment("数据名称");
 
                     b.Property<string>("Desc")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasComment("成交描述");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<DateTime?>("LastModificationTime")
@@ -193,7 +193,7 @@ namespace Adee.Store.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("AppOrderInfo");
+                    b.ToTable("OrderInfo");
                 });
 
             modelBuilder.Entity("Adee.Store.Pays.PayNotify", b =>
@@ -203,13 +203,13 @@ namespace Adee.Store.Migrations
                         .HasColumnType("char(36)");
 
                     b.Property<string>("Body")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasComment("请求正文");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<DateTime>("CreationTime")
@@ -221,13 +221,13 @@ namespace Adee.Store.Migrations
                         .HasColumnName("CreatorId");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<string>("HashCode")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(255)")
                         .HasComment("Method、Url、Body、Query经过MD5计算的值");
 
                     b.Property<DateTime?>("LastModificationTime")
@@ -241,23 +241,23 @@ namespace Adee.Store.Migrations
                     b.Property<string>("MerchantOrderId")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(50)")
                         .HasComment("支付结果查询Id");
 
                     b.Property<string>("Method")
                         .IsRequired()
                         .HasMaxLength(10)
-                        .HasColumnType("varchar(10) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(10)")
                         .HasComment("请求方式");
 
                     b.Property<string>("PayOrderId")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(50)")
                         .HasComment("支付订单Id");
 
                     b.Property<string>("Query")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasComment("请求参数");
 
                     b.Property<int>("ResultStatus")
@@ -266,7 +266,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("ResultStatusMessage")
                         .HasMaxLength(500)
-                        .HasColumnType("varchar(500) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(500)")
                         .HasComment("通知内容状态描述");
 
                     b.Property<int>("Status")
@@ -275,7 +275,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("StatusMessage")
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(50)")
                         .HasComment("通知状态状态描述");
 
                     b.Property<Guid?>("TenantId")
@@ -284,12 +284,12 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Url")
                         .IsRequired()
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasComment("通知地址");
 
                     b.HasKey("Id");
 
-                    b.ToTable("AppPayNotify");
+                    b.ToTable("PayNotify");
 
                     b
                         .HasComment("支付回调通知");
@@ -308,7 +308,7 @@ namespace Adee.Store.Migrations
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<DateTime>("CreationTime")
@@ -320,7 +320,7 @@ namespace Adee.Store.Migrations
                         .HasColumnName("CreatorId");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<DateTime?>("LastModificationTime")
@@ -334,7 +334,7 @@ namespace Adee.Store.Migrations
                     b.Property<string>("MerchantOrderId")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(50)")
                         .HasComment("支付结果查询Id");
 
                     b.Property<decimal>("Money")
@@ -347,16 +347,16 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("NotifyStatusMessage")
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(50)")
                         .HasComment("通知状态描述");
 
                     b.Property<string>("NotifyUrl")
                         .IsRequired()
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasComment("通知地址");
 
                     b.Property<string>("OrderData")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasComment("订单数据");
 
                     b.Property<DateTime?>("OrderTime")
@@ -370,12 +370,12 @@ namespace Adee.Store.Migrations
                     b.Property<string>("PayOrderId")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(50)")
                         .HasComment("支付Id");
 
                     b.Property<string>("PayOrganizationOrderId")
                         .HasMaxLength(128)
-                        .HasColumnType("varchar(128) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(128)")
                         .HasComment("收单机构订单号");
 
                     b.Property<int>("PayOrganizationType")
@@ -396,7 +396,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("QueryStatusMessage")
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(50)")
                         .HasComment("查询状态描述");
 
                     b.Property<int?>("RefundCount")
@@ -409,7 +409,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("RefundStatusMessage")
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(50)")
                         .HasComment("退款状态描述");
 
                     b.Property<int>("Status")
@@ -418,19 +418,19 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("StatusMessage")
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(50)")
                         .HasComment("支付状态描述");
 
                     b.Property<string>("Subject")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(255)")
                         .HasComment("收款标题");
 
                     b.Property<string>("TargetDomain")
                         .IsRequired()
                         .HasMaxLength(1024)
-                        .HasColumnType("varchar(1024) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(1024)")
                         .HasComment("发起支付域名");
 
                     b.Property<Guid?>("TenantId")
@@ -439,7 +439,7 @@ namespace Adee.Store.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AppPayOrder");
+                    b.ToTable("PayOrder");
 
                     b
                         .HasComment("支付订单");
@@ -454,7 +454,7 @@ namespace Adee.Store.Migrations
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<DateTime>("CreationTime")
@@ -466,11 +466,11 @@ namespace Adee.Store.Migrations
                         .HasColumnName("CreatorId");
 
                     b.Property<string>("ExceptionMessage")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasComment("异常描述");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<DateTime?>("LastModificationTime")
@@ -482,7 +482,7 @@ namespace Adee.Store.Migrations
                         .HasColumnName("LastModifierId");
 
                     b.Property<string>("LogData")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasComment("记录数据");
 
                     b.Property<int>("LogType")
@@ -491,7 +491,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Message")
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(50)")
                         .HasComment("描述");
 
                     b.Property<Guid>("OrderId")
@@ -511,7 +511,7 @@ namespace Adee.Store.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("AppPayOrderLog");
+                    b.ToTable("PayOrderLog");
 
                     b
                         .HasComment("支付订单记录");
@@ -526,7 +526,7 @@ namespace Adee.Store.Migrations
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<DateTime>("CreationTime")
@@ -538,7 +538,7 @@ namespace Adee.Store.Migrations
                         .HasColumnName("CreatorId");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<DateTime?>("LastModificationTime")
@@ -563,7 +563,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Value")
                         .IsRequired()
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasComment("支付参数值");
 
                     b.Property<int>("Version")
@@ -572,7 +572,7 @@ namespace Adee.Store.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AppPayParameter");
+                    b.ToTable("PayParameter");
 
                     b
                         .HasComment("支付参数");
@@ -587,7 +587,7 @@ namespace Adee.Store.Migrations
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<DateTime>("CreationTime")
@@ -599,7 +599,7 @@ namespace Adee.Store.Migrations
                         .HasColumnName("CreatorId");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<DateTime?>("LastModificationTime")
@@ -625,7 +625,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("StatusMessage")
                         .HasMaxLength(500)
-                        .HasColumnType("varchar(500) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(500)")
                         .HasComment("退款状态描述");
 
                     b.Property<Guid?>("TenantId")
@@ -636,7 +636,7 @@ namespace Adee.Store.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("AppPayRefund");
+                    b.ToTable("PayRefund");
 
                     b
                         .HasComment("支付订单退款记录");
@@ -651,7 +651,7 @@ namespace Adee.Store.Migrations
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<DateTime>("CreationTime")
@@ -663,7 +663,7 @@ namespace Adee.Store.Migrations
                         .HasColumnName("CreatorId");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<DateTime?>("LastModificationTime")
@@ -676,7 +676,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("SignKey")
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(50)")
                         .HasComment("密钥");
 
                     b.Property<Guid?>("TenantId")
@@ -685,19 +685,18 @@ namespace Adee.Store.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AppPaySecrect");
+                    b.ToTable("PaySecrect");
                 });
 
             modelBuilder.Entity("Adee.Store.Products.Product", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
                     b.Property<string>("BarCode")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(50)")
                         .HasComment("条码");
 
                     b.Property<Guid>("CatalogId")
@@ -707,7 +706,7 @@ namespace Adee.Store.Migrations
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<DateTime>("CreationTime")
@@ -719,7 +718,7 @@ namespace Adee.Store.Migrations
                         .HasColumnName("CreatorId");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<DateTime?>("LastModificationTime")
@@ -733,12 +732,12 @@ namespace Adee.Store.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(50)")
                         .HasComment("名称");
 
                     b.Property<string>("Photo")
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(255)")
                         .HasComment("图片");
 
                     b.Property<int>("PricingType")
@@ -747,13 +746,13 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("ProductBrand")
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(50)")
                         .HasComment("品牌");
 
                     b.Property<string>("QuickCode")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(50)")
                         .HasComment("助记码");
 
                     b.Property<decimal>("SaleVolume")
@@ -762,7 +761,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Specs")
                         .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(2000)")
                         .HasComment("商品规格，单规格商品留空");
 
                     b.Property<decimal>("Stock")
@@ -776,31 +775,30 @@ namespace Adee.Store.Migrations
                     b.Property<string>("UnitName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(50)")
                         .HasComment("单位名称");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CatalogId");
 
-                    b.ToTable("AppProduct");
+                    b.ToTable("Product");
                 });
 
             modelBuilder.Entity("Adee.Store.Products.ProductCatalog", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
                     b.Property<string>("CatalogPath")
                         .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(1000)")
                         .HasComment("分类路径，计算值");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<DateTime>("CreationTime")
@@ -812,7 +810,7 @@ namespace Adee.Store.Migrations
                         .HasColumnName("CreatorId");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<DateTime?>("LastModificationTime")
@@ -825,7 +823,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Name")
                         .HasMaxLength(20)
-                        .HasColumnType("varchar(20) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(20)")
                         .HasComment("分类名称");
 
                     b.Property<Guid?>("ParentCatalogId")
@@ -838,13 +836,12 @@ namespace Adee.Store.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AppProductCatalog");
+                    b.ToTable("ProductCatalog");
                 });
 
             modelBuilder.Entity("Adee.Store.Products.ProductSale", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
                     b.Property<bool>("AllowOversell")
@@ -854,7 +851,7 @@ namespace Adee.Store.Migrations
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<DateTime>("CreationTime")
@@ -866,7 +863,7 @@ namespace Adee.Store.Migrations
                         .HasColumnName("CreatorId");
 
                     b.Property<string>("Description")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasComment("商品描述");
 
                     b.Property<int?>("Discount")
@@ -874,7 +871,7 @@ namespace Adee.Store.Migrations
                         .HasComment("折扣，百分比");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<DateTime?>("LastModificationTime")
@@ -890,7 +887,7 @@ namespace Adee.Store.Migrations
                         .HasComment("市场价");
 
                     b.Property<string>("Photo")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasComment("图片");
 
                     b.Property<int>("ProductSaleType")
@@ -916,7 +913,7 @@ namespace Adee.Store.Migrations
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(255)")
                         .HasComment("售卖标题");
 
                     b.Property<decimal>("TotalSaleVolume")
@@ -929,13 +926,12 @@ namespace Adee.Store.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AppProductSale");
+                    b.ToTable("ProductSale");
                 });
 
             modelBuilder.Entity("Adee.Store.Products.ProductSaleInfo", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
                     b.Property<Guid>("ProductSaleId")
@@ -956,19 +952,18 @@ namespace Adee.Store.Migrations
 
                     b.HasIndex("ProductStockId");
 
-                    b.ToTable("AppProductSaleInfo");
+                    b.ToTable("ProductSaleInfo");
                 });
 
             modelBuilder.Entity("Adee.Store.Products.ProductStock", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<DateTime>("CreationTime")
@@ -980,7 +975,7 @@ namespace Adee.Store.Migrations
                         .HasColumnName("CreatorId");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<DateTime?>("LastModificationTime")
@@ -1000,7 +995,7 @@ namespace Adee.Store.Migrations
                         .HasComment("库存");
 
                     b.Property<string>("Spec")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasComment("商品规格");
 
                     b.Property<Guid?>("TenantId")
@@ -1013,32 +1008,31 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("WarrantyUnit")
                         .HasMaxLength(10)
-                        .HasColumnType("varchar(10) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(10)")
                         .HasComment("质保期单位");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("AppProductStock");
+                    b.ToTable("ProductStock");
                 });
 
             modelBuilder.Entity("Adee.Store.Products.ProductStockLog", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
                     b.Property<string>("BatchNo")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(50)")
                         .HasComment("库存批次号");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<decimal>("CostPrice")
@@ -1054,7 +1048,7 @@ namespace Adee.Store.Migrations
                         .HasColumnName("CreatorId");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<DateTime?>("LastModificationTime")
@@ -1067,7 +1061,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("OriginPlace")
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(50)")
                         .HasComment("原产地");
 
                     b.Property<Guid>("ProductStockId")
@@ -1080,20 +1074,19 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Source")
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(255)")
                         .HasComment("库存来源");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ProductStockId");
 
-                    b.ToTable("AppProductStockLog");
+                    b.ToTable("ProductStockLog");
                 });
 
             modelBuilder.Entity("Adee.Store.Products.ProductStockOrder", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
                     b.Property<decimal>("ActualMoney")
@@ -1102,13 +1095,13 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("BatchNo")
                         .IsRequired()
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasComment("库存批次号");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<DateTime>("CreationTime")
@@ -1120,7 +1113,7 @@ namespace Adee.Store.Migrations
                         .HasColumnName("CreatorId");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<DateTime?>("LastModificationTime")
@@ -1137,16 +1130,16 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Payment")
                         .IsRequired()
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasComment("付款方式");
 
                     b.Property<string>("Remark")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasComment("备注");
 
                     b.Property<string>("Supplier")
                         .IsRequired()
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasComment("供应商");
 
                     b.Property<Guid?>("TenantId")
@@ -1155,7 +1148,7 @@ namespace Adee.Store.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AppProductStockOrder");
+                    b.ToTable("ProductStockOrder");
                 });
 
             modelBuilder.Entity("Volo.Abp.AuditLogging.AuditLog", b =>
@@ -1166,49 +1159,47 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("ApplicationName")
                         .HasMaxLength(96)
-                        .HasColumnType("varchar(96) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(96)")
                         .HasColumnName("ApplicationName");
 
                     b.Property<string>("BrowserInfo")
                         .HasMaxLength(512)
-                        .HasColumnType("varchar(512) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(512)")
                         .HasColumnName("BrowserInfo");
 
                     b.Property<string>("ClientId")
                         .HasMaxLength(64)
-                        .HasColumnType("varchar(64) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(64)")
                         .HasColumnName("ClientId");
 
                     b.Property<string>("ClientIpAddress")
                         .HasMaxLength(64)
-                        .HasColumnType("varchar(64) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(64)")
                         .HasColumnName("ClientIpAddress");
 
                     b.Property<string>("ClientName")
                         .HasMaxLength(128)
-                        .HasColumnType("varchar(128) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(128)")
                         .HasColumnName("ClientName");
 
                     b.Property<string>("Comments")
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(256)")
                         .HasColumnName("Comments");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<string>("CorrelationId")
                         .HasMaxLength(64)
-                        .HasColumnType("varchar(64) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(64)")
                         .HasColumnName("CorrelationId");
 
                     b.Property<string>("Exceptions")
-                        .HasMaxLength(4000)
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
-                        .HasColumnName("Exceptions");
+                        .HasColumnType("longtext");
 
                     b.Property<int>("ExecutionDuration")
                         .HasColumnType("int")
@@ -1218,12 +1209,12 @@ namespace Adee.Store.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<string>("HttpMethod")
                         .HasMaxLength(16)
-                        .HasColumnType("varchar(16) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(16)")
                         .HasColumnName("HttpMethod");
 
                     b.Property<int?>("HttpStatusCode")
@@ -1243,11 +1234,11 @@ namespace Adee.Store.Migrations
                         .HasColumnName("TenantId");
 
                     b.Property<string>("TenantName")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Url")
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(256)")
                         .HasColumnName("Url");
 
                     b.Property<Guid?>("UserId")
@@ -1256,7 +1247,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(256)")
                         .HasColumnName("UserName");
 
                     b.HasKey("Id");
@@ -1287,22 +1278,22 @@ namespace Adee.Store.Migrations
                         .HasColumnName("ExecutionTime");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<string>("MethodName")
                         .HasMaxLength(128)
-                        .HasColumnType("varchar(128) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(128)")
                         .HasColumnName("MethodName");
 
                     b.Property<string>("Parameters")
                         .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(2000)")
                         .HasColumnName("Parameters");
 
                     b.Property<string>("ServiceName")
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(256)")
                         .HasColumnName("ServiceName");
 
                     b.Property<Guid?>("TenantId")
@@ -1339,7 +1330,7 @@ namespace Adee.Store.Migrations
                     b.Property<string>("EntityId")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("varchar(128) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(128)")
                         .HasColumnName("EntityId");
 
                     b.Property<Guid?>("EntityTenantId")
@@ -1348,11 +1339,11 @@ namespace Adee.Store.Migrations
                     b.Property<string>("EntityTypeFullName")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("varchar(128) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(128)")
                         .HasColumnName("EntityTypeFullName");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<Guid?>("TenantId")
@@ -1379,24 +1370,24 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("NewValue")
                         .HasMaxLength(512)
-                        .HasColumnType("varchar(512) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(512)")
                         .HasColumnName("NewValue");
 
                     b.Property<string>("OriginalValue")
                         .HasMaxLength(512)
-                        .HasColumnType("varchar(512) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(512)")
                         .HasColumnName("OriginalValue");
 
                     b.Property<string>("PropertyName")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("varchar(128) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(128)")
                         .HasColumnName("PropertyName");
 
                     b.Property<string>("PropertyTypeFullName")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("varchar(64) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(64)")
                         .HasColumnName("PropertyTypeFullName");
 
                     b.Property<Guid?>("TenantId")
@@ -1419,7 +1410,7 @@ namespace Adee.Store.Migrations
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<DateTime>("CreationTime")
@@ -1427,7 +1418,7 @@ namespace Adee.Store.Migrations
                         .HasColumnName("CreationTime");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<bool>("IsAbandoned")
@@ -1438,12 +1429,12 @@ namespace Adee.Store.Migrations
                     b.Property<string>("JobArgs")
                         .IsRequired()
                         .HasMaxLength(1048576)
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("JobName")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("varchar(128) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(128)");
 
                     b.Property<DateTime?>("LastTryTime")
                         .HasColumnType("datetime(6)");
@@ -1477,20 +1468,20 @@ namespace Adee.Store.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("varchar(128) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(128)");
 
                     b.Property<string>("ProviderKey")
                         .HasMaxLength(64)
-                        .HasColumnType("varchar(64) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(64)");
 
                     b.Property<string>("ProviderName")
                         .HasMaxLength(64)
-                        .HasColumnType("varchar(64) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(64)");
 
                     b.Property<string>("Value")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("varchar(128) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(128)");
 
                     b.HasKey("Id");
 
@@ -1502,21 +1493,20 @@ namespace Adee.Store.Migrations
             modelBuilder.Entity("Volo.Abp.Identity.IdentityClaimType", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<string>("Description")
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(256)");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<bool>("IsStatic")
@@ -1525,15 +1515,15 @@ namespace Adee.Store.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(256)");
 
                     b.Property<string>("Regex")
                         .HasMaxLength(512)
-                        .HasColumnType("varchar(512) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(512)");
 
                     b.Property<string>("RegexDescription")
                         .HasMaxLength(128)
-                        .HasColumnType("varchar(128) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(128)");
 
                     b.Property<bool>("Required")
                         .HasColumnType("tinyint(1)");
@@ -1549,7 +1539,6 @@ namespace Adee.Store.Migrations
             modelBuilder.Entity("Volo.Abp.Identity.IdentityLinkUser", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
                     b.Property<Guid?>("SourceTenantId")
@@ -1575,17 +1564,16 @@ namespace Adee.Store.Migrations
             modelBuilder.Entity("Volo.Abp.Identity.IdentityRole", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<bool>("IsDefault")
@@ -1603,12 +1591,12 @@ namespace Adee.Store.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(256)");
 
                     b.Property<string>("NormalizedName")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(256)");
 
                     b.Property<Guid?>("TenantId")
                         .HasColumnType("char(36)")
@@ -1629,11 +1617,11 @@ namespace Adee.Store.Migrations
                     b.Property<string>("ClaimType")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(256)");
 
                     b.Property<string>("ClaimValue")
                         .HasMaxLength(1024)
-                        .HasColumnType("varchar(1024) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(1024)");
 
                     b.Property<Guid>("RoleId")
                         .HasColumnType("char(36)");
@@ -1652,49 +1640,48 @@ namespace Adee.Store.Migrations
             modelBuilder.Entity("Volo.Abp.Identity.IdentitySecurityLog", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
                     b.Property<string>("Action")
                         .HasMaxLength(96)
-                        .HasColumnType("varchar(96) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(96)");
 
                     b.Property<string>("ApplicationName")
                         .HasMaxLength(96)
-                        .HasColumnType("varchar(96) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(96)");
 
                     b.Property<string>("BrowserInfo")
                         .HasMaxLength(512)
-                        .HasColumnType("varchar(512) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(512)");
 
                     b.Property<string>("ClientId")
                         .HasMaxLength(64)
-                        .HasColumnType("varchar(64) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(64)");
 
                     b.Property<string>("ClientIpAddress")
                         .HasMaxLength(64)
-                        .HasColumnType("varchar(64) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(64)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<string>("CorrelationId")
                         .HasMaxLength(64)
-                        .HasColumnType("varchar(64) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(64)");
 
                     b.Property<DateTime>("CreationTime")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<string>("Identity")
                         .HasMaxLength(96)
-                        .HasColumnType("varchar(96) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(96)");
 
                     b.Property<Guid?>("TenantId")
                         .HasColumnType("char(36)")
@@ -1702,14 +1689,14 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("TenantName")
                         .HasMaxLength(64)
-                        .HasColumnType("varchar(64) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(64)");
 
                     b.Property<Guid?>("UserId")
                         .HasColumnType("char(36)");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(256)");
 
                     b.HasKey("Id");
 
@@ -1727,7 +1714,6 @@ namespace Adee.Store.Migrations
             modelBuilder.Entity("Volo.Abp.Identity.IdentityUser", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
                     b.Property<int>("AccessFailedCount")
@@ -1739,7 +1725,7 @@ namespace Adee.Store.Migrations
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<DateTime>("CreationTime")
@@ -1761,7 +1747,7 @@ namespace Adee.Store.Migrations
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(256)")
                         .HasColumnName("Email");
 
                     b.Property<bool>("EmailConfirmed")
@@ -1771,7 +1757,7 @@ namespace Adee.Store.Migrations
                         .HasColumnName("EmailConfirmed");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<bool>("IsDeleted")
@@ -1805,29 +1791,29 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Name")
                         .HasMaxLength(64)
-                        .HasColumnType("varchar(64) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(64)")
                         .HasColumnName("Name");
 
                     b.Property<string>("NormalizedEmail")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(256)")
                         .HasColumnName("NormalizedEmail");
 
                     b.Property<string>("NormalizedUserName")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(256)")
                         .HasColumnName("NormalizedUserName");
 
                     b.Property<string>("PasswordHash")
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(256)")
                         .HasColumnName("PasswordHash");
 
                     b.Property<string>("PhoneNumber")
                         .HasMaxLength(16)
-                        .HasColumnType("varchar(16) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(16)")
                         .HasColumnName("PhoneNumber");
 
                     b.Property<bool>("PhoneNumberConfirmed")
@@ -1839,12 +1825,12 @@ namespace Adee.Store.Migrations
                     b.Property<string>("SecurityStamp")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(256)")
                         .HasColumnName("SecurityStamp");
 
                     b.Property<string>("Surname")
                         .HasMaxLength(64)
-                        .HasColumnType("varchar(64) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(64)")
                         .HasColumnName("Surname");
 
                     b.Property<Guid?>("TenantId")
@@ -1860,7 +1846,7 @@ namespace Adee.Store.Migrations
                     b.Property<string>("UserName")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(256)")
                         .HasColumnName("UserName");
 
                     b.HasKey("Id");
@@ -1884,11 +1870,11 @@ namespace Adee.Store.Migrations
                     b.Property<string>("ClaimType")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(256)");
 
                     b.Property<string>("ClaimValue")
                         .HasMaxLength(1024)
-                        .HasColumnType("varchar(1024) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(1024)");
 
                     b.Property<Guid?>("TenantId")
                         .HasColumnType("char(36)")
@@ -1911,16 +1897,16 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("LoginProvider")
                         .HasMaxLength(64)
-                        .HasColumnType("varchar(64) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(64)");
 
                     b.Property<string>("ProviderDisplayName")
                         .HasMaxLength(128)
-                        .HasColumnType("varchar(128) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(128)");
 
                     b.Property<string>("ProviderKey")
                         .IsRequired()
                         .HasMaxLength(196)
-                        .HasColumnType("varchar(196) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(196)");
 
                     b.Property<Guid?>("TenantId")
                         .HasColumnType("char(36)")
@@ -1986,18 +1972,18 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("LoginProvider")
                         .HasMaxLength(64)
-                        .HasColumnType("varchar(64) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(64)");
 
                     b.Property<string>("Name")
                         .HasMaxLength(128)
-                        .HasColumnType("varchar(128) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(128)");
 
                     b.Property<Guid?>("TenantId")
                         .HasColumnType("char(36)")
                         .HasColumnName("TenantId");
 
                     b.Property<string>("Value")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+                        .HasColumnType("longtext");
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
@@ -2007,19 +1993,18 @@ namespace Adee.Store.Migrations
             modelBuilder.Entity("Volo.Abp.Identity.OrganizationUnit", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(95)
-                        .HasColumnType("varchar(95) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(95)")
                         .HasColumnName("Code");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<DateTime>("CreationTime")
@@ -2041,11 +2026,11 @@ namespace Adee.Store.Migrations
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("varchar(128) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(128)")
                         .HasColumnName("DisplayName");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<bool>("IsDeleted")
@@ -2113,12 +2098,12 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("AllowedAccessTokenSigningAlgorithms")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(100)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<DateTime>("CreationTime")
@@ -2139,17 +2124,17 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(1000)");
 
                     b.Property<string>("DisplayName")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(200)");
 
                     b.Property<bool>("Enabled")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<bool>("IsDeleted")
@@ -2169,7 +2154,7 @@ namespace Adee.Store.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(200)");
 
                     b.Property<bool>("ShowInDiscoveryDocument")
                         .HasColumnType("tinyint(1)");
@@ -2186,7 +2171,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Type")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(200)");
 
                     b.HasKey("ApiResourceId", "Type");
 
@@ -2200,11 +2185,11 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Key")
                         .HasMaxLength(250)
-                        .HasColumnType("varchar(250) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(250)");
 
                     b.Property<string>("Value")
                         .HasMaxLength(300)
-                        .HasColumnType("varchar(300) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(300)");
 
                     b.HasKey("ApiResourceId", "Key", "Value");
 
@@ -2218,7 +2203,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Scope")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(200)");
 
                     b.HasKey("ApiResourceId", "Scope");
 
@@ -2232,15 +2217,15 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Type")
                         .HasMaxLength(250)
-                        .HasColumnType("varchar(250) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(250)");
 
                     b.Property<string>("Value")
                         .HasMaxLength(300)
-                        .HasColumnType("varchar(300) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(300)");
 
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(1000)");
 
                     b.Property<DateTime?>("Expiration")
                         .HasColumnType("datetime(6)");
@@ -2259,7 +2244,7 @@ namespace Adee.Store.Migrations
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<DateTime>("CreationTime")
@@ -2280,11 +2265,11 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(1000)");
 
                     b.Property<string>("DisplayName")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(200)");
 
                     b.Property<bool>("Emphasize")
                         .HasColumnType("tinyint(1)");
@@ -2293,7 +2278,7 @@ namespace Adee.Store.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<bool>("IsDeleted")
@@ -2313,7 +2298,7 @@ namespace Adee.Store.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(200)");
 
                     b.Property<bool>("Required")
                         .HasColumnType("tinyint(1)");
@@ -2333,7 +2318,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Type")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(200)");
 
                     b.HasKey("ApiScopeId", "Type");
 
@@ -2347,11 +2332,11 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Key")
                         .HasMaxLength(250)
-                        .HasColumnType("varchar(250) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(250)");
 
                     b.Property<string>("Value")
                         .HasMaxLength(300)
-                        .HasColumnType("varchar(300) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(300)");
 
                     b.HasKey("ApiScopeId", "Key", "Value");
 
@@ -2387,7 +2372,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("AllowedIdentityTokenSigningAlgorithms")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(100)");
 
                     b.Property<bool>("AlwaysIncludeUserClaimsInIdToken")
                         .HasColumnType("tinyint(1)");
@@ -2403,29 +2388,29 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("BackChannelLogoutUri")
                         .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(2000)");
 
                     b.Property<string>("ClientClaimsPrefix")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(200)");
 
                     b.Property<string>("ClientId")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(200)");
 
                     b.Property<string>("ClientName")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(200)");
 
                     b.Property<string>("ClientUri")
                         .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(2000)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<int?>("ConsentLifetime")
@@ -2449,7 +2434,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(1000)");
 
                     b.Property<int>("DeviceCodeLifetime")
                         .HasColumnType("int");
@@ -2461,7 +2446,7 @@ namespace Adee.Store.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<bool>("FrontChannelLogoutSessionRequired")
@@ -2469,7 +2454,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("FrontChannelLogoutUri")
                         .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(2000)");
 
                     b.Property<int>("IdentityTokenLifetime")
                         .HasColumnType("int");
@@ -2493,16 +2478,16 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("LogoUri")
                         .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(2000)");
 
                     b.Property<string>("PairWiseSubjectSalt")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(200)");
 
                     b.Property<string>("ProtocolType")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(200)");
 
                     b.Property<int>("RefreshTokenExpiration")
                         .HasColumnType("int");
@@ -2530,7 +2515,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("UserCodeType")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(100)");
 
                     b.Property<int?>("UserSsoLifetime")
                         .HasColumnType("int");
@@ -2549,11 +2534,11 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Type")
                         .HasMaxLength(250)
-                        .HasColumnType("varchar(250) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(250)");
 
                     b.Property<string>("Value")
                         .HasMaxLength(250)
-                        .HasColumnType("varchar(250) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(250)");
 
                     b.HasKey("ClientId", "Type", "Value");
 
@@ -2567,7 +2552,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Origin")
                         .HasMaxLength(150)
-                        .HasColumnType("varchar(150) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(150)");
 
                     b.HasKey("ClientId", "Origin");
 
@@ -2581,7 +2566,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("GrantType")
                         .HasMaxLength(250)
-                        .HasColumnType("varchar(250) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(250)");
 
                     b.HasKey("ClientId", "GrantType");
 
@@ -2595,7 +2580,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Provider")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(200)");
 
                     b.HasKey("ClientId", "Provider");
 
@@ -2609,7 +2594,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("PostLogoutRedirectUri")
                         .HasMaxLength(300)
-                        .HasColumnType("varchar(300) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(300)");
 
                     b.HasKey("ClientId", "PostLogoutRedirectUri");
 
@@ -2623,11 +2608,11 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Key")
                         .HasMaxLength(250)
-                        .HasColumnType("varchar(250) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(250)");
 
                     b.Property<string>("Value")
                         .HasMaxLength(300)
-                        .HasColumnType("varchar(300) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(300)");
 
                     b.HasKey("ClientId", "Key", "Value");
 
@@ -2641,7 +2626,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("RedirectUri")
                         .HasMaxLength(300)
-                        .HasColumnType("varchar(300) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(300)");
 
                     b.HasKey("ClientId", "RedirectUri");
 
@@ -2655,7 +2640,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Scope")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(200)");
 
                     b.HasKey("ClientId", "Scope");
 
@@ -2669,15 +2654,15 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Type")
                         .HasMaxLength(250)
-                        .HasColumnType("varchar(250) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(250)");
 
                     b.Property<string>("Value")
                         .HasMaxLength(300)
-                        .HasColumnType("varchar(300) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(300)");
 
                     b.Property<string>("Description")
                         .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(2000)");
 
                     b.Property<DateTime?>("Expiration")
                         .HasColumnType("datetime(6)");
@@ -2696,12 +2681,12 @@ namespace Adee.Store.Migrations
                     b.Property<string>("ClientId")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(200)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<DateTime>("CreationTime")
@@ -2715,37 +2700,37 @@ namespace Adee.Store.Migrations
                     b.Property<string>("Data")
                         .IsRequired()
                         .HasMaxLength(10000)
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(10000)");
 
                     b.Property<string>("Description")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(200)");
 
                     b.Property<string>("DeviceCode")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(200)");
 
                     b.Property<DateTime?>("Expiration")
                         .IsRequired()
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<string>("SessionId")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(100)");
 
                     b.Property<string>("SubjectId")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(200)");
 
                     b.Property<string>("UserCode")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(200)");
 
                     b.HasKey("Id");
 
@@ -2763,17 +2748,17 @@ namespace Adee.Store.Migrations
                 {
                     b.Property<string>("Key")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(200)");
 
                     b.Property<string>("ClientId")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(200)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<DateTime?>("ConsumedTime")
@@ -2785,17 +2770,17 @@ namespace Adee.Store.Migrations
                     b.Property<string>("Data")
                         .IsRequired()
                         .HasMaxLength(10000)
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(10000)");
 
                     b.Property<string>("Description")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(200)");
 
                     b.Property<DateTime?>("Expiration")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<Guid>("Id")
@@ -2803,16 +2788,16 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("SessionId")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(100)");
 
                     b.Property<string>("SubjectId")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(200)");
 
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(50)");
 
                     b.HasKey("Key");
 
@@ -2834,7 +2819,7 @@ namespace Adee.Store.Migrations
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<DateTime>("CreationTime")
@@ -2855,11 +2840,11 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(1000)");
 
                     b.Property<string>("DisplayName")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(200)");
 
                     b.Property<bool>("Emphasize")
                         .HasColumnType("tinyint(1)");
@@ -2868,7 +2853,7 @@ namespace Adee.Store.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<bool>("IsDeleted")
@@ -2888,7 +2873,7 @@ namespace Adee.Store.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(200)");
 
                     b.Property<bool>("Required")
                         .HasColumnType("tinyint(1)");
@@ -2908,7 +2893,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Type")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(200)");
 
                     b.HasKey("IdentityResourceId", "Type");
 
@@ -2922,11 +2907,11 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Key")
                         .HasMaxLength(250)
-                        .HasColumnType("varchar(250) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(250)");
 
                     b.Property<string>("Value")
                         .HasMaxLength(300)
-                        .HasColumnType("varchar(300) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(300)");
 
                     b.HasKey("IdentityResourceId", "Key", "Value");
 
@@ -2942,17 +2927,17 @@ namespace Adee.Store.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("varchar(128) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(128)");
 
                     b.Property<string>("ProviderKey")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("varchar(64) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(64)");
 
                     b.Property<string>("ProviderName")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("varchar(64) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(64)");
 
                     b.Property<Guid?>("TenantId")
                         .HasColumnType("char(36)")
@@ -2974,20 +2959,20 @@ namespace Adee.Store.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("varchar(128) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(128)");
 
                     b.Property<string>("ProviderKey")
                         .HasMaxLength(64)
-                        .HasColumnType("varchar(64) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(64)");
 
                     b.Property<string>("ProviderName")
                         .HasMaxLength(64)
-                        .HasColumnType("varchar(64) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(64)");
 
                     b.Property<string>("Value")
                         .IsRequired()
                         .HasMaxLength(2048)
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(2048)");
 
                     b.HasKey("Id");
 
@@ -2999,13 +2984,12 @@ namespace Adee.Store.Migrations
             modelBuilder.Entity("Volo.Abp.TenantManagement.Tenant", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40) CHARACTER SET utf8mb4")
+                        .HasColumnType("varchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<DateTime>("CreationTime")
@@ -3025,7 +3009,7 @@ namespace Adee.Store.Migrations
                         .HasColumnName("DeletionTime");
 
                     b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4")
+                        .HasColumnType("longtext")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<bool>("IsDeleted")
@@ -3045,7 +3029,7 @@ namespace Adee.Store.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("varchar(64) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(64)");
 
                     b.HasKey("Id");
 
@@ -3061,12 +3045,12 @@ namespace Adee.Store.Migrations
 
                     b.Property<string>("Name")
                         .HasMaxLength(64)
-                        .HasColumnType("varchar(64) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(64)");
 
                     b.Property<string>("Value")
                         .IsRequired()
                         .HasMaxLength(1024)
-                        .HasColumnType("varchar(1024) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(1024)");
 
                     b.HasKey("TenantId", "Name");
 

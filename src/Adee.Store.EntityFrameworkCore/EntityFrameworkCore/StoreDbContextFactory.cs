@@ -7,18 +7,18 @@ namespace Adee.Store.EntityFrameworkCore
 {
     /* This class is needed for EF Core console commands
      * (like Add-Migration and Update-Database commands) */
-    public class StoreMigrationsDbContextFactory : IDesignTimeDbContextFactory<StoreMigrationsDbContext>
+    public class StoreDbContextFactory : IDesignTimeDbContextFactory<StoreDbContext>
     {
-        public StoreMigrationsDbContext CreateDbContext(string[] args)
+        public StoreDbContext CreateDbContext(string[] args)
         {
             StoreEfCoreEntityExtensionMappings.Configure();
 
             var configuration = BuildConfiguration();
 
-            var builder = new DbContextOptionsBuilder<StoreMigrationsDbContext>()
-                .UseMySql(configuration.GetConnectionString("Default"), MySqlServerVersion.LatestSupportedServerVersion);
+            var builder = new DbContextOptionsBuilder<StoreDbContext>()
+                .UseMySql(configuration.GetConnectionString("Default"), ServerVersion.AutoDetect(configuration.GetConnectionString("Default")));
 
-            return new StoreMigrationsDbContext(builder.Options);
+            return new StoreDbContext(builder.Options);
         }
 
         private static IConfigurationRoot BuildConfiguration()

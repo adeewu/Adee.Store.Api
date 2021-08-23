@@ -1,6 +1,5 @@
 ﻿using Adee.Store.Orders;
 using Adee.Store.Pays;
-using Adee.Store.Users;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +10,7 @@ using Volo.Abp.Data;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Guids;
+using Volo.Abp.Identity;
 using Volo.Abp.Json;
 using Volo.Abp.Uow;
 
@@ -22,7 +22,7 @@ namespace Adee.Store.Products
         private readonly IRepository<ProductStock, Guid> _productStockRepository;
         private readonly IRepository<ProductSale, Guid> _productSaleRepository;
         private readonly IRepository<Order, Guid> _orderRepository;
-        private readonly IRepository<AppUser, Guid> _userRepository;
+        private readonly IRepository<IdentityUser, Guid> _userRepository;
         private readonly IRepository<ProductCatalog, Guid> _productCatalogRepository;
         private readonly IGuidGenerator _guidGenerator;
         private readonly IJsonSerializer _jsonSerializer;
@@ -32,7 +32,7 @@ namespace Adee.Store.Products
             IRepository<ProductStock, Guid> productStockRepository,
             IRepository<ProductSale, Guid> productSaleRepository,
             IRepository<Order, Guid> orderRepository,
-            IRepository<AppUser, Guid> userRepository,
+            IRepository<IdentityUser, Guid> userRepository,
             IRepository<ProductCatalog, Guid> productCatalogRepository,
             IGuidGenerator guidGenerator,
             IJsonSerializer jsonSerializer)

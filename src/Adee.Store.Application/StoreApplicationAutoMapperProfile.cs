@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using Adee.Store.Products;
-using AutoMapper;
-using System.Linq;
+﻿using AutoMapper;
 
 namespace Adee.Store
 {
@@ -9,26 +6,9 @@ namespace Adee.Store
     {
         public StoreApplicationAutoMapperProfile()
         {
-            CreateMap<Product, ProductDto>()
-                .ForMember(p => p.Specs, config => config.MapFrom(src => src.Specs.AsObject<List<ProductSpec>>(null)));
-
-            CreateMap<CreateUpdateProductDto, Product>()
-                .ForMember(p => p.Specs, config => config.MapFrom(src => src.Specs.ToJsonString(null)));
-
-            CreateMap<ProductCatalog, ProductCatalogDto>();
-            CreateMap<CreateUpdateProductCatalogDto, ProductCatalog>();
-
-            CreateMap<ProductStock, ProductStockDto>();
-            CreateMap<CreateUpdateProductStockDto, ProductStock>();
-
-            CreateMap<ProductStockLog, ProductStockLogDto>();
-            CreateMap<CreateUpdateProductStockLogDto, ProductStockLog>();
-
-            CreateMap<ProductSale, ProductSaleDto>();
-            CreateMap<CreateUpdateProductSaleDto, ProductSale>();
-
-            CreateMap<ProductStockOrder, ProductStockOrderDto>();
-            CreateMap<CreateUpdateProductStockOrderDto, ProductStockOrder>();
+            /* You can configure your AutoMapper mapping configuration here.
+             * Alternatively, you can split your mapping configurations
+             * into multiple profile classes for a better organization. */
         }
     }
 }

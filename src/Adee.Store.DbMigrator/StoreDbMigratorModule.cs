@@ -7,7 +7,7 @@ namespace Adee.Store.DbMigrator
 {
     [DependsOn(
         typeof(AbpAutofacModule),
-        typeof(StoreEntityFrameworkCoreDbMigrationsModule),
+        typeof(StoreEntityFrameworkCoreModule),
         typeof(StoreApplicationContractsModule)
         )]
     public class StoreDbMigratorModule : AbpModule

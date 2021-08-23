@@ -20,14 +20,14 @@ namespace Adee.Store.EntityFrameworkCore
 
         public async Task MigrateAsync()
         {
-            /* We intentionally resolving the StoreMigrationsDbContext
+            /* We intentionally resolving the StoreDbContext
              * from IServiceProvider (instead of directly injecting it)
              * to properly get the connection string of the current tenant in the
              * current scope.
              */
 
             await _serviceProvider
-                .GetRequiredService<StoreMigrationsDbContext>()
+                .GetRequiredService<StoreDbContext>()
                 .Database
                 .MigrateAsync();
         }

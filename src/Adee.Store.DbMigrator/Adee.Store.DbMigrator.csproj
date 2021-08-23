@@ -26,9 +26,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Volo.Abp.Autofac" Version="4.3.3" />
+    <PackageReference Include="Volo.Abp.Autofac" Version="4.4.0" />
     <ProjectReference Include="..\Adee.Store.Application.Contracts\Adee.Store.Application.Contracts.csproj" />
-    <ProjectReference Include="..\Adee.Store.EntityFrameworkCore.DbMigrations\Adee.Store.EntityFrameworkCore.DbMigrations.csproj" />
+    <ProjectReference Include="..\Adee.Store.EntityFrameworkCore\Adee.Store.EntityFrameworkCore.csproj" />
   </ItemGroup>
   
   <ItemGroup>

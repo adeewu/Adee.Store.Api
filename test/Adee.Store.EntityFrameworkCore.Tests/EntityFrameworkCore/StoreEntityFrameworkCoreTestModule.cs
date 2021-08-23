@@ -11,7 +11,7 @@ using Volo.Abp.Modularity;
 namespace Adee.Store.EntityFrameworkCore
 {
     [DependsOn(
-        typeof(StoreEntityFrameworkCoreDbMigrationsModule),
+        typeof(StoreEntityFrameworkCoreModule),
         typeof(StoreTestBaseModule),
         typeof(AbpEntityFrameworkCoreSqliteModule)
         )]
@@ -47,11 +47,11 @@ namespace Adee.Store.EntityFrameworkCore
             var connection = new SqliteConnection("Data Source=:memory:");
             connection.Open();
 
-            var options = new DbContextOptionsBuilder<StoreMigrationsDbContext>()
+            var options = new DbContextOptionsBuilder<StoreDbContext>()
                 .UseSqlite(connection)
                 .Options;
 
-            using (var context = new StoreMigrationsDbContext(options))
+            using (var context = new StoreDbContext(options))
             {
                 context.GetService<IRelationalDatabaseCreator>().CreateTables();
             }

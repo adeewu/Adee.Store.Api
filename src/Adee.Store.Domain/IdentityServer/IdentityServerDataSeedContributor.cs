@@ -142,10 +142,31 @@ namespace Adee.Store.IdentityServer
 
             var configurationSection = _configuration.GetSection("IdentityServer:Clients");
 
+
+            //Web Client
+            var webClientId = configurationSection["Store_Web:ClientId"];
+            if (!webClientId.IsNullOrWhiteSpace())
+            {
+                var webClientRootUrl = configurationSection["Store_Web:RootUrl"].EnsureEndsWith('/');
+
+                await CreateClientAsync(
+                    name: webClientId,
+                    scopes: commonScopes,
+                    grantTypes: new[] { "hybrid" },
+                    secret: (configurationSection["Store_Web:ClientSecret"] ?? "1q2w3e*").Sha256(),
+                    redirectUri: $"{webClientRootUrl}signin-oidc",
+                    postLogoutRedirectUri: $"{webClientRootUrl}signout-callback-oidc",
+                    frontChannelLogoutUri: $"{webClientRootUrl}Account/FrontChannelLogout",
+                    corsOrigins: new[] { webClientRootUrl.RemovePostFix("/") }
+                );
+            }
+            
+
+            //Console Test / Angular Client
             var consoleAndAngularClientId = configurationSection["Store_App:ClientId"];
             if (!consoleAndAngularClientId.IsNullOrWhiteSpace())
             {
-                var rootUrl = configurationSection["Store_App:RootUrl"]?.TrimEnd('/');
+                var webClientRootUrl = configurationSection["Store_App:RootUrl"]?.TrimEnd('/');
 
                 await CreateClientAsync(
                     name: consoleAndAngularClientId,
@@ -153,16 +174,19 @@ namespace Adee.Store.IdentityServer
                     grantTypes: new[] { "password", "client_credentials", "authorization_code" },
                     secret: (configurationSection["Store_App:ClientSecret"] ?? "1q2w3e*").Sha256(),
                     requireClientSecret: false,
-                    redirectUri: rootUrl,
-                    postLogoutRedirectUri: rootUrl,
-                    corsOrigins: new[] { rootUrl.RemovePostFix("/") }
+                    redirectUri: webClientRootUrl,
+                    postLogoutRedirectUri: webClientRootUrl,
+                    corsOrigins: new[] { webClientRootUrl.RemovePostFix("/") }
                 );
             }
             
+            
+            
+            // Swagger Client
             var swaggerClientId = configurationSection["Store_Swagger:ClientId"];
             if (!swaggerClientId.IsNullOrWhiteSpace())
             {
-                var rootUrl = configurationSection["Store_Swagger:RootUrl"].TrimEnd('/');
+                var swaggerRootUrl = configurationSection["Store_Swagger:RootUrl"].TrimEnd('/');
 
                 await CreateClientAsync(
                     name: swaggerClientId,
@@ -170,24 +194,8 @@ namespace Adee.Store.IdentityServer
                     grantTypes: new[] { "authorization_code" },
                     secret: configurationSection["Store_Swagger:ClientSecret"]?.Sha256(),
                     requireClientSecret: false,
-                    redirectUri: $"{rootUrl}/swagger/oauth2-redirect.html",
-                    corsOrigins: new[] { rootUrl.RemovePostFix("/") }
-                );
-            }
-
-            var webClientId = configurationSection["Store_Web:ClientId"];
-            if (!swaggerClientId.IsNullOrWhiteSpace())
-            {
-                var rootUrl = configurationSection["Store_Web:RootUrl"].TrimEnd('/');
-
-                await CreateClientAsync(
-                    name: webClientId,
-                    scopes: commonScopes,
-                    grantTypes: new[] { "password", "client_credentials", "authorization_code" },
-                    secret: configurationSection["Store_Web:ClientSecret"]?.Sha256(),
-                    requireClientSecret: false,
-                    redirectUri: $"{rootUrl}/index.html#/login",
-                    corsOrigins: new[] { rootUrl.RemovePostFix("/") }
+                    redirectUri: $"{swaggerRootUrl}/swagger/oauth2-redirect.html",
+                    corsOrigins: new[] { swaggerRootUrl.RemovePostFix("/") }
                 );
             }
         }

@@ -20,7 +20,9 @@
                 "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
             },
             "env": {
-                "ASPNETCORE_ENVIRONMENT": "Development"
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_Kestrel__Certificates__Default__Password": "changeit",
+                "ASPNETCORE_Kestrel__Certificates__Default__Path": "${workspaceFolder}/certs/localhost.p12"
             },
             "sourceFileMap": {
                 "/Views": "${workspaceFolder}/Views"
@@ -45,7 +47,9 @@
                 "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
             },
             "env": {
-                "ASPNETCORE_ENVIRONMENT": "Development"
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_Kestrel__Certificates__Default__Password": "changeit",
+                "ASPNETCORE_Kestrel__Certificates__Default__Path": "${workspaceFolder}/certs/localhost.p12"
             },
             "sourceFileMap": {
                 "/Views": "${workspaceFolder}/Views"
@@ -53,10 +57,13 @@
         }
     ],
     "compounds": [
-      {
-        "name": "Api/IDS4",
-        "configurations": ["Api", "IDS4"],
-        //"preLaunchTask": "${defaultBuildTask}"
-      }
+        {
+            "name": "Api/IDS4",
+            "configurations": [
+                "Api",
+                "IDS4"
+            ],
+            //"preLaunchTask": "${defaultBuildTask}"
+        }
     ]
 }

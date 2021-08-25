@@ -27,7 +27,7 @@ namespace Adee.Store.Pays
             AssertHelper.IsTrue(Regex.IsMatch(payOrderId, @"\d{30}"), "支付订单号必须为纯数字");
 
             OrderTime = DateTime.ParseExact(payOrderId.Substring(0, 12), "yyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
-            ShopId = payOrderId.Substring(12, 8);
+            TenantId = payOrderId.Substring(12, 8);
             OrganizationType = (PayOrganizationType)Convert.ToInt32(payOrderId.Substring(20, 2));
             PaymentType = (PaymentType)Convert.ToInt32(payOrderId.Substring(22, 2));
             PaymethodType = (PaymethodType)Convert.ToInt32(payOrderId.Substring(24, 2));
@@ -36,9 +36,9 @@ namespace Adee.Store.Pays
         }
 
         /// <summary>
-        /// 店铺Id
+        /// 租户Id
         /// </summary>
-        public string ShopId { get; set; }
+        public string TenantId { get; set; }
 
         /// <summary>
         /// 收单机构
@@ -81,7 +81,7 @@ namespace Adee.Store.Pays
             var paythodTypeString = "{0:d2}".FormatString((int)PaymethodType);
             var businessTypeString = "{0:d2}".FormatString((int)BusinessType);
 
-            return $"{OrderTime:yyMMddHHmmss}{ShopId}{organizationTypeString}{paymentTypeString}{paythodTypeString}{businessTypeString}{Random}";
+            return $"{OrderTime:yyMMddHHmmss}{TenantId}{organizationTypeString}{paymentTypeString}{paythodTypeString}{businessTypeString}{Random}";
         }
     }
 }

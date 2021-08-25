@@ -19,33 +19,21 @@ namespace Adee.Store.Pays
         Unknown = 0,
 
         /// <summary>
-        /// 扫码支付
-        /// </summary>
-        [Description("扫码支付")]
-        QRPay = 1,
-
-        /// <summary>
         /// 微信支付
         /// </summary>
         [Description("微信支付")]
-        WechatPay = 2,
+        WechatPay = 1,
 
         /// <summary>
         /// 支付宝
         /// </summary>
         [Description("支付宝")]
-        Alipay = 3,
+        Alipay = 2,
 
         /// <summary>
-        /// 龙支付
+        /// 云闪付
         /// </summary>
-        [Description("龙支付")]
-        CCB = 4,
-
-        /// <summary>
-        /// 银联支付
-        /// </summary>
-        [Description("银联支付")]
-        UnionPay = 5,
+        [Description("云闪付")]
+        UnionPay = 3,
     }
 }

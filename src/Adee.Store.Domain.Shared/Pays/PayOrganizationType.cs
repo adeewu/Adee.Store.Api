@@ -17,23 +17,5 @@ namespace Adee.Store.Pays
         /// </summary>
         [Description("未知")]
         Unknown = -1,
-
-        /// <summary>
-        /// 新大陆
-        /// </summary>
-        [Description("新大陆")]
-        StartPosPay = 1,
-
-        /// <summary>
-        /// CCBPay
-        /// </summary>
-        [Description("CCBPay")]
-        CCBPay = 2,
-
-        /// <summary>
-        /// 龙支付定时上单
-        /// </summary>
-        [Description("龙支付定时上单")]
-        CCBPaySync = 3,
     }
 }

@@ -40,6 +40,6 @@ namespace Adee.Store.Pays
         /// 微信公众号
         /// </summary>
         [Description("WechatMP")]
-        WechatMP = 3,
+        WechatMP = 4,
     }
 }

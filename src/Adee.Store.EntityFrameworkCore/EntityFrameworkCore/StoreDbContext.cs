@@ -14,21 +14,22 @@ using Volo.Abp.TenantManagement;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
 using Adee.Store.Orders;
 using Adee.Store.Products;
+using System.Linq;
 
 namespace Adee.Store.EntityFrameworkCore
 {
     [ReplaceDbContext(typeof(IIdentityDbContext))]
     [ReplaceDbContext(typeof(ITenantManagementDbContext))]
     [ConnectionStringName("Default")]
-    public class StoreDbContext : 
+    public partial class StoreDbContext :
         AbpDbContext<StoreDbContext>,
         IIdentityDbContext,
         ITenantManagementDbContext
     {
         /* Add DbSet properties for your Aggregate Roots / Entities here. */
-        
+
         #region Entities from the modules
-        
+
         /* Notice: We only implemented IIdentityDbContext and ITenantManagementDbContext
          * and replaced them for this DbContext. This allows you to perform JOIN
          * queries for the entities of these modules over the repositories easily. You
@@ -39,7 +40,7 @@ namespace Adee.Store.EntityFrameworkCore
          * More info: Replacing a DbContext of a module ensures that the related module
          * uses this DbContext on runtime. Otherwise, it will use its own DbContext class.
          */
-        
+
         //Identity
         public DbSet<IdentityUser> Users { get; set; }
         public DbSet<IdentityRole> Roles { get; set; }
@@ -47,28 +48,10 @@ namespace Adee.Store.EntityFrameworkCore
         public DbSet<OrganizationUnit> OrganizationUnits { get; set; }
         public DbSet<IdentitySecurityLog> SecurityLogs { get; set; }
         public DbSet<IdentityLinkUser> LinkUsers { get; set; }
-        
+
         // Tenant Management
         public DbSet<Tenant> Tenants { get; set; }
         public DbSet<TenantConnectionString> TenantConnectionStrings { get; set; }
-
-        public virtual DbSet<Order> Order { get; set; }
-
-        public virtual DbSet<OrderInfo> OrderDetail { get; set; }
-
-        public virtual DbSet<Product> Product { get; set; }
-
-        public virtual DbSet<ProductSale> ProductSale { get; set; }
-
-        public virtual DbSet<ProductSaleInfo> ProductSaleInfo { get; set; }
-
-        public virtual DbSet<ProductStockOrder> ProductStockOrder { get; set; }
-
-        public virtual DbSet<ProductStock> ProductStock { get; set; }
-
-        public virtual DbSet<ProductStockLog> ProductStockLog { get; set; }
-
-        public virtual DbSet<ProductCatalog> ProductCatalog { get; set; }
         #endregion
 
         public StoreDbContext(DbContextOptions<StoreDbContext> options)
@@ -92,8 +75,6 @@ namespace Adee.Store.EntityFrameworkCore
             builder.ConfigureFeatureManagement();
             builder.ConfigureTenantManagement();
 
-            builder.ConfigureStore();
-
             /* Configure your own tables/entities inside here */
 
             //builder.Entity<YourEntity>(b =>
@@ -102,6 +83,13 @@ namespace Adee.Store.EntityFrameworkCore
             //    b.ConfigureByConvention(); //auto configure for the base class props
             //    //...
             //});
+
+            GetType()
+            .GetMethods()
+            .Where(p => p.Name.StartsWith("Configure"))
+            .Where(p => p.GetParameters().Length == 1)
+            .Where(p => p.GetParameters().FirstOrDefault().ParameterType == typeof(ModelBuilder))
+            .ForEach(p => p.Invoke(this, new object[] { builder }));
         }
     }
 }

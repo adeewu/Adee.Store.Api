@@ -6,7 +6,7 @@ using Volo.Abp.MultiTenancy;
 namespace Adee.Store.Pays
 {
     /// <summary>
-    /// 聚合支付支付参数
+    /// 支付参数
     /// </summary>
     public partial class PayParameter : AuditedAggregateRoot<Guid>, IMultiTenant
     {

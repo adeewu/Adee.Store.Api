@@ -7,11 +7,25 @@ using System.Text;
 using System.Threading.Tasks;
 using Volo.Abp.EntityFrameworkCore.Modeling;
 
-namespace Adee.Store.EntityFrameworkCore.ModelCreatings
+namespace Adee.Store.EntityFrameworkCore
 {
-    public class Product
+    public partial class StoreDbContext
     {
-        public static void ConfigureStore(ModelBuilder builder)
+        public virtual DbSet<Product> Product { get; set; }
+
+        public virtual DbSet<ProductSale> ProductSale { get; set; }
+
+        public virtual DbSet<ProductSaleInfo> ProductSaleInfo { get; set; }
+
+        public virtual DbSet<ProductStockOrder> ProductStockOrder { get; set; }
+
+        public virtual DbSet<ProductStock> ProductStock { get; set; }
+
+        public virtual DbSet<ProductStockLog> ProductStockLog { get; set; }
+
+        public virtual DbSet<ProductCatalog> ProductCatalog { get; set; }
+
+        public void ConfigureProduct(ModelBuilder builder)
         {
             builder.Entity<Products.Product>(entity =>
             {

@@ -7,11 +7,21 @@ using System.Text;
 using System.Threading.Tasks;
 using Volo.Abp.EntityFrameworkCore.Modeling;
 
-namespace Adee.Store.EntityFrameworkCore.ModelCreatings
+namespace Adee.Store.EntityFrameworkCore
 {
-    public class Pay
+    public partial class StoreDbContext
     {
-        public static void ConfigureStore(ModelBuilder builder)
+        public virtual DbSet<PayNotify> PayNotify { get; set; }
+
+        public virtual DbSet<PayOrder> PayOrder { get; set; }
+
+        public virtual DbSet<PayOrderLog> PayOrderLog { get; set; }
+
+        public virtual DbSet<PayParameter> PayParameter { get; set; }
+
+        public virtual DbSet<PayRefund> PayRefund { get; set; }
+
+        public void ConfigurePay(ModelBuilder builder)
         {
             builder.Entity<PayNotify>(entity =>
             {
@@ -247,16 +257,6 @@ namespace Adee.Store.EntityFrameworkCore.ModelCreatings
                 entity.HasOne(e => e.PayOrder)
                     .WithMany(e => e.PayRefunds)
                     .HasForeignKey(e => e.OrderId);
-            });
-
-            builder.Entity<PaySecrect>(entity =>
-            {
-                entity.ToTable(StoreConsts.DbTablePrefix + nameof(PaySecrect));
-                entity.ConfigureByConvention();
-
-                entity.Property(e => e.SignKey)
-                    .HasMaxLength(50)
-                    .HasComment("密钥");
             });
         }
     }

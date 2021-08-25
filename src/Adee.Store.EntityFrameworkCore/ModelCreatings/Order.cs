@@ -7,11 +7,15 @@ using System.Text;
 using System.Threading.Tasks;
 using Volo.Abp.EntityFrameworkCore.Modeling;
 
-namespace Adee.Store.EntityFrameworkCore.ModelCreatings
+namespace Adee.Store.EntityFrameworkCore
 {
-    public class Order
+    public partial class StoreDbContext
     {
-        public static void ConfigureStore(ModelBuilder builder)
+        public virtual DbSet<Order> Order { get; set; }
+
+        public virtual DbSet<OrderInfo> OrderDetail { get; set; }
+
+        public void ConfigureOrder(ModelBuilder builder)
         {
             builder.Entity<Orders.Order>(entity =>
             {

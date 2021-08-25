@@ -46,6 +46,11 @@ namespace Adee.Store
             var configuration = context.Services.GetConfiguration();
             var hostingEnvironment = context.Services.GetHostingEnvironment();
 
+            context.Services.Configure<Volo.Abp.AspNetCore.ExceptionHandling.AbpExceptionHandlingOptions>(options =>
+            {
+                options.SendExceptionsDetailsToClients = true;
+            });
+
             ConfigureConventionalControllers();
             ConfigureAuthentication(context, configuration, hostingEnvironment);
             ConfigureLocalization();

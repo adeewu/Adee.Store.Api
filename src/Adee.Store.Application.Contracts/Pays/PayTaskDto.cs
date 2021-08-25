@@ -16,6 +16,12 @@ namespace Adee.Store.Pays
         /// </summary>
         [Description("B2C")]
         B2C,
+
+        /// <summary>
+        /// C2B
+        /// </summary>
+        [Description("C2B")]
+        C2B
     }
 
     /// <summary>
@@ -39,17 +45,33 @@ namespace Adee.Store.Pays
         public string Content { get; set; }
     }
 
+    /// <summary>
+    /// 支付任务
+    /// </summary>
     public class PayTaskDto
     {
+        /// <summary>
+        /// 任务类型
+        /// </summary>
+        /// <value></value>
         [Required]
         public TaskType TaskType { get; set; }
     }
 
+    /// <summary>
+    /// B2C收款任务
+    /// </summary>
     public class B2CPayTaskDto : PayTaskDto
     {
+        public B2CPayTaskDto()
+        {
+            TaskType = TaskType.B2C;
+        }
+
         /// <summary>
         /// 支付码
         /// </summary>
+        [Required]
         public string AuthCode { get; set; }
     }
 }

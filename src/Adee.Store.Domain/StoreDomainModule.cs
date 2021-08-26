@@ -13,6 +13,7 @@ using Volo.Abp.PermissionManagement.Identity;
 using Volo.Abp.PermissionManagement.IdentityServer;
 using Volo.Abp.SettingManagement;
 using Volo.Abp.TenantManagement;
+using Adee.Store.Pays.Utils.Helpers;
 
 namespace Adee.Store
 {
@@ -41,6 +42,9 @@ namespace Adee.Store
 #if DEBUG
             context.Services.Replace(ServiceDescriptor.Singleton<IEmailSender, NullEmailSender>());
 #endif
+
+            context.Services.AddHttpClient();
+            context.Services.AddTransient<ICommonClient, CommonClient>();
         }
     }
 }

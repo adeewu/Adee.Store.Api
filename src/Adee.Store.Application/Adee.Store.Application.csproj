@@ -5,6 +5,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>Adee.Store</RootNamespace>
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\Adee.Store.Application.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

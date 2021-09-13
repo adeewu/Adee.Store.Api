@@ -26,6 +26,8 @@ using Volo.Abp.Modularity;
 using Volo.Abp.Swashbuckle;
 using Volo.Abp.VirtualFileSystem;
 using Adee.Store.EntityFrameworkCore;
+using Adee.Store.Utils.Filtes;
+using Volo.Abp.MultiTenancy;
 
 namespace Adee.Store
 {
@@ -37,7 +39,8 @@ namespace Adee.Store
         typeof(StoreApplicationModule),
         typeof(StoreEntityFrameworkCoreModule),
         typeof(AbpAspNetCoreSerilogModule),
-        typeof(AbpSwashbuckleModule)
+        typeof(AbpSwashbuckleModule),
+        typeof(AbpMultiTenancyModule)
     )]
     public class StoreHttpApiHostModule : AbpModule
     {
@@ -46,10 +49,13 @@ namespace Adee.Store
             var configuration = context.Services.GetConfiguration();
             var hostingEnvironment = context.Services.GetHostingEnvironment();
 
-            context.Services.Configure<Volo.Abp.AspNetCore.ExceptionHandling.AbpExceptionHandlingOptions>(options =>
+            if (hostingEnvironment.IsDevelopment())
             {
-                options.SendExceptionsDetailsToClients = true;
-            });
+                context.Services.Configure<Volo.Abp.AspNetCore.ExceptionHandling.AbpExceptionHandlingOptions>(options =>
+                {
+                    options.SendExceptionsDetailsToClients = true;
+                });
+            }
 
             ConfigureConventionalControllers();
             ConfigureAuthentication(context, configuration, hostingEnvironment);
@@ -127,6 +133,21 @@ namespace Adee.Store
                     options.SwaggerDoc("v1", new OpenApiInfo { Title = "Store API", Version = "v1" });
                     options.DocInclusionPredicate((docName, description) => true);
                     options.CustomSchemaIds(type => type.FullName);
+                    options.DocumentFilter<SwaggerEnumFilter>();
+                    options.OperationFilter<SwaggerEnumOperationFilter>();
+
+                    Action<string> includeXmlAction = (name) =>
+                    {
+                        var apiXmlPath = Path.Combine(AppContext.BaseDirectory, name);
+                        if (File.Exists(apiXmlPath))
+                        {
+                            options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, name), true);
+                        }
+                    };
+                    includeXmlAction("Adee.Store.Application.xml");
+                    includeXmlAction("Adee.Store.Application.Contracts.xml");
+                    includeXmlAction("Adee.Store.Domain.Shared.xml");
+                    includeXmlAction("Adee.Store.HttpApi.xml");
                 });
         }
 

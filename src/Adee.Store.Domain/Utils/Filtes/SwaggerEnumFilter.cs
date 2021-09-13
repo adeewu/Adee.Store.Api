@@ -18,14 +18,11 @@ namespace Adee.Store.Utils.Filtes
     {
         public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
         {
-            var dict = Assembly
-                .GetExecutingAssembly()
-                .GetReferencedAssemblies()
+            var dict = Assembly.GetEntryAssembly().GetReferencedAssemblies()
                 .Where(p => p.Name.StartsWith("Adee.Store."))
                 .Select(p => Assembly.Load(p))
-                .SelectMany(p => p.GetTypes())
-                .Where(p => p.IsEnum)
-                .ToDictionary(p => p.Name, p => p);
+                .SelectMany(p => p.GetTypes().Where(t => t.IsEnum()))
+                .ToDictionary(p => p.FullName, p => p);
 
             swaggerDoc
                 .Components
@@ -88,10 +85,9 @@ namespace Adee.Store.Utils.Filtes
     {
         public void Apply(OpenApiOperation operation, OperationFilterContext context)
         {
-            context
-                .ApiDescription
-                .ParameterDescriptions
-                .Where(p => p.Type.IsEnum)
+            context.ApiDescription.ParameterDescriptions
+                .Where(p => p.Type.IsNotNull())
+                .Where(p => p.Type.IsEnum())
                 .Select(p => new
                 {
                     p.Type,

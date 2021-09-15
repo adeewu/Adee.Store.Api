@@ -40,12 +40,11 @@ namespace System.Linq
         /// </summary>
         /// <param name="model"></param>
         /// <param name="settings"></param>
-        /// <typeparam name="TSource"></typeparam>
-        /// <typeparam name="TResult"></typeparam>
+        /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static TResult AsObject<TSource, TResult>(this TSource model, JsonSerializerSettings settings = null)
+        public static T AsObject<T>(this object model, JsonSerializerSettings settings = null)
         {
-            if (model == null) return default(TResult);
+            if (model == null) return default(T);
 
             var json = string.Empty;
             if (model is string)
@@ -57,7 +56,7 @@ namespace System.Linq
                 json = model.ToJsonString();
             }
 
-            return JsonConvert.DeserializeObject<TResult>(json, settings ?? JsonSerializerSettings);
+            return JsonConvert.DeserializeObject<T>(json, settings ?? JsonSerializerSettings);
         }
 
         /// <summary>

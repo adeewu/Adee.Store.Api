@@ -18,58 +18,60 @@ namespace System.Linq
         public static JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
         {
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-            DateFormatString = "yyyy-MM-dd HH:mm:ss",
+            DateFormatString = "YYYY-MM-dd HH:mm:ss",
         };
 
         /// <summary>
         /// 对象序列化为Json字符
         /// </summary>
-        /// <param name="obj"></param>
+        /// <param name="model"></param>
         /// <param name="settings"></param>
+        /// <typeparam name="TModel"></typeparam>
         /// <returns></returns>
-        public static string ToJsonString(this object obj, JsonSerializerSettings settings = null)
+        public static string ToJsonString<TModel>(this TModel model, JsonSerializerSettings settings = null)
         {
-            if (obj == null) return string.Empty;
+            if (model == null) return string.Empty;
 
-            return JsonConvert.SerializeObject(obj, settings ?? JsonSerializerSettings);
+            return JsonConvert.SerializeObject(model, settings ?? JsonSerializerSettings);
         }
 
         /// <summary>
         /// 将obj对象通过json反序列化转换为目标对象
         /// </summary>
-        /// <typeparam name="T">对象类型</typeparam>
-        /// <param name="obj">obj对象</param>
-        /// <param name="settings">序列化设定</param>
+        /// <param name="model"></param>
+        /// <param name="settings"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
         /// <returns></returns>
-        public static T AsObject<T>(this object obj, JsonSerializerSettings settings = null) where T : class
+        public static TResult AsObject<TSource, TResult>(this TSource model, JsonSerializerSettings settings = null)
         {
-            if (obj == null) return default(T);
+            if (model == null) return default(TResult);
 
             var json = string.Empty;
-            if (obj is string)
+            if (model is string)
             {
-                json = (string)obj;
+                json = model.ToString();
             }
             else
             {
-                json = obj.ToJsonString();
+                json = model.ToJsonString();
             }
 
-            return JsonConvert.DeserializeObject<T>(json, settings ?? JsonSerializerSettings);
+            return JsonConvert.DeserializeObject<TResult>(json, settings ?? JsonSerializerSettings);
         }
 
         /// <summary>
         /// Json字符反序列化为对象
         /// </summary>
-        /// <typeparam name="T">对象类型</typeparam>
-        /// <param name="obj"></param>
+        /// <typeparam name="TModel">对象类型</typeparam>
+        /// <param name="str"></param>
         /// <param name="anonymousTypeObject">目标类型数据模型</param>
         /// <param name="settings">序列化设定</param>
         /// <returns></returns>
-        public static T AsAnonymousObject<T>(this string obj, T anonymousTypeObject, JsonSerializerSettings settings = null) where T : class
+        public static TModel AsAnonymousObject<TModel>(this string str, TModel anonymousTypeObject, JsonSerializerSettings settings = null) where TModel : class
         {
-            if (string.IsNullOrWhiteSpace(obj)) obj = "{}";
-            return JsonConvert.DeserializeAnonymousType(obj, anonymousTypeObject, settings ?? JsonSerializerSettings);
+            if (string.IsNullOrWhiteSpace(str)) str = "{}";
+            return JsonConvert.DeserializeAnonymousType(str, anonymousTypeObject, settings ?? JsonSerializerSettings);
         }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
@@ -44,7 +45,7 @@ namespace Adee.Store.Domain.Shared.Utils.Helpers
         /// <summary>
         /// 对象加签
         /// </summary>
-        /// <param name="obj">加签对象</param>
+        /// <param name="model">加签对象</param>
         /// <param name="signKey">加签值</param>
         /// <param name="ignoreKey">忽略键</param>
         /// <param name="sortKey">排序加签</param>
@@ -55,9 +56,9 @@ namespace Adee.Store.Domain.Shared.Utils.Helpers
         /// <param name="isSkipNullValue">跳过空值</param>
         /// <param name="justCombine">仅拼接</param>
         /// <returns></returns>
-        public string Sign(object obj, string signKey, string ignoreKey = "", bool sortKey = true, string separator = "", bool containKey = false, string keyValueSeparator = "=", bool justCombine = false, bool isSkipNullValue = false, bool isLowerKey = true)
+        public string Sign(object model, string signKey, string ignoreKey = "", bool sortKey = true, string separator = "", bool containKey = false, string keyValueSeparator = "=", bool justCombine = false, bool isSkipNullValue = false, bool isLowerKey = true)
         {
-            var dic = obj.Obj2Dic(sortKey, isSkipNullValue: isSkipNullValue);
+            var dic = Obj2Dic(model, sortKey, isSkipNullValue: isSkipNullValue);
 
             return Sign(dic, signKey, ignoreKey: ignoreKey, sortKey: sortKey, separator: separator, containKey: containKey, keyValueSeparator: keyValueSeparator, justCombine, isLowerKey);
         }
@@ -65,7 +66,7 @@ namespace Adee.Store.Domain.Shared.Utils.Helpers
         /// <summary>
         /// 字典加签
         /// </summary>
-        /// <param name="obj">加签对象</param>
+        /// <param name="dic">加签对象</param>
         /// <param name="signKey">加签值</param>
         /// <param name="ignoreKey">忽略键</param>
         /// <param name="sortKey">排序加签</param>
@@ -75,14 +76,14 @@ namespace Adee.Store.Domain.Shared.Utils.Helpers
         /// <param name="isLowerKey">键是否小写</param>
         /// <param name="justCombine">仅拼接</param>
         /// <returns></returns>
-        public string Sign(Dictionary<string, string> obj, string signKey, string ignoreKey = "", bool sortKey = true, string separator = "", bool containKey = false, string keyValueSeparator = "=", bool justCombine = false, bool isLowerKey = true)
+        public string Sign(Dictionary<string, string> dic, string signKey, string ignoreKey = "", bool sortKey = true, string separator = "", bool containKey = false, string keyValueSeparator = "=", bool justCombine = false, bool isLowerKey = true)
         {
             if (isLowerKey)
             {
-                obj = obj.ToDictionary(p => p.Key.ToLower(), p => p.Value);
+                dic = dic.ToDictionary(p => p.Key.ToLower(), p => p.Value);
             }
 
-            var list = obj.AsEnumerable();
+            var list = dic.AsEnumerable();
             _logger.LogDebug($"字典加签内容：{list.ToJsonString()}");
 
             if (sortKey)
@@ -141,6 +142,49 @@ namespace Adee.Store.Domain.Shared.Utils.Helpers
         public bool Verify(string publicKey, string encryptString, string sign, RSAType rsaType = RSAType.SHA1)
         {
             return new RSAHelper().Verify(encryptString, sign, publicKey, type: rsaType);
+        }
+
+        /// <summary>
+        /// 对象转字典
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="sort"></param>
+        /// <param name="keyFunc"></param>
+        /// <param name="isSkipNullValue"></param>
+        /// <returns></returns>
+        public Dictionary<string, string> Obj2Dic(object model, bool sort = false, Func<string, object, string> keyFunc = null, bool isSkipNullValue = false)
+        {
+            if (model == null) return new Dictionary<string, string>();
+
+            if (keyFunc == null)
+            {
+                keyFunc = (key, value) =>
+                {
+                    if (value == null) return null;
+
+                    var valueType = value.GetType().GetUnderlyingType();
+
+                    if (valueType.IsEnum()) return ((int)value).ToString();
+
+                    if (valueType.IsArray()) return value.ToJsonString();
+
+                    if (valueType == typeof(DateTime)) return ((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss");
+
+                    return value.ToString();
+                };
+            }
+
+            var items = model
+                .GetType()
+                .GetRuntimeProperties()
+                .Select(p => new KeyValuePair<string, string>(p.Name, keyFunc.Invoke(p.Name, p.GetValue(model))))
+                .WhereIf(isSkipNullValue, p => p.Value.IsNotNull());
+            if (sort)
+            {
+                items = items.OrderBy(p => p.Key);
+            }
+
+            return items.ToDictionary(p => p.Key, p => p.Value);
         }
     }
 }

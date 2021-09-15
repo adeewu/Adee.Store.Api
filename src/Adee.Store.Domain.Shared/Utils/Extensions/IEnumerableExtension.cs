@@ -27,6 +27,30 @@ namespace System.Linq
             {
                 func(item);
             }
-        }        
+        }
+
+        /// <summary>
+        /// 空对象转空集合
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="lists"></param>
+        /// <returns></returns>
+        public static IEnumerable<T> NullToEmpty<T>(this IEnumerable<T> lists)
+        {
+            if (lists == null) return new List<T>();
+            return lists;
+        }
+
+        /// <summary>
+        /// 字符集合转字符
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list"></param>
+        /// <param name="separator"></param>
+        /// <returns></returns>
+        public static string JoinAsString<T>(this IEnumerable<T> list, string separator = ",")
+        {
+            return string.Join(separator, list);
+        }
     }
 }

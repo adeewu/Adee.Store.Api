@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Adee.Store.Domain.Shared.Tenants;
-using Adee.Store.Localization;
 using Microsoft.AspNetCore.Http;
-using Volo.Abp.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Adee.Store

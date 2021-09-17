@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel;
 
 namespace Adee.Store.Pays
 {
@@ -16,6 +11,18 @@ namespace Adee.Store.Pays
         /// 未知
         /// </summary>
         [Description("未知")]
-        Unknown = -1,
+        Unknown = 0,
+
+        /// <summary>
+        /// 支付宝、微信官方
+        /// </summary>
+        [Description("官方")]
+        Official = 1,
+
+        /// <summary>
+        /// 天阙
+        /// </summary>
+        [Description("天阙")]
+        TianQue = 2,
     }
 }

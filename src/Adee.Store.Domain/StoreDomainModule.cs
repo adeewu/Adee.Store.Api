@@ -13,7 +13,10 @@ using Volo.Abp.PermissionManagement.Identity;
 using Volo.Abp.PermissionManagement.IdentityServer;
 using Volo.Abp.SettingManagement;
 using Volo.Abp.TenantManagement;
-using Adee.Store.Pays.Utils.Helpers;
+using Adee.Store.Domain.Pays.TianQue.Models;
+using Adee.Store.Domain.Pays.TianQue;
+using Adee.Store.Domain.Pays;
+using Adee.Store.Domain.Tenants;
 
 namespace Adee.Store
 {
@@ -44,7 +47,15 @@ namespace Adee.Store
 #endif
 
             context.Services.AddHttpClient();
-            context.Services.AddTransient<ICommonClient, CommonClient>();
+            context.Services.AddTransient<ICurrentTenantExt, CurrentTenantExt>();
+
+            var config = context.Services.GetConfiguration();
+            Configure<TianQueOptions>(config.GetSection($"PayConfig:{TianQueOptions.Name}"));
+
+            Configure<PayOptions>(options =>
+            {
+                options.AddPayProviders<TianQuePay>();
+            });
         }
     }
 }

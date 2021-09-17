@@ -7,45 +7,6 @@ using System.Text;
 namespace Adee.Store.Pays
 {
     /// <summary>
-    /// 
-    /// </summary>
-    public enum TaskType
-    {
-        /// <summary>
-        /// B2C
-        /// </summary>
-        [Description("B2C")]
-        B2C,
-
-        /// <summary>
-        /// C2B
-        /// </summary>
-        [Description("C2B")]
-        C2B
-    }
-
-    /// <summary>
-    /// 通用支付任务内容
-    /// </summary>
-    public class PayTaskContentDto
-    {
-        /// <summary>
-        /// 任务类型
-        /// </summary>
-        public TaskType TaskType { get; set; }
-
-        /// <summary>
-        /// 商户订单号
-        /// </summary>
-        public string MerchantOrderId { get; set; }
-
-        /// <summary>
-        /// 任务内容
-        /// </summary>
-        public string Content { get; set; }
-    }
-
-    /// <summary>
     /// 支付任务
     /// </summary>
     public class PayTaskDto
@@ -55,7 +16,7 @@ namespace Adee.Store.Pays
         /// </summary>
         /// <value></value>
         [Required]
-        public TaskType TaskType { get; set; }
+        public PayTaskType PayTaskType { get; set; }
     }
 
     /// <summary>
@@ -65,13 +26,82 @@ namespace Adee.Store.Pays
     {
         public B2CPayTaskDto()
         {
-            TaskType = TaskType.B2C;
+            PayTaskType = PayTaskType.B2C;
         }
 
         /// <summary>
-        /// 支付码
+        /// 收款码
         /// </summary>
         [Required]
         public string AuthCode { get; set; }
+
+        /// <summary>
+        /// 收款金额
+        /// </summary>
+        [Required]
+        public int Money { get; set; }
+
+        /// <summary>
+        /// 收款标题
+        /// </summary>
+        [Required]
+        public string Title { get; set; }
+
+        /// <summary>
+        /// 收款备注
+        /// </summary>
+        [Required]
+        public string PayRemark { get; set; }
+
+        /// <summary>
+        /// ip地址
+        /// </summary>
+        [Required]
+        public string IPAddress { get; set; }
+
+        /// <summary>
+        /// 业务类型
+        /// </summary>
+        [Required]
+        public BusinessType businessType { get; set; }
+    }
+
+    /// <summary>
+    /// 收款任务结果
+    /// </summary>
+    public class PayStatusResultDto
+    {
+        /// <summary>
+        /// 业务订单号
+        /// </summary>
+        public string BusinessOrderId { get; set; }
+
+        /// <summary>
+        /// 收款状态
+        /// </summary>
+        public PayTaskStatus Status { get; set; }
+    }
+
+    /// <summary>
+    /// B2C收款任务
+    /// </summary>
+    public class RefundPayTaskDto : PayTaskDto
+    {
+        public RefundPayTaskDto()
+        {
+            PayTaskType = PayTaskType.Refund;
+        }
+
+        /// <summary>
+        /// 收款金额，单位：分
+        /// </summary>
+        [Required]
+        public int Money { get; set; }
+
+        /// <summary>
+        /// 订单号，支持BusinessOrderId、PayOrderId、PayOrganizationOrderId
+        /// </summary>
+        [Required]
+        public string OrderId { get; set; }
     }
 }

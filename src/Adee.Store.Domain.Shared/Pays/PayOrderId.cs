@@ -6,12 +6,12 @@ namespace Adee.Store.Pays
     /// <summary>
     /// 支付订单Id
     /// </summary>
-    public class PayOrderIdDto
+    public class PayOrderId
     {
         /// <summary>
         /// 
         /// </summary>
-        public PayOrderIdDto()
+        public PayOrderId()
         {
             Random = new Random(GetHashCode()).Next(10, 99);
             OrderTime = DateTime.Now;
@@ -21,29 +21,33 @@ namespace Adee.Store.Pays
         /// 
         /// </summary>
         /// <param name="payOrderId"></param>
-        public PayOrderIdDto(string payOrderId) : this()
+        /// <returns></returns>
+        public static PayOrderId Create(string payOrderId)
         {
-            AssertHelper.AreEqual(payOrderId.Length, 30, "支付订单号长度必须为30");
-            AssertHelper.IsTrue(Regex.IsMatch(payOrderId, @"\d{30}"), "支付订单号必须为纯数字");
+            CheckHelper.AreEqual(payOrderId.Length, 30, message: "支付订单号长度必须为30");
+            CheckHelper.IsTrue(Regex.IsMatch(payOrderId, @"\d{30}"), "支付订单号必须为纯数字");
 
-            OrderTime = DateTime.ParseExact(payOrderId.Substring(0, 12), "yyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
-            TenantId = payOrderId.Substring(12, 8);
-            OrganizationType = (PayOrganizationType)Convert.ToInt32(payOrderId.Substring(20, 2));
-            PaymentType = (PaymentType)Convert.ToInt32(payOrderId.Substring(22, 2));
-            PaymethodType = (PaymethodType)Convert.ToInt32(payOrderId.Substring(24, 2));
-            BusinessType = (BusinessType)Convert.ToInt32(payOrderId.Substring(26, 2));
-            Random = Convert.ToInt32(payOrderId.Substring(28, 2));
+            return new PayOrderId
+            {
+                OrderTime = DateTime.ParseExact(payOrderId.Substring(0, 12), "yyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture),
+                SoftwareCode = payOrderId.Substring(12, 8),
+                PayOrganizationType = (PayOrganizationType)Convert.ToInt32(payOrderId.Substring(20, 2)),
+                PaymentType = (PaymentType)Convert.ToInt32(payOrderId.Substring(22, 2)),
+                PaymethodType = (PaymethodType)Convert.ToInt32(payOrderId.Substring(24, 2)),
+                BusinessType = (BusinessType)Convert.ToInt32(payOrderId.Substring(26, 2)),
+                Random = Convert.ToInt32(payOrderId.Substring(28, 2)),
+            };
         }
 
         /// <summary>
-        /// 租户Id
+        /// 软件编号
         /// </summary>
-        public string TenantId { get; set; }
+        public string SoftwareCode { get; set; }
 
         /// <summary>
         /// 收单机构
         /// </summary>
-        public PayOrganizationType OrganizationType { get; set; }
+        public PayOrganizationType PayOrganizationType { get; set; }
 
         /// <summary>
         /// 付款方式
@@ -76,12 +80,12 @@ namespace Adee.Store.Pays
         /// <returns></returns>
         public override string ToString()
         {
-            var organizationTypeString = "{0:d2}".FormatString((int)OrganizationType);
+            var organizationTypeString = "{0:d2}".FormatString((int)PayOrganizationType);
             var paymentTypeString = "{0:d2}".FormatString((int)PaymentType);
             var paythodTypeString = "{0:d2}".FormatString((int)PaymethodType);
             var businessTypeString = "{0:d2}".FormatString((int)BusinessType);
 
-            return $"{OrderTime:yyMMddHHmmss}{TenantId}{organizationTypeString}{paymentTypeString}{paythodTypeString}{businessTypeString}{Random}";
+            return $"{OrderTime:yyMMddHHmmss}{SoftwareCode}{organizationTypeString}{paymentTypeString}{paythodTypeString}{businessTypeString}{Random}";
         }
     }
 }

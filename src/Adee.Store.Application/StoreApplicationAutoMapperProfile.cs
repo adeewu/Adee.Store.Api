@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using Adee.Store.Pays;
+using AutoMapper;
 
 namespace Adee.Store
 {
@@ -9,6 +10,11 @@ namespace Adee.Store
             /* You can configure your AutoMapper mapping configuration here.
              * Alternatively, you can split your mapping configurations
              * into multiple profile classes for a better organization. */
+
+            CreateMap<PayParameter, PayParameterDto>();
+            CreateMap<CreateUpdatePayParameterDto, PayParameter>();
+
+            CreateMap<PayOrder, QueryOrderCacheItem>();
         }
     }
 }

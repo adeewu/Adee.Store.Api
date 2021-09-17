@@ -35,5 +35,11 @@ namespace Adee.Store.Pays
         /// </summary>
         [Description("云闪付")]
         UnionPay = 3,
+
+        /// <summary>
+        /// 龙支付
+        /// </summary>
+        [Description("龙支付")]
+        CCB = 4,
     }
 }

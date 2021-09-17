@@ -84,7 +84,7 @@ namespace Volo.Abp.SettingManagement
                 keys.AddFirst(key.ToString());
             }
 
-            return keys.JoinAsString(".");
+            return keys.JoinAsString();
         }
     }
 

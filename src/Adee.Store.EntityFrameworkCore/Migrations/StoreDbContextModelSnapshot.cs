@@ -197,7 +197,6 @@ namespace Adee.Store.Migrations
             modelBuilder.Entity("Adee.Store.Pays.PayNotify", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
                     b.Property<string>("Body")
@@ -258,22 +257,12 @@ namespace Adee.Store.Migrations
                         .HasColumnType("longtext")
                         .HasComment("请求参数");
 
-                    b.Property<int>("ResultStatus")
-                        .HasColumnType("int")
-                        .HasComment("通知内容状态");
-
-                    b.Property<string>("ResultStatusMessage")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)")
-                        .HasComment("通知内容状态描述");
-
                     b.Property<int>("Status")
                         .HasColumnType("int")
                         .HasComment("通知执行状态");
 
                     b.Property<string>("StatusMessage")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
+                        .HasColumnType("longtext")
                         .HasComment("通知状态状态描述");
 
                     b.Property<Guid?>("TenantId")
@@ -296,12 +285,25 @@ namespace Adee.Store.Migrations
             modelBuilder.Entity("Adee.Store.Pays.PayOrder", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
+
+                    b.Property<string>("BusinessOrderId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasComment("业务订单号");
 
                     b.Property<int>("BusinessType")
                         .HasColumnType("int")
                         .HasComment("业务模块类型");
+
+                    b.Property<int?>("CancelStatus")
+                        .HasColumnType("int")
+                        .HasComment("取消状态");
+
+                    b.Property<string>("CancelStatusMessage")
+                        .HasColumnType("longtext")
+                        .HasComment("取消状态描述");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -329,23 +331,16 @@ namespace Adee.Store.Migrations
                         .HasColumnType("char(36)")
                         .HasColumnName("LastModifierId");
 
-                    b.Property<string>("MerchantOrderId")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
-                        .HasComment("支付结果查询Id");
+                    b.Property<int>("Money")
+                        .HasColumnType("int")
+                        .HasComment("收款金额，单位：分");
 
-                    b.Property<decimal>("Money")
-                        .HasColumnType("decimal(18,2)")
-                        .HasComment("收款金额");
-
-                    b.Property<int>("NotifyStatus")
+                    b.Property<int?>("NotifyStatus")
                         .HasColumnType("int")
                         .HasComment("通知状态");
 
                     b.Property<string>("NotifyStatusMessage")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
+                        .HasColumnType("longtext")
                         .HasComment("通知状态描述");
 
                     b.Property<string>("NotifyUrl")
@@ -353,23 +348,15 @@ namespace Adee.Store.Migrations
                         .HasColumnType("longtext")
                         .HasComment("通知地址");
 
-                    b.Property<string>("OrderData")
-                        .HasColumnType("longtext")
-                        .HasComment("订单数据");
-
-                    b.Property<DateTime?>("OrderTime")
-                        .HasColumnType("datetime(6)")
-                        .HasComment("订单时间");
-
-                    b.Property<int>("ParameterVersion")
-                        .HasColumnType("int")
+                    b.Property<long>("ParameterVersion")
+                        .HasColumnType("bigint")
                         .HasComment("支付参数版本");
 
                     b.Property<string>("PayOrderId")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)")
-                        .HasComment("支付Id");
+                        .HasComment("支付订单号");
 
                     b.Property<string>("PayOrganizationOrderId")
                         .HasMaxLength(128)
@@ -380,6 +367,14 @@ namespace Adee.Store.Migrations
                         .HasColumnType("int")
                         .HasComment("收单机构");
 
+                    b.Property<string>("PayRemark")
+                        .HasColumnType("longtext")
+                        .HasComment("支付备注");
+
+                    b.Property<DateTime?>("PayTime")
+                        .HasColumnType("datetime(6)")
+                        .HasComment("支付时间");
+
                     b.Property<int>("PaymentType")
                         .HasColumnType("int")
                         .HasComment("付款方式");
@@ -388,13 +383,12 @@ namespace Adee.Store.Migrations
                         .HasColumnType("int")
                         .HasComment("支付方式");
 
-                    b.Property<int>("QueryStatus")
+                    b.Property<int?>("QueryStatus")
                         .HasColumnType("int")
                         .HasComment("查询状态");
 
                     b.Property<string>("QueryStatusMessage")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
+                        .HasColumnType("longtext")
                         .HasComment("查询状态描述");
 
                     b.Property<int?>("RefundCount")
@@ -406,8 +400,7 @@ namespace Adee.Store.Migrations
                         .HasComment("退款状态");
 
                     b.Property<string>("RefundStatusMessage")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
+                        .HasColumnType("longtext")
                         .HasComment("退款状态描述");
 
                     b.Property<int>("Status")
@@ -415,15 +408,8 @@ namespace Adee.Store.Migrations
                         .HasComment("支付状态");
 
                     b.Property<string>("StatusMessage")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
+                        .HasColumnType("longtext")
                         .HasComment("支付状态描述");
-
-                    b.Property<string>("Subject")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)")
-                        .HasComment("收款标题");
 
                     b.Property<string>("TargetDomain")
                         .IsRequired()
@@ -434,6 +420,12 @@ namespace Adee.Store.Migrations
                     b.Property<Guid?>("TenantId")
                         .HasColumnType("char(36)")
                         .HasColumnName("TenantId");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasComment("收款标题");
 
                     b.HasKey("Id");
 
@@ -446,7 +438,6 @@ namespace Adee.Store.Migrations
             modelBuilder.Entity("Adee.Store.Pays.PayOrderLog", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -462,6 +453,10 @@ namespace Adee.Store.Migrations
                     b.Property<Guid?>("CreatorId")
                         .HasColumnType("char(36)")
                         .HasColumnName("CreatorId");
+
+                    b.Property<string>("EncryptResponse")
+                        .HasColumnType("longtext")
+                        .HasComment("解密响应报文");
 
                     b.Property<string>("ExceptionMessage")
                         .HasColumnType("longtext")
@@ -479,27 +474,33 @@ namespace Adee.Store.Migrations
                         .HasColumnType("char(36)")
                         .HasColumnName("LastModifierId");
 
-                    b.Property<string>("LogData")
-                        .HasColumnType("longtext")
-                        .HasComment("记录数据");
-
                     b.Property<int>("LogType")
                         .HasColumnType("int")
                         .HasComment("记录类型");
 
-                    b.Property<string>("Message")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
-                        .HasComment("描述");
-
                     b.Property<Guid>("OrderId")
-                        .HasMaxLength(50)
-                        .HasColumnType("char(50)")
+                        .HasColumnType("char(36)")
                         .HasComment("订单Id");
+
+                    b.Property<string>("OriginRequest")
+                        .HasColumnType("longtext")
+                        .HasComment("原始提交报文");
+
+                    b.Property<string>("OriginResponse")
+                        .HasColumnType("longtext")
+                        .HasComment("原始响应报文");
 
                     b.Property<int>("Status")
                         .HasColumnType("int")
                         .HasComment("记录状态");
+
+                    b.Property<string>("StatusMessage")
+                        .HasColumnType("longtext")
+                        .HasComment("描述");
+
+                    b.Property<string>("SubmitRequest")
+                        .HasColumnType("longtext")
+                        .HasComment("提交报文");
 
                     b.Property<Guid?>("TenantId")
                         .HasColumnType("char(36)")
@@ -518,7 +519,6 @@ namespace Adee.Store.Migrations
             modelBuilder.Entity("Adee.Store.Pays.PayParameter", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -564,8 +564,8 @@ namespace Adee.Store.Migrations
                         .HasColumnType("longtext")
                         .HasComment("支付参数值");
 
-                    b.Property<int>("Version")
-                        .HasColumnType("int")
+                    b.Property<long>("Version")
+                        .HasColumnType("bigint")
                         .HasComment("版本");
 
                     b.HasKey("Id");
@@ -579,7 +579,6 @@ namespace Adee.Store.Migrations
             modelBuilder.Entity("Adee.Store.Pays.PayRefund", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -608,14 +607,17 @@ namespace Adee.Store.Migrations
                         .HasColumnType("char(36)")
                         .HasColumnName("LastModifierId");
 
-                    b.Property<decimal>("Money")
-                        .HasColumnType("decimal(18,2)")
-                        .HasComment("退款金额");
+                    b.Property<int>("Money")
+                        .HasColumnType("int")
+                        .HasComment("退款金额，单位：分");
 
                     b.Property<Guid>("OrderId")
-                        .HasMaxLength(50)
-                        .HasColumnType("char(50)")
+                        .HasColumnType("char(36)")
                         .HasComment("订单Id");
+
+                    b.Property<string>("RefundOrderId")
+                        .HasColumnType("longtext")
+                        .HasComment("退款订单号");
 
                     b.Property<int>("Status")
                         .HasColumnType("int")
@@ -638,52 +640,6 @@ namespace Adee.Store.Migrations
 
                     b
                         .HasComment("支付订单退款记录");
-                });
-
-            modelBuilder.Entity("Adee.Store.Pays.PaySecrect", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
-                        .HasMaxLength(40)
-                        .HasColumnType("varchar(40)")
-                        .HasColumnName("ConcurrencyStamp");
-
-                    b.Property<DateTime>("CreationTime")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("CreationTime");
-
-                    b.Property<Guid?>("CreatorId")
-                        .HasColumnType("char(36)")
-                        .HasColumnName("CreatorId");
-
-                    b.Property<string>("ExtraProperties")
-                        .HasColumnType("longtext")
-                        .HasColumnName("ExtraProperties");
-
-                    b.Property<DateTime?>("LastModificationTime")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("LastModificationTime");
-
-                    b.Property<Guid?>("LastModifierId")
-                        .HasColumnType("char(36)")
-                        .HasColumnName("LastModifierId");
-
-                    b.Property<string>("SignKey")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
-                        .HasComment("密钥");
-
-                    b.Property<Guid?>("TenantId")
-                        .HasColumnType("char(36)")
-                        .HasColumnName("TenantId");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PaySecrect");
                 });
 
             modelBuilder.Entity("Adee.Store.Products.Product", b =>
@@ -781,6 +737,9 @@ namespace Adee.Store.Migrations
                     b.HasIndex("CatalogId");
 
                     b.ToTable("Product");
+
+                    b
+                        .HasComment("商品表");
                 });
 
             modelBuilder.Entity("Adee.Store.Products.ProductCatalog", b =>
@@ -835,6 +794,9 @@ namespace Adee.Store.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ProductCatalog");
+
+                    b
+                        .HasComment("商品分类表");
                 });
 
             modelBuilder.Entity("Adee.Store.Products.ProductSale", b =>
@@ -925,6 +887,9 @@ namespace Adee.Store.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ProductSale");
+
+                    b
+                        .HasComment("商品售卖表");
                 });
 
             modelBuilder.Entity("Adee.Store.Products.ProductSaleInfo", b =>
@@ -951,6 +916,9 @@ namespace Adee.Store.Migrations
                     b.HasIndex("ProductStockId");
 
                     b.ToTable("ProductSaleInfo");
+
+                    b
+                        .HasComment("商品售卖情况表");
                 });
 
             modelBuilder.Entity("Adee.Store.Products.ProductStock", b =>
@@ -1014,6 +982,9 @@ namespace Adee.Store.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("ProductStock");
+
+                    b
+                        .HasComment("商品库存表");
                 });
 
             modelBuilder.Entity("Adee.Store.Products.ProductStockLog", b =>
@@ -1080,6 +1051,9 @@ namespace Adee.Store.Migrations
                     b.HasIndex("ProductStockId");
 
                     b.ToTable("ProductStockLog");
+
+                    b
+                        .HasComment("商品库存记录表");
                 });
 
             modelBuilder.Entity("Adee.Store.Products.ProductStockOrder", b =>
@@ -1147,6 +1121,9 @@ namespace Adee.Store.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ProductStockOrder");
+
+                    b
+                        .HasComment("商品库存订单表");
                 });
 
             modelBuilder.Entity("Volo.Abp.AuditLogging.AuditLog", b =>

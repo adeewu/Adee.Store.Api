@@ -55,20 +55,11 @@ namespace Adee.Store.EntityFrameworkCore
                     .HasMaxLength(50)
                     .HasComment("支付结果查询Id");
 
-                entity.Property(e => e.ResultStatus)
-                    .IsRequired()
-                    .HasComment("通知内容状态");
-
-                entity.Property(e => e.ResultStatusMessage)
-                    .HasMaxLength(500)
-                    .HasComment("通知内容状态描述");
-
                 entity.Property(e => e.Status)
                     .IsRequired()
                     .HasComment("通知执行状态");
 
                 entity.Property(e => e.StatusMessage)
-                    .HasMaxLength(50)
                     .HasComment("通知状态状态描述");
 
                 entity.Property(e => e.Url)
@@ -89,25 +80,23 @@ namespace Adee.Store.EntityFrameworkCore
 
                 entity.Property(e => e.Money)
                     .IsRequired()
-                    .HasColumnType("decimal(18,2)")
-                    .HasComment("收款金额");
+                    .HasComment("收款金额，单位：分");
 
                 entity.Property(e => e.NotifyStatus)
-                    .IsRequired()
                     .HasComment("通知状态");
 
                 entity.Property(e => e.NotifyStatusMessage)
-                    .HasMaxLength(50)
                     .HasComment("通知状态描述");
 
                 entity.Property(e => e.NotifyUrl)
                     .IsRequired()
                     .HasComment("通知地址");
 
-                entity.Property(e => e.OrderData).HasComment("订单数据");
+                entity.Property(e => e.PayTime)
+                    .HasComment("支付时间");
 
-                entity.Property(e => e.OrderTime)
-                    .HasComment("订单时间");
+                entity.Property(e => e.PayRemark)
+                    .HasComment("支付备注");
 
                 entity.Property(e => e.ParameterVersion)
                     .IsRequired()
@@ -116,7 +105,7 @@ namespace Adee.Store.EntityFrameworkCore
                 entity.Property(e => e.PayOrderId)
                     .IsRequired()
                     .HasMaxLength(50)
-                    .HasComment("支付Id");
+                    .HasComment("支付订单号");
 
                 entity.Property(e => e.PayOrganizationOrderId)
                     .HasMaxLength(128)
@@ -134,25 +123,30 @@ namespace Adee.Store.EntityFrameworkCore
                     .IsRequired()
                     .HasComment("支付方式");
 
-                entity.Property(e => e.MerchantOrderId)
+                entity.Property(e => e.BusinessOrderId)
                     .IsRequired()
                     .HasMaxLength(50)
-                    .HasComment("支付结果查询Id");
+                    .HasComment("业务订单号");
 
                 entity.Property(e => e.QueryStatus)
-                    .IsRequired()
                     .HasComment("查询状态");
 
                 entity.Property(e => e.QueryStatusMessage)
-                    .HasMaxLength(50)
                     .HasComment("查询状态描述");
 
-                entity.Property(e => e.RefundCount).HasComment("成功退款次数");
+                entity.Property(e => e.CancelStatus)
+                .HasComment("取消状态");
 
-                entity.Property(e => e.RefundStatus).HasComment("退款状态");
+                entity.Property(e => e.CancelStatusMessage)
+                    .HasComment("取消状态描述");
+
+                entity.Property(e => e.RefundCount)
+                    .HasComment("成功退款次数");
+
+                entity.Property(e => e.RefundStatus)
+                    .HasComment("退款状态");
 
                 entity.Property(e => e.RefundStatusMessage)
-                    .HasMaxLength(50)
                     .HasComment("退款状态描述");
 
                 entity.Property(e => e.Status)
@@ -160,10 +154,9 @@ namespace Adee.Store.EntityFrameworkCore
                     .HasComment("支付状态");
 
                 entity.Property(e => e.StatusMessage)
-                    .HasMaxLength(50)
                     .HasComment("支付状态描述");
 
-                entity.Property(e => e.Subject)
+                entity.Property(e => e.Title)
                     .IsRequired()
                     .HasMaxLength(255)
                     .HasComment("收款标题");
@@ -183,19 +176,28 @@ namespace Adee.Store.EntityFrameworkCore
 
                 entity.Property(e => e.OrderId)
                     .IsRequired()
-                    .HasMaxLength(50)
                     .HasComment("订单Id");
 
-                entity.Property(e => e.ExceptionMessage).HasComment("异常描述");
+                entity.Property(e => e.ExceptionMessage)
+                    .HasComment("异常描述");
 
-                entity.Property(e => e.LogData).HasComment("记录数据");
+                entity.Property(e => e.OriginRequest)
+                    .HasComment("原始提交报文");
+
+                entity.Property(e => e.SubmitRequest)
+                    .HasComment("提交报文");
+
+                entity.Property(e => e.OriginResponse)
+                    .HasComment("原始响应报文");
+
+                entity.Property(e => e.EncryptResponse)
+                    .HasComment("解密响应报文");
 
                 entity.Property(e => e.LogType)
                     .IsRequired()
                     .HasComment("记录类型");
 
-                entity.Property(e => e.Message)
-                    .HasMaxLength(50)
+                entity.Property(e => e.StatusMessage)
                     .HasComment("描述");
 
                 entity.Property(e => e.Status)
@@ -218,7 +220,8 @@ namespace Adee.Store.EntityFrameworkCore
                     .IsRequired()
                     .HasComment("收单机构");
 
-                entity.Property(e => e.PaymentType).HasComment("付款方式");
+                entity.Property(e => e.PaymentType)
+                    .HasComment("付款方式");
 
                 entity.Property(e => e.Value)
                     .IsRequired()
@@ -238,12 +241,13 @@ namespace Adee.Store.EntityFrameworkCore
 
                 entity.Property(e => e.Money)
                     .IsRequired()
-                    .HasColumnType("decimal(18,2)")
-                    .HasComment("退款金额");
+                    .HasComment("退款金额，单位：分");
+
+                entity.Property(p => p.RefundOrderId)
+                    .HasComment("退款订单号");
 
                 entity.Property(e => e.OrderId)
                     .IsRequired()
-                    .HasMaxLength(50)
                     .HasComment("订单Id");
 
                 entity.Property(e => e.Status)

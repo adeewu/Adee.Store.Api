@@ -12,8 +12,6 @@ using Volo.Abp.PermissionManagement.EntityFrameworkCore;
 using Volo.Abp.SettingManagement.EntityFrameworkCore;
 using Volo.Abp.TenantManagement;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
-using Adee.Store.Orders;
-using Adee.Store.Products;
 using System.Linq;
 
 namespace Adee.Store.EntityFrameworkCore
@@ -57,7 +55,7 @@ namespace Adee.Store.EntityFrameworkCore
         public StoreDbContext(DbContextOptions<StoreDbContext> options)
             : base(options)
         {
-
+            
         }
 
         protected override void OnModelCreating(ModelBuilder builder)

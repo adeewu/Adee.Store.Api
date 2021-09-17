@@ -649,14 +649,11 @@ namespace Adee.Store.Migrations
                     HashCode = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false, comment: "Method、Url、Body、Query经过MD5计算的值")
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Status = table.Column<int>(type: "int", nullable: false, comment: "通知执行状态"),
-                    StatusMessage = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true, comment: "通知状态状态描述")
+                    StatusMessage = table.Column<string>(type: "longtext", nullable: true, comment: "通知状态状态描述")
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     MerchantOrderId = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false, comment: "支付结果查询Id")
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     PayOrderId = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false, comment: "支付订单Id")
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    ResultStatus = table.Column<int>(type: "int", nullable: false, comment: "通知内容状态"),
-                    ResultStatusMessage = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true, comment: "通知内容状态描述")
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ExtraProperties = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -680,39 +677,42 @@ namespace Adee.Store.Migrations
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     TenantId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    MerchantOrderId = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false, comment: "支付结果查询Id")
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Money = table.Column<decimal>(type: "decimal(18,2)", nullable: false, comment: "收款金额"),
-                    PayOrderId = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false, comment: "支付Id")
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Status = table.Column<int>(type: "int", nullable: false, comment: "支付状态"),
-                    ParameterVersion = table.Column<int>(type: "int", nullable: false, comment: "支付参数版本"),
-                    PaymentType = table.Column<int>(type: "int", nullable: false, comment: "付款方式"),
-                    PayOrganizationType = table.Column<int>(type: "int", nullable: false, comment: "收单机构"),
-                    StatusMessage = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true, comment: "支付状态描述")
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    OrderTime = table.Column<DateTime>(type: "datetime(6)", nullable: true, comment: "订单时间"),
-                    QueryStatus = table.Column<int>(type: "int", nullable: false, comment: "查询状态"),
-                    NotifyStatus = table.Column<int>(type: "int", nullable: false, comment: "通知状态"),
-                    QueryStatusMessage = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true, comment: "查询状态描述")
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    NotifyStatusMessage = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true, comment: "通知状态描述")
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    PaymethodType = table.Column<int>(type: "int", nullable: false, comment: "支付方式"),
-                    OrderData = table.Column<string>(type: "longtext", nullable: true, comment: "订单数据")
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    RefundStatus = table.Column<int>(type: "int", nullable: true, comment: "退款状态"),
-                    RefundStatusMessage = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true, comment: "退款状态描述")
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    RefundCount = table.Column<int>(type: "int", nullable: true, comment: "成功退款次数"),
-                    NotifyUrl = table.Column<string>(type: "longtext", nullable: false, comment: "通知地址")
-                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Money = table.Column<int>(type: "int", nullable: false, comment: "收款金额，单位：分"),
                     TargetDomain = table.Column<string>(type: "varchar(1024)", maxLength: 1024, nullable: false, comment: "发起支付域名")
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    BusinessType = table.Column<int>(type: "int", nullable: false, comment: "业务模块类型"),
-                    Subject = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false, comment: "收款标题")
+                    NotifyUrl = table.Column<string>(type: "longtext", nullable: false, comment: "通知地址")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Title = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false, comment: "收款标题")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    BusinessOrderId = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false, comment: "业务订单号")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PayOrderId = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false, comment: "支付订单号")
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     PayOrganizationOrderId = table.Column<string>(type: "varchar(128)", maxLength: 128, nullable: true, comment: "收单机构订单号")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ParameterVersion = table.Column<long>(type: "bigint", nullable: false, comment: "支付参数版本"),
+                    PaymentType = table.Column<int>(type: "int", nullable: false, comment: "付款方式"),
+                    PayOrganizationType = table.Column<int>(type: "int", nullable: false, comment: "收单机构"),
+                    PaymethodType = table.Column<int>(type: "int", nullable: false, comment: "支付方式"),
+                    BusinessType = table.Column<int>(type: "int", nullable: false, comment: "业务模块类型"),
+                    PayTime = table.Column<DateTime>(type: "datetime(6)", nullable: true, comment: "支付时间"),
+                    Status = table.Column<int>(type: "int", nullable: false, comment: "支付状态"),
+                    StatusMessage = table.Column<string>(type: "longtext", nullable: true, comment: "支付状态描述")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    QueryStatus = table.Column<int>(type: "int", nullable: true, comment: "查询状态"),
+                    QueryStatusMessage = table.Column<string>(type: "longtext", nullable: true, comment: "查询状态描述")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    NotifyStatus = table.Column<int>(type: "int", nullable: true, comment: "通知状态"),
+                    NotifyStatusMessage = table.Column<string>(type: "longtext", nullable: true, comment: "通知状态描述")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CancelStatus = table.Column<int>(type: "int", nullable: true, comment: "取消状态"),
+                    CancelStatusMessage = table.Column<string>(type: "longtext", nullable: true, comment: "取消状态描述")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    RefundStatus = table.Column<int>(type: "int", nullable: true, comment: "退款状态"),
+                    RefundStatusMessage = table.Column<string>(type: "longtext", nullable: true, comment: "退款状态描述")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    RefundCount = table.Column<int>(type: "int", nullable: true, comment: "成功退款次数"),
+                    PayRemark = table.Column<string>(type: "longtext", nullable: true, comment: "支付备注")
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ExtraProperties = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -736,7 +736,7 @@ namespace Adee.Store.Migrations
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     TenantId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    Version = table.Column<int>(type: "int", nullable: false, comment: "版本"),
+                    Version = table.Column<long>(type: "bigint", nullable: false, comment: "版本"),
                     Value = table.Column<string>(type: "longtext", nullable: false, comment: "支付参数值")
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     PaymentType = table.Column<int>(type: "int", nullable: true, comment: "付款方式"),
@@ -755,29 +755,6 @@ namespace Adee.Store.Migrations
                     table.PrimaryKey("PK_PayParameter", x => x.Id);
                 },
                 comment: "支付参数")
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
-                name: "PaySecrect",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    TenantId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    SignKey = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true, comment: "密钥")
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    ExtraProperties = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    ConcurrencyStamp = table.Column<string>(type: "varchar(40)", maxLength: 40, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreationTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    CreatorId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    LastModificationTime = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    LastModifierId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PaySecrect", x => x.Id);
-                })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
@@ -803,7 +780,8 @@ namespace Adee.Store.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ProductCatalog", x => x.Id);
-                })
+                },
+                comment: "商品分类表")
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
@@ -839,7 +817,8 @@ namespace Adee.Store.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ProductSale", x => x.Id);
-                })
+                },
+                comment: "商品售卖表")
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
@@ -870,7 +849,8 @@ namespace Adee.Store.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ProductStockOrder", x => x.Id);
-                })
+                },
+                comment: "商品库存订单表")
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
@@ -1537,14 +1517,20 @@ namespace Adee.Store.Migrations
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     TenantId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    OrderId = table.Column<Guid>(type: "char(50)", maxLength: 50, nullable: false, comment: "订单Id", collation: "ascii_general_ci"),
-                    Message = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true, comment: "描述")
+                    OrderId = table.Column<Guid>(type: "char(36)", nullable: false, comment: "订单Id", collation: "ascii_general_ci"),
+                    LogType = table.Column<int>(type: "int", nullable: false, comment: "记录类型"),
+                    Status = table.Column<int>(type: "int", nullable: false, comment: "记录状态"),
+                    StatusMessage = table.Column<string>(type: "longtext", nullable: true, comment: "描述")
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ExceptionMessage = table.Column<string>(type: "longtext", nullable: true, comment: "异常描述")
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Status = table.Column<int>(type: "int", nullable: false, comment: "记录状态"),
-                    LogType = table.Column<int>(type: "int", nullable: false, comment: "记录类型"),
-                    LogData = table.Column<string>(type: "longtext", nullable: true, comment: "记录数据")
+                    OriginRequest = table.Column<string>(type: "longtext", nullable: true, comment: "原始提交报文")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    SubmitRequest = table.Column<string>(type: "longtext", nullable: true, comment: "提交报文")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    OriginResponse = table.Column<string>(type: "longtext", nullable: true, comment: "原始响应报文")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    EncryptResponse = table.Column<string>(type: "longtext", nullable: true, comment: "解密响应报文")
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ExtraProperties = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -1574,8 +1560,10 @@ namespace Adee.Store.Migrations
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     TenantId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    OrderId = table.Column<Guid>(type: "char(50)", maxLength: 50, nullable: false, comment: "订单Id", collation: "ascii_general_ci"),
-                    Money = table.Column<decimal>(type: "decimal(18,2)", nullable: false, comment: "退款金额"),
+                    OrderId = table.Column<Guid>(type: "char(36)", nullable: false, comment: "订单Id", collation: "ascii_general_ci"),
+                    RefundOrderId = table.Column<string>(type: "longtext", nullable: true, comment: "退款订单号")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Money = table.Column<int>(type: "int", nullable: false, comment: "退款金额，单位：分"),
                     Status = table.Column<int>(type: "int", nullable: false, comment: "退款状态"),
                     StatusMessage = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true, comment: "退款状态描述")
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -1642,7 +1630,8 @@ namespace Adee.Store.Migrations
                         column: x => x.CatalogId,
                         principalTable: "ProductCatalog",
                         principalColumn: "Id");
-                })
+                },
+                comment: "商品表")
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
@@ -1704,7 +1693,8 @@ namespace Adee.Store.Migrations
                         principalTable: "Product",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
+                },
+                comment: "商品库存表")
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
@@ -1731,7 +1721,8 @@ namespace Adee.Store.Migrations
                         principalTable: "ProductStock",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
+                },
+                comment: "商品售卖情况表")
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
@@ -1766,7 +1757,8 @@ namespace Adee.Store.Migrations
                         principalTable: "ProductStock",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
+                },
+                comment: "商品库存记录表")
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
@@ -2121,9 +2113,6 @@ namespace Adee.Store.Migrations
 
             migrationBuilder.DropTable(
                 name: "PayRefund");
-
-            migrationBuilder.DropTable(
-                name: "PaySecrect");
 
             migrationBuilder.DropTable(
                 name: "ProductSaleInfo");

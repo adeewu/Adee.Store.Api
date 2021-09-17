@@ -32,6 +32,8 @@ namespace Adee.Store.EntityFrameworkCore
                 entity.ToTable(StoreConsts.DbTablePrefix + nameof(Product));
                 entity.ConfigureByConvention();
 
+                entity.HasComment("商品表");
+
                 entity.Property(e => e.BarCode)
                     .IsRequired()
                     .HasMaxLength(50)
@@ -87,6 +89,8 @@ namespace Adee.Store.EntityFrameworkCore
                 entity.ToTable(StoreConsts.DbTablePrefix + nameof(ProductSale));
                 entity.ConfigureByConvention();
 
+                entity.HasComment("商品售卖表");
+
                 entity.Property(e => e.Title)
                     .IsRequired()
                     .HasMaxLength(255)
@@ -129,6 +133,8 @@ namespace Adee.Store.EntityFrameworkCore
                 entity.ToTable(StoreConsts.DbTablePrefix + nameof(ProductSaleInfo));
                 entity.ConfigureByConvention();
 
+                entity.HasComment("商品售卖情况表");
+
                 entity.Property(e => e.ProductStockId).HasComment("库存Id");
 
                 entity.Property(e => e.ProductSaleId).HasComment("商品售卖Id");
@@ -144,6 +150,8 @@ namespace Adee.Store.EntityFrameworkCore
             {
                 entity.ToTable(StoreConsts.DbTablePrefix + nameof(ProductStockOrder));
                 entity.ConfigureByConvention();
+
+                entity.HasComment("商品库存订单表");
 
                 entity.Property(e => e.BatchNo)
                     .IsRequired()
@@ -173,6 +181,8 @@ namespace Adee.Store.EntityFrameworkCore
                 entity.ToTable(StoreConsts.DbTablePrefix + nameof(ProductStock));
                 entity.ConfigureByConvention();
 
+                entity.HasComment("商品库存表");
+
                 entity.Property(e => e.ProductId).HasComment("商品Id");
 
                 entity.Property(e => e.Spec).HasComment("商品规格");
@@ -198,6 +208,8 @@ namespace Adee.Store.EntityFrameworkCore
             {
                 entity.ToTable(StoreConsts.DbTablePrefix + nameof(ProductStockLog));
                 entity.ConfigureByConvention();
+
+                entity.HasComment("商品库存记录表");
 
                 entity.Property(e => e.ProductStockId).HasComment("库存Id");
 
@@ -231,6 +243,8 @@ namespace Adee.Store.EntityFrameworkCore
             {
                 entity.ToTable(StoreConsts.DbTablePrefix + nameof(ProductCatalog));
                 entity.ConfigureByConvention();
+
+                entity.HasComment("商品分类表");
 
                 entity.Property(e => e.Name)
                     .HasMaxLength(20)

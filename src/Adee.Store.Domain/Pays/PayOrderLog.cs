@@ -26,25 +26,37 @@ namespace Adee.Store.Pays
         /// </summary>
         public Guid OrderId { get; set; }
         /// <summary>
-        /// 描述
+        /// 记录类型
         /// </summary>
-        public string Message { get; set; }
-        /// <summary>
-        /// 异常描述
-        /// </summary>
-        public string ExceptionMessage { get; set; }
+        public OrderLogType LogType { get; set; }
         /// <summary>
         /// 记录状态
         /// </summary>
         public PayTaskStatus Status { get; set; }
         /// <summary>
-        /// 记录类型
+        /// 描述
         /// </summary>
-        public OrderLogType LogType { get; set; }
+        public string StatusMessage { get; set; }
         /// <summary>
-        /// 记录数据
+        /// 异常描述
         /// </summary>
-        public string LogData { get; set; }
+        public string ExceptionMessage { get; set; }
+        /// <summary>
+        /// 原始提交报文
+        /// </summary>
+        public string OriginRequest { get; set; }
+        /// <summary>
+        /// 提交报文
+        /// </summary>
+        public string SubmitRequest { get; set; }
+        /// <summary>
+        /// 原始响应报文
+        /// </summary>
+        public string OriginResponse { get; set; }
+        /// <summary>
+        /// 解密响应报文
+        /// </summary>
+        public string EncryptResponse { get; set; }
 
         public virtual PayOrder PayOrder { get; set; }
     }

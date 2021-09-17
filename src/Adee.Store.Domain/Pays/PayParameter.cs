@@ -24,7 +24,7 @@ namespace Adee.Store.Pays
         /// <summary>
         /// 版本
         /// </summary>
-        public int Version { get; set; }
+        public long Version { get; set; }
         /// <summary>
         /// 支付参数值
         /// </summary>

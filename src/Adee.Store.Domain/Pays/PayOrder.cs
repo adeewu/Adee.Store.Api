@@ -15,6 +15,8 @@ namespace Adee.Store.Pays
         public PayOrder(Guid id) : this()
         {
             Id = id;
+            PayRefunds = new List<PayRefund>();
+            PayOrderLogs = new List<PayOrderLog>();
         }
 
         /// <summary>
@@ -22,25 +24,37 @@ namespace Adee.Store.Pays
         /// </summary>
         public Guid? TenantId { get; set; }
         /// <summary>
-        /// 支付结果查询Id
+        /// 收款金额，单位：分
         /// </summary>
-        public string MerchantOrderId { get; set; }
+        public int Money { get; set; }
         /// <summary>
-        /// 收款金额
+        /// 发起支付域名
         /// </summary>
-        public decimal Money { get; set; }
+        public string TargetDomain { get; set; }
         /// <summary>
-        /// 支付Id
+        /// 通知地址
+        /// </summary>
+        public string NotifyUrl { get; set; }
+        /// <summary>
+        /// 收款标题
+        /// </summary>
+        public string Title { get; set; }
+        /// <summary>
+        /// 业务订单号
+        /// </summary>
+        public string BusinessOrderId { get; set; }
+        /// <summary>
+        /// 支付订单号
         /// </summary>
         public string PayOrderId { get; set; }
         /// <summary>
-        /// 支付状态
+        /// 收单机构订单号
         /// </summary>
-        public PayTaskStatus Status { get; set; }
+        public string PayOrganizationOrderId { get; set; }
         /// <summary>
         /// 支付参数版本
         /// </summary>
-        public int ParameterVersion { get; set; }
+        public long ParameterVersion { get; set; }
         /// <summary>
         /// 付款方式
         /// </summary>
@@ -50,37 +64,49 @@ namespace Adee.Store.Pays
         /// </summary>
         public PayOrganizationType PayOrganizationType { get; set; }
         /// <summary>
+        /// 支付方式
+        /// </summary>
+        public PaymethodType PaymethodType { get; set; }
+        /// <summary>
+        /// 业务类型
+        /// </summary>
+        public BusinessType BusinessType { get; set; }
+        /// <summary>
+        /// 支付时间
+        /// </summary>
+        public DateTime? PayTime { get; set; }
+        /// <summary>
+        /// 支付状态
+        /// </summary>
+        public PayTaskStatus Status { get; set; }
+        /// <summary>
         /// 支付状态描述
         /// </summary>
         public string StatusMessage { get; set; }
         /// <summary>
-        /// 订单时间
-        /// </summary>
-        public DateTime? OrderTime { get; set; }
-        /// <summary>
         /// 查询状态
         /// </summary>
-        public PayTaskStatus QueryStatus { get; set; }
-        /// <summary>
-        /// 通知状态
-        /// </summary>
-        public PayTaskStatus NotifyStatus { get; set; }
+        public PayTaskStatus? QueryStatus { get; set; }
         /// <summary>
         /// 查询状态描述
         /// </summary>
         public string QueryStatusMessage { get; set; }
         /// <summary>
+        /// 通知状态
+        /// </summary>
+        public PayTaskStatus? NotifyStatus { get; set; }
+        /// <summary>
         /// 通知状态描述
         /// </summary>
         public string NotifyStatusMessage { get; set; }
         /// <summary>
-        /// 支付方式
+        /// 取消状态
         /// </summary>
-        public PaymethodType PaymethodType { get; set; }
+        public PayTaskStatus? CancelStatus { get; set; }
         /// <summary>
-        /// 订单数据
+        /// 取消状态描述
         /// </summary>
-        public string OrderData { get; set; }
+        public string CancelStatusMessage { get; set; }
         /// <summary>
         /// 退款状态
         /// </summary>
@@ -94,25 +120,9 @@ namespace Adee.Store.Pays
         /// </summary>
         public int? RefundCount { get; set; }
         /// <summary>
-        /// 通知地址
+        /// 支付备注
         /// </summary>
-        public string NotifyUrl { get; set; }
-        /// <summary>
-        /// 发起支付域名
-        /// </summary>
-        public string TargetDomain { get; set; }
-        /// <summary>
-        /// 业务模块类型
-        /// </summary>
-        public BusinessType BusinessType { get; set; }
-        /// <summary>
-        /// 收款标题
-        /// </summary>
-        public string Subject { get; set; }
-        /// <summary>
-        /// 收单机构订单号
-        /// </summary>
-        public string PayOrganizationOrderId { get; set; }
+        public string PayRemark { get; set; }
 
         /// <summary>
         /// 退款记录

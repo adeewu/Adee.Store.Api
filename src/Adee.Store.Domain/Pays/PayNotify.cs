@@ -57,13 +57,5 @@ namespace Adee.Store.Pays
         /// 支付订单Id
         /// </summary>
         public string PayOrderId { get; set; }
-        /// <summary>
-        /// 通知内容状态
-        /// </summary>
-        public PayTaskStatus ResultStatus { get; set; }
-        /// <summary>
-        /// 通知内容状态描述
-        /// </summary>
-        public string ResultStatusMessage { get; set; }
     }
 }

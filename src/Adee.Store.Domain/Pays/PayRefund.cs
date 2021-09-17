@@ -26,9 +26,13 @@ namespace Adee.Store.Pays
         /// </summary>
         public Guid OrderId { get; set; }
         /// <summary>
-        /// 退款金额
+        /// 退款订单号
         /// </summary>
-        public decimal Money { get; set; }
+        public string RefundOrderId { get; set; }
+        /// <summary>
+        /// 退款金额，单位：分
+        /// </summary>
+        public int Money { get; set; }
         /// <summary>
         /// 退款状态
         /// </summary>
@@ -37,7 +41,6 @@ namespace Adee.Store.Pays
         /// 退款状态描述
         /// </summary>
         public string StatusMessage { get; set; }
-
 
         public virtual PayOrder PayOrder { get; set; }
     }

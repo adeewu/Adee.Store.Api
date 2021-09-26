@@ -13,6 +13,8 @@ using Volo.Abp.SettingManagement.EntityFrameworkCore;
 using Volo.Abp.TenantManagement;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
 using System.Linq;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Adee.Store.EntityFrameworkCore
 {
@@ -88,6 +90,21 @@ namespace Adee.Store.EntityFrameworkCore
             .Where(p => p.GetParameters().Length == 1)
             .Where(p => p.GetParameters().FirstOrDefault().ParameterType == typeof(ModelBuilder))
             .ForEach(p => p.Invoke(this, new object[] { builder }));
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            base.OnConfiguring(optionsBuilder);
+
+            if (LazyServiceProvider != null)
+            {
+                var env = LazyServiceProvider.LazyGetService<IHostEnvironment>();
+                if (env!=null && env.IsDevelopment())
+                {
+                    optionsBuilder.EnableSensitiveDataLogging();
+                    optionsBuilder.LogTo(msg => Logger.LogDebug(msg), LogLevel.Information);
+                }
+            }
         }
     }
 }

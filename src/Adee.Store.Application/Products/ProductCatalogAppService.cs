@@ -32,12 +32,10 @@ namespace Adee.Store.Products
         /// <returns></returns>
         public async Task<List<ProductCatalogDto>> GetTreeAsync(Guid parentCatalogId, bool isOnlyFirstChild = true)
         {
-            var catalogQueryable = Repository.Where(p => p.TenantId == CurrentTenant.Id);
-
             var catalogs = new List<ProductCatalog>();
             if (isOnlyFirstChild)
             {
-                catalogQueryable = catalogQueryable
+                var catalogQueryable = Repository
                     .WhereIf(parentCatalogId != Guid.Empty, p => p.ParentCatalogId == parentCatalogId)
                     .WhereIf(parentCatalogId == Guid.Empty, p => !p.ParentCatalogId.HasValue || (p.ParentCatalogId.HasValue && p.ParentCatalogId == Guid.Empty));
                 catalogs = await AsyncExecuter.ToListAsync(catalogQueryable);
@@ -48,13 +46,13 @@ namespace Adee.Store.Products
 
                 if (parentCatalogId != Guid.Empty)
                 {
-                    var parentCatalog = await AsyncExecuter.FirstOrDefaultAsync(catalogQueryable.Where(p => p.Id == parentCatalogId));
+                    var parentCatalog = await Repository.FirstOrDefaultAsync(p => p.Id == parentCatalogId);
                     Check.NotNull(parentCatalog, nameof(parentCatalog));
 
                     catalogPath = parentCatalog.CatalogPath + "-";
                 }
 
-                catalogs = await AsyncExecuter.ToListAsync(catalogQueryable.Where(p => p.CatalogPath.StartsWith(catalogPath)));
+                catalogs = await Repository.GetListAsync(p => p.CatalogPath.StartsWith(catalogPath));
             }
 
             var catalogDtos = ObjectMapper.Map<List<ProductCatalog>, List<ProductCatalogDto>>(catalogs);
@@ -95,7 +93,7 @@ namespace Adee.Store.Products
         {
             if (input.Name.Contains("-")) throw new UserFriendlyException("分类名称不能包含关键字\"-\"");
 
-            var duplicateName = await AsyncExecuter.AnyAsync(Repository.Where(p => p.TenantId == CurrentTenant.Id), p => p.Name == input.Name);
+            var duplicateName = await Repository.AnyAsync(p => p.Name == input.Name);
             if (duplicateName) throw new UserFriendlyException($"名称:{input.Name}已存在");
 
             var catalog = new ProductCatalog(GuidGenerator.Create());
@@ -103,7 +101,7 @@ namespace Adee.Store.Products
 
             if (input.ParentCatalogId.HasValue && input.ParentCatalogId != Guid.Empty)
             {
-                var parentCatalog = await AsyncExecuter.FirstOrDefaultAsync(Repository.Where(p => p.Id == input.ParentCatalogId));
+                var parentCatalog = await Repository.FirstOrDefaultAsync(p => p.Id == input.ParentCatalogId);
                 Check.NotNull(parentCatalog, nameof(parentCatalog), "父分类不能为空");
 
                 catalog.CatalogPath = parentCatalog.CatalogPath + "-" + catalog.Name;
@@ -130,17 +128,17 @@ namespace Adee.Store.Products
         {
             if (input.Name.Contains("-")) throw new UserFriendlyException("分类名称不能包含关键字\"-\"");
 
-            var duplicateName = await AsyncExecuter.AnyAsync(Repository.Where(p => p.TenantId == CurrentTenant.Id), p => p.Name == input.Name);
+            var duplicateName = await Repository.AnyAsync(p => p.Name == input.Name);
             if (duplicateName) throw new UserFriendlyException($"名称:{input.Name}已存在");
 
-            var catalog = await AsyncExecuter.FirstOrDefaultAsync(Repository.Where(p => p.Id == id));
+            var catalog = await Repository.FirstOrDefaultAsync(p => p.Id == id);
             Check.NotNull(catalog, nameof(catalog), $"分类【{id}】不存在");
 
-            var subCatalogs = await AsyncExecuter.ToListAsync(Repository.Where(p => p.TenantId == CurrentTenant.Id).Where(p => p.CatalogPath.StartsWith($"{catalog.CatalogPath}-{catalog.Name}-")));
+            var subCatalogs = await Repository.GetListAsync(p => p.CatalogPath.StartsWith($"{catalog.CatalogPath}-{catalog.Name}-"));
 
             if (input.ParentCatalogId != catalog.ParentCatalogId)
             {
-                var parentCatalog = await AsyncExecuter.FirstOrDefaultAsync(Repository.Where(p => p.Id == input.ParentCatalogId));
+                var parentCatalog = await Repository.FirstOrDefaultAsync(p => p.Id == input.ParentCatalogId);
                 Check.NotNull(parentCatalog, nameof(parentCatalog), "父分类不能为空");
 
                 catalog.ParentCatalogId = input.ParentCatalogId;
@@ -177,14 +175,14 @@ namespace Adee.Store.Products
         /// <returns></returns>
         public override async Task DeleteAsync(Guid id)
         {
-            var catalog = await AsyncExecuter.FirstOrDefaultAsync(Repository.Where(p => p.Id == id));
+            var catalog = await Repository.FirstOrDefaultAsync(p => p.Id == id);
             Check.NotNull(catalog, nameof(catalog), $"分类【{id}】不存在");
 
-            var subCatalogIds = await AsyncExecuter.ToListAsync(Repository.Where(p => p.TenantId == CurrentTenant.Id).Where(p => p.CatalogPath.StartsWith($"{catalog.CatalogPath }-")).Select(p => p.Id));
+            var subCatalogIds = (await Repository.GetListAsync(p => p.CatalogPath.StartsWith($"{catalog.CatalogPath }-"))).NullToEmpty().Select(p => p.Id).ToList();
             if (subCatalogIds.Any()) throw new UserFriendlyException("需要删除子分类后再删除此分类");
 
             subCatalogIds.Add(id);
-            var hasProduct = await AsyncExecuter.AnyAsync(_productRepository.Where(p => p.TenantId == CurrentTenant.Id), p => subCatalogIds.Contains(p.CatalogId));
+            var hasProduct = await _productRepository.AnyAsync(p => subCatalogIds.Contains(p.CatalogId));
             if (hasProduct) throw new UserFriendlyException("需要删除分类下的商品才能删除此分类");
 
             await base.DeleteAsync(id);

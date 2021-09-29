@@ -15,6 +15,9 @@ namespace Adee.Store
             CreateMap<CreateUpdatePayParameterDto, PayParameter>();
 
             CreateMap<PayOrder, QueryOrderCacheItem>();
+            CreateMap<PayOrder, PayTaskSuccessResult>();
+
+            CreateMap<QueryOrderCacheItem, PayTaskSuccessResult>();
         }
     }
 }

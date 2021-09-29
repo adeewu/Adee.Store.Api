@@ -28,10 +28,6 @@ namespace Adee.Store.Pays
         /// </summary>
         public int Money { get; set; }
         /// <summary>
-        /// 发起支付域名
-        /// </summary>
-        public string TargetDomain { get; set; }
-        /// <summary>
         /// 通知地址
         /// </summary>
         public string NotifyUrl { get; set; }

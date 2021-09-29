@@ -17,10 +17,12 @@ namespace Adee.Store.EntityFrameworkCore
 
         public void ConfigureOrder(ModelBuilder builder)
         {
-            builder.Entity<Orders.Order>(entity =>
+            builder.Entity<Order>(entity =>
             {
-                entity.ToTable(StoreConsts.DbTablePrefix + nameof(Order));
+                entity.ToTable(StoreConsts.DbTablePrefix + nameof(Order) + "s", StoreConsts.DbSchema);
                 entity.ConfigureByConvention();
+
+                entity.HasComment("订单");
 
                 entity.Property(e => e.BusinessType).HasComment("业务类型");
 
@@ -70,8 +72,10 @@ namespace Adee.Store.EntityFrameworkCore
 
             builder.Entity<OrderInfo>(entity =>
             {
-                entity.ToTable(StoreConsts.DbTablePrefix + nameof(OrderInfo));
+                entity.ToTable(StoreConsts.DbTablePrefix + nameof(OrderInfo) + "s", StoreConsts.DbSchema);
                 entity.ConfigureByConvention();
+
+                entity.HasComment("订单详情");
 
                 entity.Property(e => e.Quantity)
                     .HasColumnType("decimal(9,2)")

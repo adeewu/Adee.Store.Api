@@ -29,7 +29,7 @@ namespace Adee.Store.EntityFrameworkCore
         {
             builder.Entity<Products.Product>(entity =>
             {
-                entity.ToTable(StoreConsts.DbTablePrefix + nameof(Product));
+                entity.ToTable(StoreConsts.DbTablePrefix + nameof(Product) + "s", StoreConsts.DbSchema);
                 entity.ConfigureByConvention();
 
                 entity.HasComment("商品表");
@@ -86,7 +86,7 @@ namespace Adee.Store.EntityFrameworkCore
 
             builder.Entity<ProductSale>(entity =>
             {
-                entity.ToTable(StoreConsts.DbTablePrefix + nameof(ProductSale));
+                entity.ToTable(StoreConsts.DbTablePrefix + nameof(ProductSale) + "s", StoreConsts.DbSchema);
                 entity.ConfigureByConvention();
 
                 entity.HasComment("商品售卖表");
@@ -130,7 +130,7 @@ namespace Adee.Store.EntityFrameworkCore
 
             builder.Entity<ProductSaleInfo>(entity =>
             {
-                entity.ToTable(StoreConsts.DbTablePrefix + nameof(ProductSaleInfo));
+                entity.ToTable(StoreConsts.DbTablePrefix + nameof(ProductSaleInfo) + "s", StoreConsts.DbSchema);
                 entity.ConfigureByConvention();
 
                 entity.HasComment("商品售卖情况表");
@@ -148,7 +148,7 @@ namespace Adee.Store.EntityFrameworkCore
 
             builder.Entity<ProductStockOrder>(entity =>
             {
-                entity.ToTable(StoreConsts.DbTablePrefix + nameof(ProductStockOrder));
+                entity.ToTable(StoreConsts.DbTablePrefix + nameof(ProductStockOrder) + "s", StoreConsts.DbSchema);
                 entity.ConfigureByConvention();
 
                 entity.HasComment("商品库存订单表");
@@ -178,7 +178,7 @@ namespace Adee.Store.EntityFrameworkCore
 
             builder.Entity<ProductStock>(entity =>
             {
-                entity.ToTable(StoreConsts.DbTablePrefix + nameof(ProductStock));
+                entity.ToTable(StoreConsts.DbTablePrefix + nameof(ProductStock) + "s", StoreConsts.DbSchema);
                 entity.ConfigureByConvention();
 
                 entity.HasComment("商品库存表");
@@ -206,7 +206,7 @@ namespace Adee.Store.EntityFrameworkCore
 
             builder.Entity<ProductStockLog>(entity =>
             {
-                entity.ToTable(StoreConsts.DbTablePrefix + nameof(ProductStockLog));
+                entity.ToTable(StoreConsts.DbTablePrefix + nameof(ProductStockLog) + "s", StoreConsts.DbSchema);
                 entity.ConfigureByConvention();
 
                 entity.HasComment("商品库存记录表");
@@ -241,7 +241,7 @@ namespace Adee.Store.EntityFrameworkCore
 
             builder.Entity<ProductCatalog>(entity =>
             {
-                entity.ToTable(StoreConsts.DbTablePrefix + nameof(ProductCatalog));
+                entity.ToTable(StoreConsts.DbTablePrefix + nameof(ProductCatalog) + "s", StoreConsts.DbSchema);
                 entity.ConfigureByConvention();
 
                 entity.HasComment("商品分类表");

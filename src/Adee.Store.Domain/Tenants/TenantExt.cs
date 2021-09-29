@@ -1,13 +1,20 @@
 using System;
 using Adee.Store.Pays;
+using Volo.Abp.Domain.Entities.Auditing;
+using Volo.Abp.MultiTenancy;
 
 namespace Adee.Store.Domain.Tenants
 {
     /// <summary>
-    /// 租户缓存数据
+    /// 租户扩展信息
     /// </summary>
-    public class TenantCacheItem
+    public class TenantExt : AuditedAggregateRoot<Guid>, IMultiTenant
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        public Guid? TenantId { get; set; }
+
         /// <summary>
         /// 软件编号
         /// </summary>

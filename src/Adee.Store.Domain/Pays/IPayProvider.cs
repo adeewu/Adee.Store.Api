@@ -141,11 +141,6 @@ namespace Adee.Store.Domain.Pays
     public class PayRequest
     {
         /// <summary>
-        /// 租户Id
-        /// </summary>
-        public Guid TenantId { get; set; }
-
-        /// <summary>
         /// 任务类型
         /// </summary>
         public PayTaskType PayTaskType { get; set; }
@@ -203,9 +198,9 @@ namespace Adee.Store.Domain.Pays
         public string AuthCode { get; set; }
 
         /// <summary>
-        /// 触发域名
+        /// 通知地址
         /// </summary>
-        public string TargetDomain { get; set; }
+        public string NotifyUrl { get; set; }
 
         /// <summary>
         /// 支付金额，分

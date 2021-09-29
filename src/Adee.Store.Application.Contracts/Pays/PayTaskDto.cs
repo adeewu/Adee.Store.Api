@@ -7,28 +7,10 @@ using System.Text;
 namespace Adee.Store.Pays
 {
     /// <summary>
-    /// 支付任务
-    /// </summary>
-    public class PayTaskDto
-    {
-        /// <summary>
-        /// 任务类型
-        /// </summary>
-        /// <value></value>
-        [Required]
-        public PayTaskType PayTaskType { get; set; }
-    }
-
-    /// <summary>
     /// B2C收款任务
     /// </summary>
-    public class B2CPayTaskDto : PayTaskDto
+    public class B2CPayTaskDto
     {
-        public B2CPayTaskDto()
-        {
-            PayTaskType = PayTaskType.B2C;
-        }
-
         /// <summary>
         /// 收款码
         /// </summary>
@@ -64,6 +46,11 @@ namespace Adee.Store.Pays
         /// </summary>
         [Required]
         public BusinessType businessType { get; set; }
+
+        /// <summary>
+        /// 通知地址
+        /// </summary>
+        public string NotifyUrl { get; set; }
     }
 
     /// <summary>
@@ -80,18 +67,18 @@ namespace Adee.Store.Pays
         /// 收款状态
         /// </summary>
         public PayTaskStatus Status { get; set; }
+
+        /// <summary>
+        /// 收款状态描述
+        /// </summary>
+        public string Message { get; set; }
     }
 
     /// <summary>
     /// B2C收款任务
     /// </summary>
-    public class RefundPayTaskDto : PayTaskDto
+    public class RefundPayTaskDto
     {
-        public RefundPayTaskDto()
-        {
-            PayTaskType = PayTaskType.Refund;
-        }
-
         /// <summary>
         /// 收款金额，单位：分
         /// </summary>

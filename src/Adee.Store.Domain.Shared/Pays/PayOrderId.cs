@@ -24,18 +24,18 @@ namespace Adee.Store.Pays
         /// <returns></returns>
         public static PayOrderId Create(string payOrderId)
         {
-            CheckHelper.AreEqual(payOrderId.Length, 30, message: "支付订单号长度必须为30");
-            CheckHelper.IsTrue(Regex.IsMatch(payOrderId, @"\d{30}"), "支付订单号必须为纯数字");
+            CheckHelper.AreEqual(payOrderId.Length, 32, message: "支付订单号长度必须为30");
+            CheckHelper.IsTrue(Regex.IsMatch(payOrderId, @"\d{32}"), "支付订单号必须为纯数字");
 
             return new PayOrderId
             {
                 OrderTime = DateTime.ParseExact(payOrderId.Substring(0, 12), "yyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture),
-                SoftwareCode = payOrderId.Substring(12, 8),
-                PayOrganizationType = (PayOrganizationType)Convert.ToInt32(payOrderId.Substring(20, 2)),
-                PaymentType = (PaymentType)Convert.ToInt32(payOrderId.Substring(22, 2)),
-                PaymethodType = (PaymethodType)Convert.ToInt32(payOrderId.Substring(24, 2)),
-                BusinessType = (BusinessType)Convert.ToInt32(payOrderId.Substring(26, 2)),
-                Random = Convert.ToInt32(payOrderId.Substring(28, 2)),
+                SoftwareCode = payOrderId.Substring(12, 10),
+                PayOrganizationType = (PayOrganizationType)Convert.ToInt32(payOrderId.Substring(22, 2)),
+                PaymentType = (PaymentType)Convert.ToInt32(payOrderId.Substring(24, 2)),
+                PaymethodType = (PaymethodType)Convert.ToInt32(payOrderId.Substring(26, 2)),
+                BusinessType = (BusinessType)Convert.ToInt32(payOrderId.Substring(28, 2)),
+                Random = Convert.ToInt32(payOrderId.Substring(30, 2)),
             };
         }
 

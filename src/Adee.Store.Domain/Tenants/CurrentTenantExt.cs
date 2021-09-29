@@ -1,30 +1,26 @@
 using System;
 using System.Threading.Tasks;
-using Volo.Abp.Caching;
+using Adee.Store.Pays;
 using Volo.Abp.DependencyInjection;
-using Volo.Abp.MultiTenancy;
 
 namespace Adee.Store.Domain.Tenants
 {
     public class CurrentTenantExt : ICurrentTenantExt, ITransientDependency
     {
-        private readonly IDistributedCache<TenantCacheItem> _cache;
-        private readonly ICurrentTenant _currentTenant;
+        private readonly ICurrentTenantExtAccessor _currentTenantExtAccessor;
 
-        public CurrentTenantExt(IDistributedCache<TenantCacheItem> cache, ICurrentTenant currentTenant)
+        public CurrentTenantExt(ICurrentTenantExtAccessor currentTenantExtAccessor)
         {
-            _cache = cache;
-            _currentTenant = currentTenant;
+            _currentTenantExtAccessor = currentTenantExtAccessor;
         }
 
-        public async Task<string> GetSoftwareCodeAsync()
-        {
-            return await GetItem().ContinueWith(p => p.Result.GetPropValue(c => c.SoftwareCode));
-        }
+        public string SoftwareCode => _currentTenantExtAccessor.Current?.SoftwareCode;
 
-        private async Task<TenantCacheItem> GetItem()
+        public long? PaypameterVersion => _currentTenantExtAccessor.Current?.PaypameterVersion;
+
+        public async Task SetPaypameterVersion(long version)
         {
-            return await _cache.GetAsync(_currentTenant.Id.Value.ToString());
+            await _currentTenantExtAccessor.SetParameterVersion(version);
         }
     }
 }

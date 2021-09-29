@@ -25,7 +25,7 @@ namespace Adee.Store.EntityFrameworkCore
         {
             builder.Entity<PayNotify>(entity =>
             {
-                entity.ToTable(StoreConsts.DbTablePrefix + nameof(PayNotify));
+                entity.ToTable(StoreConsts.DbTablePrefix + nameof(PayNotify) + "s", StoreConsts.DbSchema);
                 entity.ConfigureByConvention();
 
                 entity.HasComment("支付回调通知");
@@ -69,7 +69,7 @@ namespace Adee.Store.EntityFrameworkCore
 
             builder.Entity<PayOrder>(entity =>
             {
-                entity.ToTable(StoreConsts.DbTablePrefix + nameof(PayOrder));
+                entity.ToTable(StoreConsts.DbTablePrefix + nameof(PayOrder) + "s", StoreConsts.DbSchema);
                 entity.ConfigureByConvention();
 
                 entity.HasComment("支付订单");
@@ -160,16 +160,11 @@ namespace Adee.Store.EntityFrameworkCore
                     .IsRequired()
                     .HasMaxLength(255)
                     .HasComment("收款标题");
-
-                entity.Property(e => e.TargetDomain)
-                    .IsRequired()
-                    .HasMaxLength(1024)
-                    .HasComment("发起支付域名");
             });
 
             builder.Entity<PayOrderLog>(entity =>
             {
-                entity.ToTable(StoreConsts.DbTablePrefix + nameof(PayOrderLog));
+                entity.ToTable(StoreConsts.DbTablePrefix + nameof(PayOrderLog) + "s", StoreConsts.DbSchema);
                 entity.ConfigureByConvention();
 
                 entity.HasComment("支付订单记录");
@@ -211,7 +206,7 @@ namespace Adee.Store.EntityFrameworkCore
 
             builder.Entity<PayParameter>(entity =>
             {
-                entity.ToTable(StoreConsts.DbTablePrefix + nameof(PayParameter));
+                entity.ToTable(StoreConsts.DbTablePrefix + nameof(PayParameter) + "s", StoreConsts.DbSchema);
                 entity.ConfigureByConvention();
 
                 entity.HasComment("支付参数");
@@ -234,7 +229,7 @@ namespace Adee.Store.EntityFrameworkCore
 
             builder.Entity<PayRefund>(entity =>
             {
-                entity.ToTable(StoreConsts.DbTablePrefix + nameof(PayRefund));
+                entity.ToTable(StoreConsts.DbTablePrefix + nameof(PayRefund) + "s", StoreConsts.DbSchema);
                 entity.ConfigureByConvention();
 
                 entity.HasComment("支付订单退款记录");

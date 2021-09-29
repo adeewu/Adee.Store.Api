@@ -35,5 +35,11 @@ namespace Adee.Store.Pays
         /// </summary>
         [Description("退款")]
         Refund = 4,
+
+        /// <summary>
+        /// 取消
+        /// </summary>
+        [Description("取消")]
+        Cancel = 5,
     }
 }

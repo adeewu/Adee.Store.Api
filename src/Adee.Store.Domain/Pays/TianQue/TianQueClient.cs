@@ -114,17 +114,17 @@ namespace Adee.Store.Domain.Pays.TianQue
             return result;
         }
 
-        // /// <summary>
-        // /// 支付查询
-        // /// </summary>
-        // /// <param name="request"></param>
-        // /// <returns></returns>
-        // public async Task<ResponseBase<QueryResponse>> Query(RequestBase<QueryRequestModel> request)
-        // {
-        //     var dic = Sign(request);
+        /// <summary>
+        /// 支付查询
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<ClientResponse<ResponseBase<QueryResponse>>> Query(RequestBase<QueryRequestModel> request)
+        {
+            var dic = Sign(request);
 
-        //     return await PostAsync<QueryResponse>("/query/tradeQuery", body: dic);
-        // }
+            return await PostAsync<QueryResponse>("/query/tradeQuery", body: dic);
+        }
 
         /// <summary>
         /// 订单退款

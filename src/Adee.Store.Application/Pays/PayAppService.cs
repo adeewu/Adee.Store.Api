@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace Adee.Store.Pays
 {
     /// <summary>
-    /// 支付服务
+    /// 支付服务(内部用)
     /// </summary>    
     public class PayAppService : StoreWithRequestAppService
     {
@@ -29,9 +29,9 @@ namespace Adee.Store.Pays
         /// </summary>
         /// <param name="businessOrderId"></param>
         /// <returns></returns>
-        public async Task<QueryOrderCacheItem> GetQuery(string businessOrderId)
+        public async Task<PayTaskSuccessResult> GetQuery(string businessOrderId)
         {
-            return await _payManager.QueryCacheItem(businessOrderId);
+            return await _payManager.GetQueryFromCache(businessOrderId);
         }
 
         /// <summary>
@@ -40,15 +40,16 @@ namespace Adee.Store.Pays
         /// <returns></returns>
         public async Task<PayStatusResultDto> B2C(B2CPayTaskDto dto)
         {
-            var softwareCode = await CurrentTenantExt.GetSoftwareCodeAsync();
-            var businessOrderId = new BusinessOrderId { SoftwareCode = softwareCode };
+            var businessOrderId = new BusinessOrderId { SoftwareCode = CurrentTenantExt.SoftwareCode };
 
-            var result = await _payManager.B2C(dto.Money, dto.AuthCode, CurrentDomain, dto.Title, dto.IPAddress, businessOrderId.ToString(), dto.businessType, dto.PayRemark);
+            var notifyUrl = GetNotifyUrl(CurrentDomain, CurrentTenant.Id);
+            var result = await _payManager.B2C(dto.Money, dto.AuthCode, notifyUrl, dto.Title, dto.IPAddress, businessOrderId.ToString(), dto.businessType, dto.PayRemark);
 
             return new PayStatusResultDto
             {
                 BusinessOrderId = businessOrderId.ToString(),
                 Status = result.Status,
+                Message = result.Message,
             };
         }
 
@@ -72,6 +73,20 @@ namespace Adee.Store.Pays
                 BusinessOrderId = dto.OrderId,
                 Status = result.Status,
             };
+        }
+
+        /// <summary>
+        /// 获取通知地址
+        /// </summary>
+        /// <param name="targetDomain"></param>
+        /// <param name="tenantId"></param>
+        /// <returns></returns>
+        private string GetNotifyUrl(string targetDomain, Guid? tenantId)
+        {
+            var targetTenantId = Guid.Empty;
+            if (tenantId.HasValue) targetTenantId = tenantId.Value;
+
+            return $"{targetDomain}/api/app/notify/{targetTenantId}";
         }
     }
 }

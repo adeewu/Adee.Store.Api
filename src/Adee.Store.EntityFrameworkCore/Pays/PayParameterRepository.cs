@@ -21,7 +21,7 @@ namespace Adee.Store.EntityFrameworkCore.Pays
         {
             var dbSet = await GetDbSetAsync();
 
-            var query = dbSet.Where(p => p.TenantId == tenantId).Where(p => (p.PaymentType.HasValue && p.PaymentType.Value == paymentType) || p.PaymentType.HasValue == false);
+            var query = dbSet.Where(p => (p.PaymentType.HasValue && p.PaymentType.Value == paymentType) || p.PaymentType.HasValue == false);
             if (version.HasValue)
             {
                 query = query.Where(p => p.Version == version);
@@ -36,13 +36,6 @@ namespace Adee.Store.EntityFrameworkCore.Pays
             }
 
             return result;
-        }
-
-        public async Task<long> GetMaxPayParameterVersion(Guid? tenantId)
-        {
-            var dbSet = await GetDbSetAsync();
-
-            return await dbSet.Where(p => p.TenantId == tenantId).OrderBy(p => p.Version).Select(p => p.Version).FirstOrDefaultAsync();
         }
     }
 }

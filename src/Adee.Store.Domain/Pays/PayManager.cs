@@ -12,9 +12,10 @@ using Volo.Abp.Caching;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.SettingManagement;
-using Adee.Store;
 using Volo.Abp.Domain.Services;
 using Volo.Abp.ObjectMapping;
+using Adee.Store.Domain.Tenants;
+using Adee.Store.Pays.Utils.Helpers;
 
 namespace Adee.Store.Pays
 {
@@ -31,6 +32,7 @@ namespace Adee.Store.Pays
         public const int RefundDuration = 14;
 
         private readonly IRepository<PayOrder> _payOrderRepository;
+        private readonly IRepository<PayOrderLog> _payOrderLogRepository;
         private readonly IPayParameterRepository _payParameterRepository;
         private readonly IRepository<PayNotify> _payNotifyRepository;
         private readonly IRepository<PayRefund> _payRefundRepository;
@@ -42,9 +44,12 @@ namespace Adee.Store.Pays
         private readonly IOptions<PayOptions> _payOptions;
         private readonly IAbpLazyServiceProvider _serviceProvider;
         private readonly IObjectMapper _objectMapper;
+        private readonly ICurrentTenantExt _currentTenantExt;
+        private readonly ICommonClient _commonClient;
 
         public PayManager(
             IRepository<PayOrder> payOrderRepository,
+            IRepository<PayOrderLog> payOrderLogRepository,
             IPayParameterRepository payParameterRepository,
             IRepository<PayNotify> payNotifyRepository,
             IRepository<PayRefund> payRefundRepository,
@@ -55,10 +60,13 @@ namespace Adee.Store.Pays
             IDistributedCache<AssertNotifyResponse> assertNotifyCache,
             IOptions<PayOptions> payOptions,
             IAbpLazyServiceProvider serviceProvider,
-            IObjectMapper objectMapper
+            IObjectMapper objectMapper,
+            ICurrentTenantExt currentTenantExt,
+            ICommonClient commonClient
             )
         {
             _payOrderRepository = payOrderRepository;
+            _payOrderLogRepository = payOrderLogRepository;
             _payParameterRepository = payParameterRepository;
             _payNotifyRepository = payNotifyRepository;
             _payRefundRepository = payRefundRepository;
@@ -70,6 +78,8 @@ namespace Adee.Store.Pays
             _payOptions = payOptions;
             _serviceProvider = serviceProvider;
             _objectMapper = objectMapper;
+            _currentTenantExt = currentTenantExt;
+            _commonClient = commonClient;
         }
 
         // public async Task<object> Excution(PayTaskType type, string payTaskContent)
@@ -81,12 +91,21 @@ namespace Adee.Store.Pays
         //     payProvider.Excute()
         // }
 
-        public async Task<PayResponse> Refund(RetryRefundArgs args)
+        /// <summary>
+        /// 原路退回
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public async Task<PayTaskRefundResult> Refund(RetryRefundArgs args)
         {
-            CheckHelper.IsTrue(CurrentTenant.IsAvailable, "租户不可用");
-
-            var payOrder = await _payOrderRepository.SingleOrDefaultAsync(p => p.TenantId == CurrentTenant.Id && (p.PayOrderId == args.PayOrderId || p.BusinessOrderId == args.PayOrderId || p.PayOrganizationOrderId == args.PayOrderId));
+            var payOrder = await _payOrderRepository.SingleOrDefaultAsync(p => p.PayOrderId == args.PayOrderId || p.BusinessOrderId == args.PayOrderId || p.PayOrganizationOrderId == args.PayOrderId);
             CheckHelper.IsNotNull(payOrder, name: nameof(payOrder));
+
+            var payParameter = await GetPayParameter(payOrder.PaymentType, payOrder.ParameterVersion);
+            CheckHelper.IsNotNull(payParameter, name: nameof(payParameter));
+
+            var payProvider = GetPayProvider(payParameter.PayOrganizationType);
+            CheckHelper.IsNotNull(payProvider, name: nameof(payProvider));
 
             var payRefund = await _payRefundRepository.InsertAsync(new PayRefund(GuidGenerator.Create())
             {
@@ -94,58 +113,100 @@ namespace Adee.Store.Pays
                 OrderId = payOrder.Id,
                 RefundOrderId = $"Refund-{payOrder.PayOrderId}-{new Random(GetHashCode()).Next(100, 999)}",
                 Money = args.Money,
-                Status = PayTaskStatus.Normal,
+                Status = PayTaskStatus.Executing,
             }, true);
 
-            var payParameter = await GetPayParameter(payOrder.PaymentType, payOrder.ParameterVersion);
-            CheckHelper.IsNotNull(payParameter, name: nameof(payParameter));
-
-            var payProvider = GetPayProvider(payParameter.PayOrganizationType);
-            CheckHelper.IsNotNull(payProvider, name: nameof(payProvider));
-
-            payRefund.Status = PayTaskStatus.Executing;
-            payRefund = await _payRefundRepository.UpdateAsync(payRefund, true);
-
-            var result = await payProvider.Refund(new RefundPayRequest
+            var request = new RefundPayRequest
             {
-                TenantId = CurrentTenant.Id.Value,
                 PayParameterValue = payParameter.Value,
                 Money = args.Money,
                 PayOrderId = payOrder.PayOrderId,
                 RefundOrderId = payRefund.RefundOrderId,
-            });
+            };
 
-            payOrder.RefundStatus = result.Status;
-            payOrder.RefundStatusMessage = result.ResponseMessage;
-
-            payRefund.Status = result.Status;
-            payRefund.StatusMessage = result.ResponseMessage;
-            await _payRefundRepository.UpdateAsync(payRefund, true);
-
-            if (result.Status == PayTaskStatus.Normal || result.Status == PayTaskStatus.Executing || result.Status == PayTaskStatus.Waiting)
+            if (args.Index == 0)
             {
-                args.Index += 1;
+                payOrder.RefundStatus = PayTaskStatus.Executing;
+                payOrder = await _payOrderRepository.UpdateAsync(payOrder);
 
-                if (args.Index >= args.Rates.Length)
+                await _payOrderLogRepository.InsertAsync(new PayOrderLog
                 {
-                    payRefund.Status = PayTaskStatus.Faild;
-                    payRefund.StatusMessage = payOrder.QueryStatusMessage;
-                    payOrder.RefundStatus = PayTaskStatus.Faild;
-                    payOrder.RefundStatusMessage = $"订单：{args.PayOrderId}发起退款{args.Rates.Length}次仍未成功，放弃退款";
-                    payOrder = await _payOrderRepository.UpdateAsync(payOrder);
-                }
-                else
-                {
-                    await _backgroundJobManager.EnqueueAsync(args, delay: TimeSpan.FromHours(args.Rates[args.Index]));
-                }
+                    OrderId = payOrder.Id,
+                    LogType = OrderLogType.Refund,
+                    Status = PayTaskStatus.Executing,
+                    OriginRequest = request.ToJsonString(),
+                }, true);
             }
+
+            var response = await payProvider.Refund(request);
+
+            var result = new PayTaskRefundResult
+            {
+                Status = response.Status,
+                Message = response.ResponseMessage,
+                PayOrderId = args.PayOrderId,
+                RefundOrderId = payRefund.RefundOrderId,
+            };
+
+            payOrder.RefundStatus = response.Status;
+            payOrder.RefundStatusMessage = response.ResponseMessage;
+            payOrder = await _payOrderRepository.UpdateAsync(payOrder);
+
+            payRefund.Status = response.Status;
+            payRefund.StatusMessage = response.ResponseMessage;
+            payRefund = await _payRefundRepository.UpdateAsync(payRefund);
+
+            await _payOrderLogRepository.InsertAsync(new PayOrderLog
+            {
+                OrderId = payOrder.Id,
+                LogType = OrderLogType.Refund,
+                Status = response.Status,
+                OriginRequest = response.OriginRequest,
+                SubmitRequest = response.SubmitRequest,
+                OriginResponse = response.OriginResponse,
+                EncryptResponse = response.EncryptResponse,
+            }, true);
+
+            if (response.Status == PayTaskStatus.Faild || response.Status == PayTaskStatus.Success)
+            {
+                //_backgroundJobManager.EnqueueAsync
+
+                return result;
+            }
+
+            if (args.Index >= args.Rates.Length - 1)
+            {
+                payOrder.RefundStatus = PayTaskStatus.Faild;
+                payOrder.RefundStatusMessage = $"订单：{args.PayOrderId}发起退款{args.Rates.Length}次仍未成功，放弃退款";
+                payOrder = await _payOrderRepository.UpdateAsync(payOrder);
+
+                payRefund.Status = PayTaskStatus.Faild;
+                payRefund.StatusMessage = payOrder.QueryStatusMessage;
+                payRefund = await _payRefundRepository.UpdateAsync(payRefund);
+
+                await _payOrderLogRepository.InsertAsync(new PayOrderLog
+                {
+                    OrderId = payOrder.Id,
+                    LogType = OrderLogType.Refund,
+                    Status = PayTaskStatus.Faild,
+                    ExceptionMessage = payOrder.RefundStatusMessage,
+                }, true);
+            }
+
+            args.Index += 1;
+            await _backgroundJobManager.EnqueueAsync(args, delay: TimeSpan.FromHours(args.Rates[args.Index]));
 
             return result;
         }
 
-        public async Task Cancel(string payOrderId)
+        /// <summary>
+        /// 取消订单
+        /// </summary>
+        /// <param name="payOrderId"></param>
+        /// <returns></returns>
+        public async Task<PayTaskResult> Cancel(string payOrderId)
         {
-            var payOrder = await _payOrderRepository.SingleOrDefaultAsync(p => p.TenantId == CurrentTenant.Id && p.PayOrderId == payOrderId);
+            var payOrder = await _payOrderRepository.SingleOrDefaultAsync(p => p.PayOrderId == payOrderId);
             CheckHelper.IsNotNull(payOrder, name: nameof(payOrder));
 
             var payParameter = await GetPayParameter(payOrder.PaymentType, payOrder.ParameterVersion);
@@ -154,23 +215,63 @@ namespace Adee.Store.Pays
             var payProvider = GetPayProvider(payParameter.PayOrganizationType);
             CheckHelper.IsNotNull(payProvider, name: nameof(payProvider));
 
-            var result = await payProvider.Cancel(new PayRequest
+            payOrder.CancelStatus = PayTaskStatus.Executing;
+            payOrder = await _payOrderRepository.UpdateAsync(payOrder);
+
+            var request = new PayRequest
             {
-                TenantId = CurrentTenant.Id.Value,
                 PayTaskType = PayTaskType.Cancel,
                 PayParameterValue = payParameter.Value,
                 PayOrderId = payOrderId,
-            });
+            };
 
-            payOrder.CancelStatus = result.Status;
-            payOrder.CancelStatusMessage = result.ResponseMessage;
-            await _payOrderRepository.UpdateAsync(payOrder, true);
+            await _payOrderLogRepository.InsertAsync(new PayOrderLog
+            {
+                OrderId = payOrder.Id,
+                LogType = OrderLogType.Cancel,
+                Status = PayTaskStatus.Executing,
+                OriginRequest = request.ToJsonString(),
+            }, true);
+
+            var response = await payProvider.Cancel(request);
+
+            payOrder.CancelStatus = response.Status;
+            payOrder.CancelStatusMessage = response.ResponseMessage;
+            payOrder.Status = response.Status;
+            await _payOrderRepository.UpdateAsync(payOrder);
+
+            await _payOrderLogRepository.InsertAsync(new PayOrderLog
+            {
+                OrderId = payOrder.Id,
+                LogType = OrderLogType.Cancel,
+                Status = response.Status,
+                OriginRequest = response.OriginRequest,
+                SubmitRequest = response.SubmitRequest,
+                OriginResponse = response.OriginResponse,
+                EncryptResponse = response.EncryptResponse,
+            }, true);
+
+            return new PayTaskResult
+            {
+                Status = response.Status,
+                Message = response.ResponseMessage,
+            };
         }
 
-        public async Task<PaySuccessResponse> B2C(int money, string authCode, string targetDomain, string title, string ip, string businessOrderId, BusinessType businessType, string payRemark)
+        /// <summary>
+        /// B2C收款
+        /// </summary>
+        /// <param name="money"></param>
+        /// <param name="authCode"></param>
+        /// <param name="targetDomain"></param>
+        /// <param name="title"></param>
+        /// <param name="ip"></param>
+        /// <param name="businessOrderId"></param>
+        /// <param name="businessType"></param>
+        /// <param name="payRemark"></param>
+        /// <returns></returns>
+        public async Task<PayTaskSuccessResult> B2C(int money, string authCode, string notifyUrl, string title, string ip, string businessOrderId, BusinessType businessType, string payRemark)
         {
-            CheckHelper.IsTrue(CurrentTenant.IsAvailable, "租户不可用");
-
             var paymentType = GetPaymentTypeFromAuthCode(authCode);
             Check.NotNull(paymentType, nameof(paymentType));
 
@@ -184,8 +285,7 @@ namespace Adee.Store.Pays
             {
                 TenantId = CurrentTenant.Id,
                 Money = money,
-                TargetDomain = targetDomain,
-                NotifyUrl = $"{targetDomain}/api/app/notify/{CurrentTenant.Id}",
+                NotifyUrl = notifyUrl,
                 Title = title,
                 BusinessOrderId = businessOrderId,
                 PayOrderId = new PayOrderId
@@ -193,7 +293,7 @@ namespace Adee.Store.Pays
                     PaymentType = paymentType,
                     PayOrganizationType = payParameter.PayOrganizationType,
                     PaymethodType = PaymethodType.B2C,
-                    SoftwareCode = "",
+                    SoftwareCode = _currentTenantExt.SoftwareCode,
                     BusinessType = BusinessType.NoCodePay,
                 }.ToString(),
                 ParameterVersion = payParameter.Version,
@@ -204,37 +304,78 @@ namespace Adee.Store.Pays
                 Status = PayTaskStatus.Waiting,
                 PayRemark = payRemark,
             };
-            payOrder = await _payOrderRepository.InsertAsync(payOrder, true);
+            payOrder = await _payOrderRepository.InsertAsync(payOrder);
 
-            var result = await payProvider.B2C(new B2CPayRequest
+            var request = new B2CPayRequest
             {
                 AuthCode = authCode,
-                TargetDomain = targetDomain,
-                TenantId = CurrentTenant.Id.Value,
+                NotifyUrl = payOrder.NotifyUrl,
                 PayParameterValue = payParameter.Value,
                 Money = money,
                 Title = title,
                 IPAddress = ip,
                 PayOrderId = payOrder.PayOrderId,
-            });
+            };
 
-            payOrder.Status = result.Status;
-            payOrder.StatusMessage = result.ResponseMessage;
-            await _payOrderRepository.UpdateAsync(payOrder, true);
+            await _payOrderLogRepository.InsertAsync(new PayOrderLog
+            {
+                OrderId = payOrder.Id,
+                LogType = OrderLogType.Pay,
+                Status = PayTaskStatus.Executing,
+                OriginRequest = request.ToJsonString(),
+            }, true);
 
-            if (result.Status == PayTaskStatus.Normal || result.Status == PayTaskStatus.Executing || result.Status == PayTaskStatus.Waiting)
+            var response = await payProvider.B2C(request);
+
+            var result = new PayTaskSuccessResult
+            {
+                Status = response.Status,
+                Message = response.ResponseMessage,
+            };
+
+            payOrder.Status = response.Status;
+            payOrder.StatusMessage = response.ResponseMessage;
+            payOrder = await _payOrderRepository.UpdateAsync(payOrder);
+
+            await _payOrderLogRepository.InsertAsync(new PayOrderLog
+            {
+                OrderId = payOrder.Id,
+                LogType = OrderLogType.Pay,
+                Status = payOrder.Status,
+                OriginRequest = response.OriginRequest,
+                SubmitRequest = response.SubmitRequest,
+                OriginResponse = response.OriginResponse,
+                EncryptResponse = response.EncryptResponse,
+            }, true);
+
+            if (response.Status == PayTaskStatus.Normal || response.Status == PayTaskStatus.Executing || response.Status == PayTaskStatus.Waiting)
             {
                 var rates = GetQueryDelay(QueryDuration);
                 await _backgroundJobManager.EnqueueAsync<QueryPayStatusArgs>(new QueryPayStatusArgs
                 {
                     TenantId = CurrentTenant.Id.Value,
-                    PayParameterVersion = payParameter.Version,
                     PayOrderId = payOrder.PayOrderId,
                     Rates = rates,
                 }, delay: TimeSpan.FromMilliseconds(rates.First()));
             }
 
-            if (result.Status == PayTaskStatus.Success || result.Status == PayTaskStatus.Faild)
+            if (response.Status == PayTaskStatus.Success || response.Status == PayTaskStatus.Faild)
+            {
+                result.PayTime = response.PayTime;
+                result.Money = response.Money;
+                result.BusinessType = businessType;
+                result.PaymentType = paymentType;
+                result.BusinessOrderId = businessOrderId;
+                result.PayOrderId = payOrder.PayOrderId;
+                result.PayOrganizationOrderId = result.PayOrganizationOrderId;
+
+                await _queryOrderCache.RemoveAsync(payOrder.BusinessOrderId);
+
+                var retryNotifyArgs = result.AsObject<RetryNotifyArgs>();
+                await _backgroundJobManager.EnqueueAsync<RetryNotifyArgs>(retryNotifyArgs);
+            }
+
+            if (response.Status == PayTaskStatus.Faild)
             {
                 await _queryOrderCache.RemoveAsync(payOrder.BusinessOrderId);
             }
@@ -242,106 +383,39 @@ namespace Adee.Store.Pays
             return result;
         }
 
-        public async Task<QueryOrderCacheItem> QueryCacheItem(string businessOrderId)
+        /// <summary>
+        /// 获取订单状态(缓存)
+        /// </summary>
+        /// <param name="businessOrderId"></param>
+        /// <returns></returns>
+        public async Task<PayTaskSuccessResult> GetQueryFromCache(string businessOrderId)
         {
-            var response = await _queryOrderCache.GetAsync(businessOrderId);
-            if (response.IsNotNull()) return response;
+            var queryOrderCacheItem = await _queryOrderCache.GetAsync(businessOrderId);
+            if (queryOrderCacheItem.IsNotNull())
+            {
+                return _objectMapper.Map<QueryOrderCacheItem, PayTaskSuccessResult>(queryOrderCacheItem);
+            }
 
-            var payOrder = await _payOrderRepository.FindAsync(p => p.PayOrderId == businessOrderId);
+            var payOrder = await _payOrderRepository.FindAsync(p => p.BusinessOrderId == businessOrderId);
             CheckHelper.IsNotNull(payOrder, $"订单：{businessOrderId} 不存在");
-            CheckHelper.IsTrue(payOrder.TenantId.HasValue, $"订单：{businessOrderId}的租户Id不能为空");
 
-            response = _objectMapper.Map<PayOrder, QueryOrderCacheItem>(payOrder);
-            await _queryOrderCache.SetAsync(businessOrderId, response);
+            queryOrderCacheItem = _objectMapper.Map<PayOrder, QueryOrderCacheItem>(payOrder);
+            await _queryOrderCache.SetAsync(businessOrderId, queryOrderCacheItem);
 
-            return response;
+            return _objectMapper.Map<QueryOrderCacheItem, PayTaskSuccessResult>(queryOrderCacheItem);
         }
 
-        public async Task<PaySuccessResponse> Query(QueryPayStatusArgs args)
-        {
-            CheckHelper.IsTrue(CurrentTenant.IsAvailable, "租户不可用");
-
-            var payOrder = await _payOrderRepository.SingleOrDefaultAsync(p => p.TenantId == CurrentTenant.Id && p.PayOrderId == args.PayOrderId);
-            CheckHelper.IsNotNull(payOrder, name: nameof(payOrder));
-
-            if (args.Index == 0)
-            {
-                payOrder.QueryStatus = PayTaskStatus.Executing;
-                payOrder = await _payOrderRepository.UpdateAsync(payOrder, true);
-            }
-
-            var payParameter = await GetPayParameter(payOrder.PaymentType, payOrder.ParameterVersion);
-            CheckHelper.IsNotNull(payParameter, name: nameof(payParameter));
-
-            var payProvider = GetPayProvider(payParameter.PayOrganizationType);
-            CheckHelper.IsNotNull(payProvider, name: nameof(payProvider));
-
-            var result = await payProvider.Query(new PayRequest
-            {
-                TenantId = CurrentTenant.Id.Value,
-                PayTaskType = PayTaskType.Query,
-                PayParameterValue = payParameter.Value,
-                PayOrderId = args.PayOrderId,
-            });
-
-            payOrder.QueryStatus = result.Status;
-            payOrder.QueryStatusMessage = result.ResponseMessage;
-
-            if (result.Status == PayTaskStatus.Success)
-            {
-                payOrder.PayTime = result.PayTime;
-                payOrder.PayOrganizationOrderId = result.PayOrganizationOrderId;
-                payOrder.Money = result.Money;
-                payOrder.Status = result.Status;
-
-                await _queryOrderCache.RemoveAsync(payOrder.BusinessOrderId);
-            }
-
-            payOrder = await _payOrderRepository.UpdateAsync(payOrder, true);
-
-            if (result.Status == PayTaskStatus.Success || result.Status == PayTaskStatus.Faild)
-            {
-                await _queryOrderCache.RemoveAsync(payOrder.BusinessOrderId);
-            }
-
-            if (result.Status == PayTaskStatus.Normal || result.Status == PayTaskStatus.Executing || result.Status == PayTaskStatus.Waiting)
-            {
-                args.Index += 1;
-
-                if (args.Index >= args.Rates.Length)
-                {
-                    payOrder.QueryStatus = PayTaskStatus.Faild;
-                    payOrder.QueryStatusMessage = $"订单：{args.PayOrderId}轮询{args.Rates.Length}次仍未取到结果，放弃轮询";
-                    payOrder.Status = PayTaskStatus.Faild;
-                    payOrder.StatusMessage = payOrder.QueryStatusMessage;
-                    payOrder = await _payOrderRepository.UpdateAsync(payOrder, true);
-
-                    await Cancel(args.PayOrderId);
-                }
-                else
-                {
-                    await _backgroundJobManager.EnqueueAsync<QueryPayStatusArgs>(args, delay: TimeSpan.FromMilliseconds(args.Rates[args.Index]));
-                }
-            }
-
-            return result;
-        }
-
+        /// <summary>
+        /// 获取支付参数
+        /// </summary>
+        /// <param name="paymentType"></param>
+        /// <param name="version"></param>
+        /// <returns></returns>
         public async Task<PayParameter> GetPayParameter(PaymentType paymentType, long? version = null)
         {
-            var isSetVersion = false;
             if (version.HasValue == false)
             {
-                var setVersion = (await _settingManager.GetOrNullForCurrentTenantAsync(StoreSettings.PayParameterVersionKey)).To(0L);
-                if (setVersion > 0)
-                {
-                    isSetVersion = true;
-                    version = setVersion;
-                }
-                else
-                {
-                    version = await _payParameterRepository.GetMaxPayParameterVersion(CurrentTenant.Id);
-                }
+                version = _currentTenantExt.PaypameterVersion;
             }
             CheckHelper.IsTrue(version.HasValue && version > 0, $"无法确定租户：{CurrentTenant.Id}支付参数的版本号");
 
@@ -351,15 +425,16 @@ namespace Adee.Store.Pays
             var payParameter = await _payParameterRepository.GetPayParameter(CurrentTenant.Id, paymentType, version);
             CheckHelper.IsNotNull(payParameter, name: nameof(payParameter));
 
-            if (isSetVersion == false)
-            {
-                await _settingManager.SetForCurrentTenantAsync(StoreSettings.PayParameterVersionKey, payParameter.Version.ToString());
-            }
             await _settingManager.SetForCurrentTenantAsync(StoreSettings.PayParameterVersionKey, payParameter.ToJsonString(), new { Version = payParameter.Version, PaymentType = paymentType });
 
             return payParameter;
         }
 
+        /// <summary>
+        /// 断言回调通知
+        /// </summary>
+        /// <param name="notify"></param>
+        /// <returns></returns>
         public async Task AssertNotify(PayNotify notify)
         {
             try
@@ -428,6 +503,11 @@ namespace Adee.Store.Pays
             }
         }
 
+        /// <summary>
+        /// 获取支付服务
+        /// </summary>
+        /// <param name="payOrganizationType"></param>
+        /// <returns></returns>
         public IDefaultPayProvider GetPayProvider(PayOrganizationType payOrganizationType)
         {
             var payProviderTypes = _payOptions.Value.PayProviderTypes
@@ -441,6 +521,11 @@ namespace Adee.Store.Pays
             return (IDefaultPayProvider)_serviceProvider.LazyGetRequiredService(payProviderTypes.Single());
         }
 
+        /// <summary>
+        /// 从付款码断定付款方式
+        /// </summary>
+        /// <param name="authCode"></param>
+        /// <returns></returns>
         private PaymentType GetPaymentTypeFromAuthCode(string authCode)
         {
             CheckHelper.IsTrue(int.TryParse(authCode.Substring(0, 2), out var startCode), $"非法条码：{authCode}");
@@ -477,7 +562,7 @@ namespace Adee.Store.Pays
             var firstMinute = Enumerable.Repeat(3000, 60 * 1000 / 3000);
             var lastMinute = Enumerable.Repeat(5000, (delayDuration - 1) * 60 * 1000 / 5000);
 
-            return firstMinute.Union(lastMinute).ToArray();
+            return firstMinute.Concat(lastMinute).ToArray();
         }
 
         /// <summary>

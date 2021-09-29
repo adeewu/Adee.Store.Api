@@ -10,11 +10,6 @@ namespace Adee.Store.Pays
         public string PayOrderId { get; set; }
 
         /// <summary>
-        /// 使用支付参数版本
-        /// </summary>
-        public long PayParameterVersion { get; set; }
-
-        /// <summary>
         /// 租户Id
         /// </summary>
         public Guid TenantId { get; set; }

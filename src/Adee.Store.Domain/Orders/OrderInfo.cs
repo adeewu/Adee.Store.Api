@@ -6,6 +6,9 @@ using Volo.Abp.MultiTenancy;
 
 namespace Adee.Store.Orders
 {
+    /// <summary>
+    /// 订单详情
+    /// </summary>
     public partial class OrderInfo : AuditedAggregateRoot<Guid>, IMultiTenant
     {
         public OrderInfo(Guid id)

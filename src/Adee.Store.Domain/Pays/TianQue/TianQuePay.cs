@@ -72,7 +72,7 @@ namespace Adee.Store.Domain.Pays.TianQue
                 ordNo = request.PayOrderId.ToString(),
                 tradeSource = "01",
                 trmIp = request.IPAddress,
-                notifyUrl = $"{request.TargetDomain}/api/Notify/{request.TenantId}",
+                notifyUrl = request.NotifyUrl,
             });
 
             var response = await _client.B2CPay(b2cRequest);
@@ -110,9 +110,59 @@ namespace Adee.Store.Domain.Pays.TianQue
             return result;
         }
 
-        public override Task<PaySuccessResponse> Query(PayRequest request)
+        public override async Task<PaySuccessResponse> Query(PayRequest request)
         {
-            return base.Query(request);
+            var queryRequest = _client.GetRequest(request.PayParameterValue, new QueryRequestModel
+            {
+                ordNo = request.PayOrderId
+            });
+
+            var response = await _client.Query(queryRequest);
+
+            var result = new PaySuccessResponse
+            {
+                Status = PayTaskStatus.Faild,
+                EncryptResponse = response.EncryptResponse,
+                OriginResponse = response.OriginResponse,
+                OriginRequest = response.OriginRequest,
+                SubmitRequest = response.SubmitRequest,
+                ResponseMessage = response.Response.GetPropValue(p => p.respData).GetPropValue(p => p.bizMsg) ?? response.Response.GetPropValue(p => p.msg),
+            };
+
+            if (response.Response.code != "0000" || response.Response.respData == null)
+            {
+                result.ResponseMessage = $"(返回码：{response.Response.code}){response.Response.msg}";
+                return result;
+            }
+
+            if (response.Response.respData.tranSts == "FAIL"
+                || response.Response.respData.tranSts == "CANCELED"
+                || response.Response.respData.tranSts == "NOTPAY"
+                || response.Response.respData.tranSts == "CLOSED")
+            {
+                result.ResponseMessage = $"【{response.Response.respData.tranSts}】{result.ResponseMessage}";
+                return result;
+            }
+
+            if (response.Response.respData.tranSts == "SUCCESS")
+            {
+                result.Status = PayTaskStatus.Success;
+                result.PayTime = response.Response.respData.payTime.ToDateTime("YYYYMMddHHmmss");
+                result.PayOrganizationOrderId = response.Response.respData.transactionId;
+                result.Money = Convert.ToInt32(Convert.ToDecimal(response.Response.respData.oriTranAmt) * 100);
+
+                return result;
+            }
+
+            if (response.Response.respData.tranSts == "PAYING")
+            {
+                result.Status = PayTaskStatus.Executing;
+
+                return result;
+            }
+
+            result.ResponseMessage = $"未实现的交易状态：{response.Response.respData.tranSts}";
+            return result;
         }
     }
 }

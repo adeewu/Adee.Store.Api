@@ -15,12 +15,5 @@ namespace Adee.Store.Pays
         /// <param name="version">默认最新版本</param>
         /// <returns></returns>
         Task<PayParameter> GetPayParameter(Guid? tenantId, PaymentType paymentType, long? version = null);
-
-        /// <summary>
-        /// 获取租户最新版本号
-        /// </summary>
-        /// <param name="tenantId"></param>
-        /// <returns></returns>
-        Task<long> GetMaxPayParameterVersion(Guid? tenantId);
     }
 }

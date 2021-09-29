@@ -45,6 +45,6 @@ namespace Adee.Store.Pays
         /// <summary>
         /// 任务消息
         /// </summary>
-        public string ResponseMessage { get; set; }
+        public string Message { get; set; }
     }
 }

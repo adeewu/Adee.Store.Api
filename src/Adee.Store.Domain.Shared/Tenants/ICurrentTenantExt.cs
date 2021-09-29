@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Adee.Store.Pays;
 using Volo.Abp.DependencyInjection;
 
 namespace Adee.Store.Domain.Tenants
@@ -7,11 +8,22 @@ namespace Adee.Store.Domain.Tenants
     /// <summary>
     /// 租户扩展信息
     /// </summary>
-    public interface ICurrentTenantExt : ITransientDependency
+    public interface ICurrentTenantExt
     {
         /// <summary>
         /// 软件编号
         /// </summary>
-        Task<string> GetSoftwareCodeAsync();
+        string SoftwareCode { get; }
+
+        /// <summary>
+        /// 支付参数版本
+        /// </summary>
+        long? PaypameterVersion { get; }
+
+        /// <summary>
+        /// 设置支付参数版本
+        /// </summary>
+        /// <param name="version"></param>
+        Task SetPaypameterVersion(long version);
     }
 }

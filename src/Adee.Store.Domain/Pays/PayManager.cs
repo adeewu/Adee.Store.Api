@@ -373,6 +373,7 @@ namespace Adee.Store.Pays
 
                 var retryNotifyArgs = result.AsObject<RetryNotifyArgs>();
                 retryNotifyArgs.NoitfyUrl = notifyUrl;
+                retryNotifyArgs.TenantId = payOrder.TenantId;
                 await _backgroundJobManager.EnqueueAsync<RetryNotifyArgs>(retryNotifyArgs);
             }
 

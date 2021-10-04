@@ -43,17 +43,15 @@ namespace Adee.Store.EntityFrameworkCore
                     .HasComment("请求方式");
 
                 entity.Property(e => e.PayOrderId)
-                    .IsRequired()
                     .HasMaxLength(50)
                     .HasComment("支付订单Id");
 
                 entity.Property(e => e.Query)
                     .HasComment("请求参数");
 
-                entity.Property(e => e.MerchantOrderId)
-                    .IsRequired()
+                entity.Property(e => e.BusinessOrderId)
                     .HasMaxLength(50)
-                    .HasComment("支付结果查询Id");
+                    .HasComment("业务订单号");
 
                 entity.Property(e => e.Status)
                     .IsRequired()

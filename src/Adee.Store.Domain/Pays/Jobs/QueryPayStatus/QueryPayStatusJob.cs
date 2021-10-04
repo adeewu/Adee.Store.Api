@@ -18,7 +18,6 @@ namespace Adee.Store.Pays
         private readonly IDistributedCache<QueryOrderCacheItem> _queryOrderCache;
         private readonly IRepository<PayOrder> _payOrderRepository;
         private readonly IRepository<PayOrderLog> _payOrderLogRepository;
-        private readonly ICurrentTenant _currentTenant;
 
         public QueryPayStatusJob(
             PayManager payManager,
@@ -34,7 +33,6 @@ namespace Adee.Store.Pays
             _queryOrderCache = queryOrderCache;
             _payOrderRepository = payOrderRepository;
             _payOrderLogRepository = payOrderLogRepository;
-            _currentTenant = currentTenant;
         }
 
         [UnitOfWork(isTransactional: false)]

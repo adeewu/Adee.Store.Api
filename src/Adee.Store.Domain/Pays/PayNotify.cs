@@ -50,9 +50,9 @@ namespace Adee.Store.Pays
         /// </summary>
         public string StatusMessage { get; set; }
         /// <summary>
-        /// 支付结果查询Id
+        /// 业务订单号
         /// </summary>
-        public string MerchantOrderId { get; set; }
+        public string BusinessOrderId { get; set; }
         /// <summary>
         /// 支付订单Id
         /// </summary>

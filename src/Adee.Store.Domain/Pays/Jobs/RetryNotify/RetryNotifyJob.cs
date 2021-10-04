@@ -13,7 +13,6 @@ namespace Adee.Store.Pays
 {
     public class RetryNotifyJob : StoreTenantBackgroundJob<RetryNotifyArgs>, ITransientDependency
     {
-        private readonly ICurrentTenant _currentTenant;
         private readonly IBackgroundJobManager _backgroundJobManager;
         private readonly IRepository<PayOrder> _payOrderRepository;
         private readonly IRepository<PayOrderLog> _payOrderLogRepository;
@@ -27,7 +26,6 @@ namespace Adee.Store.Pays
             ICommonClient commonClient
             ) : base(currentTenant)
         {
-            _currentTenant = currentTenant;
             _backgroundJobManager = backgroundJobManager;
             _payOrderRepository = payOrderRepository;
             _payOrderLogRepository = payOrderLogRepository;
@@ -36,14 +34,6 @@ namespace Adee.Store.Pays
 
         [UnitOfWork(isTransactional: false)]
         public override async Task ExecuteAsync(RetryNotifyArgs args)
-        {
-            using (_currentTenant.Change(args.TenantId))
-            {
-                await Notify(args);
-            }
-        }
-
-        private async Task Notify(RetryNotifyArgs args)
         {
             if (args.Index <= 0)
             {
@@ -75,7 +65,7 @@ namespace Adee.Store.Pays
 
         private async Task UpdatePayOrderStatus(string payOrderId, PayTaskStatus status, string message, string request, string response)
         {
-            var payOrder = await _payOrderRepository.GetAsync(p => p.PayOrderId == payOrderId);
+            var payOrder = await _payOrderRepository.SingleOrDefaultAsync(p => p.PayOrderId == payOrderId);
             if (payOrder == null)
             {
                 Logger.LogWarning($"支付订单：{payOrderId}不存在");

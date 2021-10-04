@@ -38,18 +38,18 @@ namespace Adee.Store.Pays
         /// <summary>
         /// Get方式通知
         /// </summary>
-        /// <param name="tenantId"></param>
+        /// <param name="__tenant"></param>
         /// <returns></returns>
-        public async Task<object> Get(string tenantId)
+        public async Task<object> Get(string __tenant)
         {
-            CheckHelper.IsNotNull(tenantId, $"{nameof(tenantId)}不能为空");
+            CheckHelper.IsNotNull(__tenant, $"{nameof(__tenant)}不能为空");
 
             var result = await Save(new NotifyDto
             {
                 Method = HttpMethod.Get,
                 Query = HttpContext.Request.QueryString.HasValue ? HttpContext.Request.QueryString.Value : string.Empty,
                 Url = HttpContext.Request.GetDisplayUrl(),
-                TenantId = tenantId.To<Guid>(),
+                TenantId = CurrentTenant.Id,
                 TargetDomain = CurrentDomain,
             });
 
@@ -59,11 +59,11 @@ namespace Adee.Store.Pays
         /// <summary>
         /// Post方式通知
         /// </summary>
-        /// <param name="tenantId"></param>
+        /// <param name="__tenant"></param>
         /// <returns></returns>
-        public async Task<object> Post(string tenantId)
+        public async Task<object> Post(string __tenant)
         {
-            CheckHelper.IsNotNull(tenantId, $"{nameof(tenantId)}不能为空");
+            CheckHelper.IsNotNull(__tenant, $"{nameof(__tenant)}不能为空");
 
             var body = await HttpContext.Request.GetBodyAsync();
 
@@ -73,7 +73,7 @@ namespace Adee.Store.Pays
                 Body = body,
                 Query = HttpContext.Request.QueryString.HasValue ? HttpContext.Request.QueryString.Value : string.Empty,
                 Url = HttpContext.Request.GetDisplayUrl(),
-                TenantId = tenantId.To<Guid>(),
+                TenantId = CurrentTenant.Id,
                 TargetDomain = CurrentDomain,
             });
 

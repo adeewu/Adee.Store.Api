@@ -86,7 +86,7 @@ namespace Adee.Store.Pays
             var targetTenantId = Guid.Empty;
             if (tenantId.HasValue) targetTenantId = tenantId.Value;
 
-            return $"{targetDomain}/api/app/notify/{targetTenantId}";
+            return $"{targetDomain}/api/app/notify?__tenant={targetTenantId}";
         }
     }
 }

@@ -17,7 +17,7 @@ namespace Adee.Store.EntityFrameworkCore.Pays
 
         }
 
-        public async Task<PayParameter> GetPayParameter(Guid? tenantId, PaymentType paymentType, long? version = null)
+        public async Task<PayParameter> GetPayParameter(PaymentType paymentType, long? version = null)
         {
             var dbSet = await GetDbSetAsync();
 

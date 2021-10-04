@@ -372,6 +372,7 @@ namespace Adee.Store.Pays
                 await _queryOrderCache.RemoveAsync(payOrder.BusinessOrderId);
 
                 var retryNotifyArgs = result.AsObject<RetryNotifyArgs>();
+                retryNotifyArgs.NoitfyUrl = notifyUrl;
                 await _backgroundJobManager.EnqueueAsync<RetryNotifyArgs>(retryNotifyArgs);
             }
 
@@ -422,7 +423,7 @@ namespace Adee.Store.Pays
             var payParameterValue = await _settingManager.GetOrNullForCurrentTenantAsync(StoreSettings.PayParameterVersionKey, new { Version = version.Value, PaymentType = paymentType });
             if (payParameterValue.IsNotNull()) return payParameterValue.AsObject<PayParameter>();
 
-            var payParameter = await _payParameterRepository.GetPayParameter(CurrentTenant.Id, paymentType, version);
+            var payParameter = await _payParameterRepository.GetPayParameter(paymentType, version);
             CheckHelper.IsNotNull(payParameter, name: nameof(payParameter));
 
             await _settingManager.SetForCurrentTenantAsync(StoreSettings.PayParameterVersionKey, payParameter.ToJsonString(), new { Version = payParameter.Version, PaymentType = paymentType });
@@ -487,7 +488,7 @@ namespace Adee.Store.Pays
                 await _assertNotifyCache.SetAsync(hitAssertNotifyResult.PayOrderId.ToString(), hitAssertNotifyResult);
 
                 notify.Status = PayTaskStatus.Success;
-                notify.MerchantOrderId = hitAssertNotifyResult.PayOrganizationOrderId;
+                notify.BusinessOrderId = hitAssertNotifyResult.PayOrganizationOrderId;
                 notify.PayOrderId = hitAssertNotifyResult.PayOrderId.ToString();
             }
             catch (Exception ex)

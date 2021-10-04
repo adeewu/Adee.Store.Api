@@ -14,6 +14,6 @@ namespace Adee.Store.Pays
         /// <param name="paymentType"></param>
         /// <param name="version">默认最新版本</param>
         /// <returns></returns>
-        Task<PayParameter> GetPayParameter(Guid? tenantId, PaymentType paymentType, long? version = null);
+        Task<PayParameter> GetPayParameter(PaymentType paymentType, long? version = null);
     }
 }

@@ -1,16 +1,17 @@
 using System;
+using Volo.Abp.MultiTenancy;
 
 namespace Adee.Store.Pays
 {
     /// <summary>
     /// 重试退款
     /// </summary>
-    public class RetryRefundArgs
+    public class RetryRefundArgs : IMultiTenant
     {
         /// <summary>
         /// 
         /// </summary>
-        public Guid TenantId { get; set; }
+        public Guid? TenantId { get; set; }
 
         /// <summary>
         /// 支付订单号

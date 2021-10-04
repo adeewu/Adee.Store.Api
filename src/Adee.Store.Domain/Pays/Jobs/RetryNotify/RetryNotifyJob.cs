@@ -11,7 +11,7 @@ using Volo.Abp.Uow;
 
 namespace Adee.Store.Pays
 {
-    public class RetryNotifyJob : BackgroundJob<RetryNotifyArgs>, ITransientDependency
+    public class RetryNotifyJob : StoreTenantBackgroundJob<RetryNotifyArgs>, ITransientDependency
     {
         private readonly ICurrentTenant _currentTenant;
         private readonly IBackgroundJobManager _backgroundJobManager;
@@ -25,7 +25,7 @@ namespace Adee.Store.Pays
             IRepository<PayOrder> payOrderRepository,
             IRepository<PayOrderLog> payOrderLogRepository,
             ICommonClient commonClient
-            )
+            ) : base(currentTenant)
         {
             _currentTenant = currentTenant;
             _backgroundJobManager = backgroundJobManager;
@@ -35,15 +35,15 @@ namespace Adee.Store.Pays
         }
 
         [UnitOfWork(isTransactional: false)]
-        public override void Execute(RetryNotifyArgs args)
+        public override async Task ExecuteAsync(RetryNotifyArgs args)
         {
-            _currentTenant.Change(args.TenantId);
-
-            var executeTask = ExecuteAsync(args);
-            executeTask.Wait();
+            using (_currentTenant.Change(args.TenantId))
+            {
+                await Notify(args);
+            }
         }
 
-        private async Task ExecuteAsync(RetryNotifyArgs args)
+        private async Task Notify(RetryNotifyArgs args)
         {
             if (args.Index <= 0)
             {

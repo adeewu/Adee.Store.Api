@@ -1,16 +1,17 @@
 using System;
+using Volo.Abp.MultiTenancy;
 
 namespace Adee.Store.Pays
 {
     /// <summary>
     /// 重试通知
     /// </summary>
-    public class RetryNotifyArgs : PayTaskSuccessResult
+    public class RetryNotifyArgs : PayTaskSuccessResult, IMultiTenant
     {
         /// <summary>
         /// 
         /// </summary>
-        public Guid TenantId { get; set; }
+        public Guid? TenantId { get; set; }
 
         /// <summary>
         /// 执行次数

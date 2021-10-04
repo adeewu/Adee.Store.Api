@@ -8,11 +8,10 @@ using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.MultiTenancy;
 using Volo.Abp.Uow;
-using Volo.Abp.ObjectMapping;
 
 namespace Adee.Store.Pays
 {
-    public class QueryPayStatusJob : BackgroundJob<QueryPayStatusArgs>, ITransientDependency
+    public class QueryPayStatusJob : StoreTenantBackgroundJob<QueryPayStatusArgs>, ITransientDependency
     {
         private readonly PayManager _payManager;
         private readonly IBackgroundJobManager _backgroundJobManager;
@@ -28,7 +27,7 @@ namespace Adee.Store.Pays
             IRepository<PayOrder> payOrderRepository,
             IRepository<PayOrderLog> payOrderLogRepository,
             ICurrentTenant currentTenant
-            )
+            ) : base(currentTenant)
         {
             _payManager = payManager;
             _backgroundJobManager = backgroundJobManager;
@@ -39,25 +38,7 @@ namespace Adee.Store.Pays
         }
 
         [UnitOfWork(isTransactional: false)]
-        public override void Execute(QueryPayStatusArgs args)
-        {
-            _currentTenant.Change(args.TenantId);
-
-            var executeTask = ExecuteAsync(args);
-            executeTask.Wait();
-        }
-
-        private async Task ExecuteAsync(QueryPayStatusArgs args)
-        {
-            await Query(args);
-        }
-
-        /// <summary>
-        /// 查询订单状态
-        /// </summary>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        public async Task Query(QueryPayStatusArgs args)
+        public override async Task ExecuteAsync(QueryPayStatusArgs args)
         {
             var payOrder = await _payOrderRepository.SingleOrDefaultAsync(p => p.PayOrderId == args.PayOrderId);
             CheckHelper.IsNotNull(payOrder, name: nameof(payOrder));

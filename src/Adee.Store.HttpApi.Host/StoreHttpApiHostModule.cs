@@ -100,7 +100,10 @@ namespace Adee.Store
         {
             Configure<AbpAspNetCoreMvcOptions>(options =>
             {
-                options.ConventionalControllers.Create(typeof(StoreApplicationModule).Assembly);
+                options.ConventionalControllers.Create(typeof(StoreApplicationModule).Assembly, opts =>
+                {
+                    opts.RootPath = "store";
+                });
             });
         }
 

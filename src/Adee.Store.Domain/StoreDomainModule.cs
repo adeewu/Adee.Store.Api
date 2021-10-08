@@ -15,8 +15,8 @@ using Volo.Abp.SettingManagement;
 using Volo.Abp.TenantManagement;
 using Adee.Store.Domain.Pays.TianQue.Models;
 using Adee.Store.Domain.Pays.TianQue;
-using Adee.Store.Domain.Pays;
 using Adee.Store.Domain.Tenants;
+using Adee.Store.Pays;
 
 namespace Adee.Store
 {

@@ -3,7 +3,7 @@ using Volo.Abp.MultiTenancy;
 
 namespace Adee.Store.Pays
 {
-    public class QueryPayStatusArgs : IMultiTenant
+    public class PayQueryStatusArgs : IMultiTenant
     {
         /// <summary>
         /// 支付订单号

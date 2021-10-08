@@ -28,6 +28,11 @@ namespace Adee.Store.Domain.Pays
             throw new NotImplementedException();
         }
 
+        public virtual Task<PaySuccessResponse> RefundQuery(PayRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
         public virtual Task<PaySuccessResponse> WechatJS(PayRequest request)
         {
             throw new NotImplementedException();

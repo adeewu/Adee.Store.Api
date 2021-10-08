@@ -1,4 +1,5 @@
-﻿using Adee.Store.Pays;
+﻿using Adee.Store.Domain.Pays;
+using Adee.Store.Pays;
 using AutoMapper;
 
 namespace Adee.Store
@@ -15,9 +16,11 @@ namespace Adee.Store
             CreateMap<CreateUpdatePayParameterDto, PayParameter>();
 
             CreateMap<PayOrder, QueryOrderCacheItem>();
-            CreateMap<PayOrder, PayTaskSuccessResult>();
+            CreateMap<PayOrder, PayTaskOrderResult>();
 
-            CreateMap<QueryOrderCacheItem, PayTaskSuccessResult>();
+            CreateMap<QueryOrderCacheItem, PayTaskOrderResult>();
+
+            CreateMap<B2CPayTaskDto, B2C>();
         }
     }
 }

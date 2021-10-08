@@ -6,7 +6,7 @@ namespace Adee.Store.Pays
     /// <summary>
     /// 重试通知
     /// </summary>
-    public class RetryNotifyArgs : PayTaskSuccessResult, IMultiTenant
+    public class PayNotifyArgs : IMultiTenant
     {
         /// <summary>
         /// 
@@ -26,6 +26,16 @@ namespace Adee.Store.Pays
         /// <summary>
         /// 支付订单号
         /// </summary>
-        public string NoitfyUrl { get; set; }
+        public string PayOrderId { get; set; }
+
+        /// <summary>
+        /// 退款通知
+        /// </summary>
+        public bool IsRefundNotify { get; set; }
+
+        /// <summary>
+        /// 通知内容
+        /// </summary>
+        public object NotifyContent { get; set; }
     }
 }

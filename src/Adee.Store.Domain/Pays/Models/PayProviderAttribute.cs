@@ -1,7 +1,7 @@
 using System;
 using Adee.Store.Pays;
 
-namespace Adee.Store.Domain.Pays
+namespace Adee.Store.Pays
 {
     public class PayProviderAttribute : Attribute
     {

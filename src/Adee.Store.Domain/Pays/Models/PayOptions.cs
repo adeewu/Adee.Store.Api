@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Adee.Store.Domain.Pays
+namespace Adee.Store.Pays
 {
     /// <summary>
     /// 支付配置

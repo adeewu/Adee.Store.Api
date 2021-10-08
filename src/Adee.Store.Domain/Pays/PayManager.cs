@@ -29,7 +29,7 @@ namespace Adee.Store.Pays
         /// <summary>
         /// 退款时长，天
         /// </summary>
-        public const int RefundDuration = 14;
+        public const int RefundQueryDuration = 14;
 
         private readonly IRepository<PayOrder> _payOrderRepository;
         private readonly IRepository<PayOrderLog> _payOrderLogRepository;
@@ -94,11 +94,12 @@ namespace Adee.Store.Pays
         /// <summary>
         /// 原路退回
         /// </summary>
-        /// <param name="args"></param>
+        /// <param name="orderId"></param>
+        /// <param name="money"></param>
         /// <returns></returns>
-        public async Task<PayTaskRefundResult> Refund(RetryRefundArgs args)
+        public async Task<PayTaskRefundResult> Refund(string orderId, int money)
         {
-            var payOrder = await _payOrderRepository.SingleOrDefaultAsync(p => p.PayOrderId == args.PayOrderId || p.BusinessOrderId == args.PayOrderId || p.PayOrganizationOrderId == args.PayOrderId);
+            var payOrder = await _payOrderRepository.SingleOrDefaultAsync(p => p.PayOrderId == orderId || p.BusinessOrderId == orderId || p.PayOrganizationOrderId == orderId);
             CheckHelper.IsNotNull(payOrder, name: nameof(payOrder));
 
             var payParameter = await GetPayParameter(payOrder.PaymentType, payOrder.ParameterVersion);
@@ -112,31 +113,28 @@ namespace Adee.Store.Pays
                 TenantId = CurrentTenant.Id,
                 OrderId = payOrder.Id,
                 RefundOrderId = $"Refund-{payOrder.PayOrderId}-{new Random(GetHashCode()).Next(100, 999)}",
-                Money = args.Money,
+                Money = money,
                 Status = PayTaskStatus.Executing,
             }, true);
 
             var request = new RefundPayRequest
             {
                 PayParameterValue = payParameter.Value,
-                Money = args.Money,
+                Money = money,
                 PayOrderId = payOrder.PayOrderId,
                 RefundOrderId = payRefund.RefundOrderId,
             };
 
-            if (args.Index == 0)
-            {
-                payOrder.RefundStatus = PayTaskStatus.Executing;
-                payOrder = await _payOrderRepository.UpdateAsync(payOrder);
+            payOrder.RefundStatus = PayTaskStatus.Executing;
+            payOrder = await _payOrderRepository.UpdateAsync(payOrder);
 
-                await _payOrderLogRepository.InsertAsync(new PayOrderLog
-                {
-                    OrderId = payOrder.Id,
-                    LogType = OrderLogType.Refund,
-                    Status = PayTaskStatus.Executing,
-                    OriginRequest = request.ToJsonString(),
-                }, true);
-            }
+            await _payOrderLogRepository.InsertAsync(new PayOrderLog
+            {
+                OrderId = payOrder.Id,
+                LogType = OrderLogType.Refund,
+                Status = PayTaskStatus.Executing,
+                OriginRequest = request.ToJsonString(),
+            }, true);
 
             var response = await payProvider.Refund(request);
 
@@ -144,7 +142,7 @@ namespace Adee.Store.Pays
             {
                 Status = response.Status,
                 Message = response.ResponseMessage,
-                PayOrderId = args.PayOrderId,
+                PayOrderId = payOrder.PayOrderId,
                 RefundOrderId = payRefund.RefundOrderId,
             };
 
@@ -169,32 +167,28 @@ namespace Adee.Store.Pays
 
             if (response.Status == PayTaskStatus.Faild || response.Status == PayTaskStatus.Success)
             {
-                //_backgroundJobManager.EnqueueAsync
+                var notifyArgs = new PayNotifyArgs
+                {
+                    TenantId = payOrder.TenantId,
+                    PayOrderId = payOrder.PayOrderId,
+                    NotifyContent = result,
+                };
+                await _backgroundJobManager.EnqueueAsync(notifyArgs);
 
                 return result;
             }
 
-            if (args.Index >= args.Rates.Length - 1)
+            if (response.Status == PayTaskStatus.Executing || response.Status == PayTaskStatus.Waiting || response.Status == PayTaskStatus.Normal)
             {
-                payOrder.RefundStatus = PayTaskStatus.Faild;
-                payOrder.RefundStatusMessage = $"订单：{args.PayOrderId}发起退款{args.Rates.Length}次仍未成功，放弃退款";
-                payOrder = await _payOrderRepository.UpdateAsync(payOrder);
-
-                payRefund.Status = PayTaskStatus.Faild;
-                payRefund.StatusMessage = payOrder.QueryStatusMessage;
-                payRefund = await _payRefundRepository.UpdateAsync(payRefund);
-
-                await _payOrderLogRepository.InsertAsync(new PayOrderLog
+                var refundQueryArgs = new RefundQueryStatusArgs
                 {
-                    OrderId = payOrder.Id,
-                    LogType = OrderLogType.Refund,
-                    Status = PayTaskStatus.Faild,
-                    ExceptionMessage = payOrder.RefundStatusMessage,
-                }, true);
+                    TenantId = payOrder.TenantId,
+                    PayOrderId = payOrder.PayOrderId,
+                    RefundPayOrderId = payRefund.RefundOrderId,
+                    Money = money,
+                };
+                await _backgroundJobManager.EnqueueAsync(refundQueryArgs, delay: TimeSpan.FromSeconds(1));
             }
-
-            args.Index += 1;
-            await _backgroundJobManager.EnqueueAsync(args, delay: TimeSpan.FromHours(args.Rates[args.Index]));
 
             return result;
         }
@@ -261,18 +255,11 @@ namespace Adee.Store.Pays
         /// <summary>
         /// B2C收款
         /// </summary>
-        /// <param name="money"></param>
-        /// <param name="authCode"></param>
-        /// <param name="targetDomain"></param>
-        /// <param name="title"></param>
-        /// <param name="ip"></param>
-        /// <param name="businessOrderId"></param>
-        /// <param name="businessType"></param>
-        /// <param name="payRemark"></param>
+        /// <param name="model"></param>
         /// <returns></returns>
-        public async Task<PayTaskSuccessResult> B2C(int money, string authCode, string notifyUrl, string title, string ip, string businessOrderId, BusinessType businessType, string payRemark)
+        public async Task<PayTaskOrderResult> B2C(B2C model)
         {
-            var paymentType = GetPaymentTypeFromAuthCode(authCode);
+            var paymentType = GetPaymentTypeFromAuthCode(model.AuthCode);
             Check.NotNull(paymentType, nameof(paymentType));
 
             var payParameter = await GetPayParameter(paymentType);
@@ -284,10 +271,10 @@ namespace Adee.Store.Pays
             var payOrder = new PayOrder(GuidGenerator.Create())
             {
                 TenantId = CurrentTenant.Id,
-                Money = money,
-                NotifyUrl = notifyUrl,
-                Title = title,
-                BusinessOrderId = businessOrderId,
+                Money = model.Money,
+                NotifyUrl = model.NotifyUrl,
+                Title = model.Title,
+                BusinessOrderId = model.BusinessOrderId,
                 PayOrderId = new PayOrderId
                 {
                     PaymentType = paymentType,
@@ -300,20 +287,20 @@ namespace Adee.Store.Pays
                 PaymentType = paymentType,
                 PayOrganizationType = payParameter.PayOrganizationType,
                 PaymethodType = PaymethodType.B2C,
-                BusinessType = businessType,
+                BusinessType = model.BusinessType,
                 Status = PayTaskStatus.Waiting,
-                PayRemark = payRemark,
+                PayRemark = model.PayRemark,
             };
             payOrder = await _payOrderRepository.InsertAsync(payOrder);
 
             var request = new B2CPayRequest
             {
-                AuthCode = authCode,
+                AuthCode = model.AuthCode,
                 NotifyUrl = payOrder.NotifyUrl,
                 PayParameterValue = payParameter.Value,
-                Money = money,
-                Title = title,
-                IPAddress = ip,
+                Money = model.Money,
+                Title = model.Title,
+                IPAddress = model.IPAddress,
                 PayOrderId = payOrder.PayOrderId,
             };
 
@@ -327,7 +314,7 @@ namespace Adee.Store.Pays
 
             var response = await payProvider.B2C(request);
 
-            var result = new PayTaskSuccessResult
+            var result = new PayTaskOrderResult
             {
                 Status = response.Status,
                 Message = response.ResponseMessage,
@@ -350,31 +337,32 @@ namespace Adee.Store.Pays
 
             if (response.Status == PayTaskStatus.Normal || response.Status == PayTaskStatus.Executing || response.Status == PayTaskStatus.Waiting)
             {
-                var rates = GetQueryDelay(QueryDuration);
-                await _backgroundJobManager.EnqueueAsync<QueryPayStatusArgs>(new QueryPayStatusArgs
+                await _backgroundJobManager.EnqueueAsync(new PayQueryStatusArgs
                 {
                     TenantId = CurrentTenant.Id.Value,
                     PayOrderId = payOrder.PayOrderId,
-                    Rates = rates,
-                }, delay: TimeSpan.FromMilliseconds(rates.First()));
+                }, delay: TimeSpan.FromSeconds(1));
             }
 
             if (response.Status == PayTaskStatus.Success || response.Status == PayTaskStatus.Faild)
             {
                 result.PayTime = response.PayTime;
                 result.Money = response.Money;
-                result.BusinessType = businessType;
+                result.BusinessType = model.BusinessType;
                 result.PaymentType = paymentType;
-                result.BusinessOrderId = businessOrderId;
+                result.BusinessOrderId = model.BusinessOrderId;
                 result.PayOrderId = payOrder.PayOrderId;
                 result.PayOrganizationOrderId = result.PayOrganizationOrderId;
 
                 await _queryOrderCache.RemoveAsync(payOrder.BusinessOrderId);
 
-                var retryNotifyArgs = result.AsObject<RetryNotifyArgs>();
-                retryNotifyArgs.NoitfyUrl = notifyUrl;
-                retryNotifyArgs.TenantId = payOrder.TenantId;
-                await _backgroundJobManager.EnqueueAsync<RetryNotifyArgs>(retryNotifyArgs);
+                var retryNotifyArgs = new PayNotifyArgs
+                {
+                    TenantId = payOrder.TenantId,
+                    PayOrderId = payOrder.PayOrderId,
+                    NotifyContent = result,
+                };
+                await _backgroundJobManager.EnqueueAsync(retryNotifyArgs);
             }
 
             if (response.Status == PayTaskStatus.Faild)
@@ -388,23 +376,23 @@ namespace Adee.Store.Pays
         /// <summary>
         /// 获取订单状态(缓存)
         /// </summary>
-        /// <param name="businessOrderId"></param>
+        /// <param name="orderId"></param>
         /// <returns></returns>
-        public async Task<PayTaskSuccessResult> GetQueryFromCache(string businessOrderId)
+        public async Task<PayTaskOrderResult> GetQueryFromCache(string orderId)
         {
-            var queryOrderCacheItem = await _queryOrderCache.GetAsync(businessOrderId);
+            var queryOrderCacheItem = await _queryOrderCache.GetAsync(orderId);
             if (queryOrderCacheItem.IsNotNull())
             {
-                return _objectMapper.Map<QueryOrderCacheItem, PayTaskSuccessResult>(queryOrderCacheItem);
+                return _objectMapper.Map<QueryOrderCacheItem, PayTaskOrderResult>(queryOrderCacheItem);
             }
 
-            var payOrder = await _payOrderRepository.FindAsync(p => p.BusinessOrderId == businessOrderId);
-            CheckHelper.IsNotNull(payOrder, $"订单：{businessOrderId} 不存在");
+            var payOrder = await _payOrderRepository.FindAsync(p => p.BusinessOrderId == orderId);
+            CheckHelper.IsNotNull(payOrder, $"订单：{orderId} 不存在");
 
             queryOrderCacheItem = _objectMapper.Map<PayOrder, QueryOrderCacheItem>(payOrder);
-            await _queryOrderCache.SetAsync(businessOrderId, queryOrderCacheItem);
+            await _queryOrderCache.SetAsync(orderId, queryOrderCacheItem);
 
-            return _objectMapper.Map<QueryOrderCacheItem, PayTaskSuccessResult>(queryOrderCacheItem);
+            return _objectMapper.Map<QueryOrderCacheItem, PayTaskOrderResult>(queryOrderCacheItem);
         }
 
         /// <summary>
@@ -550,33 +538,6 @@ namespace Adee.Store.Pays
             }
 
             throw new UserFriendlyException($"未知条码：{authCode}");
-        }
-
-        /// <summary>
-        /// 获取查询速度（毫秒）
-        /// </summary>
-        /// <param name="delayDuration">轮询时长，单位：分钟</param>
-        /// <returns></returns>
-        public int[] GetQueryDelay(int delayDuration)
-        {
-            CheckHelper.IsTrue(delayDuration > 1, $"轮询时长不能小于1分钟");
-
-            var firstMinute = Enumerable.Repeat(3000, 60 * 1000 / 3000);
-            var lastMinute = Enumerable.Repeat(5000, (delayDuration - 1) * 60 * 1000 / 5000);
-
-            return firstMinute.Concat(lastMinute).ToArray();
-        }
-
-        /// <summary>
-        /// 获取退款速度（小时）
-        /// </summary>
-        /// <param name="delayDuration">轮询时长，单位：天</param>
-        /// <returns></returns>
-        public int[] GetRefundDelay(int delayDuration)
-        {
-            CheckHelper.IsTrue(delayDuration > 1, $"轮询时长不能小于1天");
-
-            return Enumerable.Repeat(3, delayDuration * 24 / 3).ToArray();
         }
     }
 }

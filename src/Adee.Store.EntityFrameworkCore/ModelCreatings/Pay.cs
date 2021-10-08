@@ -251,6 +251,18 @@ namespace Adee.Store.EntityFrameworkCore
                     .HasMaxLength(500)
                     .HasComment("退款状态描述");
 
+                entity.Property(e => e.QueryStatus)
+                    .HasComment("查询退款状态");
+
+                entity.Property(e => e.QueryStatusMessage)
+                    .HasComment("查询退款状态描述");
+
+                entity.Property(e => e.NotifyStatus)
+                    .HasComment("退款通知状态");
+
+                entity.Property(e => e.NotifyStatusMessage)
+                    .HasComment("退款通知状态描述");
+
                 entity.HasOne(e => e.PayOrder)
                     .WithMany(e => e.PayRefunds)
                     .HasForeignKey(e => e.OrderId);

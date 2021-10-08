@@ -41,6 +41,22 @@ namespace Adee.Store.Pays
         /// 退款状态描述
         /// </summary>
         public string StatusMessage { get; set; }
+        /// <summary>
+        /// 查询退款状态
+        /// </summary>
+        public PayTaskStatus? QueryStatus { get; set; }
+        /// <summary>
+        /// 查询退款状态描述
+        /// </summary>
+        public string QueryStatusMessage { get; set; }
+        /// <summary>
+        /// 退款通知状态
+        /// </summary>
+        public PayTaskStatus? NotifyStatus { get; set; }
+        /// <summary>
+        /// 退款通知状态描述
+        /// </summary>
+        public string NotifyStatusMessage { get; set; }
 
         public virtual PayOrder PayOrder { get; set; }
     }

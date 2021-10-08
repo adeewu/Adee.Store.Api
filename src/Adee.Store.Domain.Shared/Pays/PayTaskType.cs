@@ -22,42 +22,48 @@ namespace Adee.Store.Pays
         /// B2C
         /// </summary>
         [Description("B2C")]
-        B2C,
+        B2C = 1,
 
         /// <summary>
         /// C2B
         /// </summary>
         [Description("C2B")]
-        C2B,
+        C2B = 2,
 
         /// <summary>
         /// Query
         /// </summary>
         [Description("Query")]
-        Query,
+        Query = 3,
 
         /// <summary>
         /// Refund
         /// </summary>
         [Description("Refund")]
-        Refund,
+        Refund = 4,
+
+        /// <summary>
+        /// RefundQuery
+        /// </summary>
+        [Description("RefundQuery")]
+        RefundQuery = 5,
 
         /// <summary>
         /// WechatJSPay
         /// </summary>
         [Description("WechatJS")]
-        WechatJSPay,
+        WechatJSPay = 6,
 
         /// <summary>
         /// AssertNotify
         /// </summary>
         [Description("AssertNotify")]
-        AssertNotify,
+        AssertNotify = 7,
 
         /// <summary>
         /// Cancel
         /// </summary>
         [Description("Cancel")]
-        Cancel,
+        Cancel = 8,
     }
 }

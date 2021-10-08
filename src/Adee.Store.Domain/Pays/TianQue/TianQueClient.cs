@@ -77,7 +77,7 @@ namespace Adee.Store.Domain.Pays.TianQue
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<ClientResponse<ResponseBase<B2CResponseModel>>> B2CPay(RequestBase<B2CRequestModel> request)
+        public async Task<DetailResponse<ResponseBase<B2CResponseModel>>> B2CPay(RequestBase<B2CRequestModel> request)
         {
             var dic = Sign(request);
 
@@ -95,9 +95,9 @@ namespace Adee.Store.Domain.Pays.TianQue
         /// <param name="query">url参数</param>
         /// <param name="body">提交body</param>
         /// <returns></returns>
-        public async Task<ClientResponse<ResponseBase<TResult>>> PostAsync<TResult>(string url, object query = null, object body = null)
+        public async Task<DetailResponse<ResponseBase<TResult>>> PostAsync<TResult>(string url, object query = null, object body = null)
         {
-            var result = new ClientResponse<ResponseBase<TResult>>();
+            var result = new DetailResponse<ResponseBase<TResult>>();
 
             var requestMessage = await _client.GetHttpRequestMessage(HttpMethod.Post, url, query, body);
             result.SubmitRequest = requestMessage.ToString();
@@ -119,7 +119,7 @@ namespace Adee.Store.Domain.Pays.TianQue
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<ClientResponse<ResponseBase<QueryResponse>>> Query(RequestBase<QueryRequestModel> request)
+        public async Task<DetailResponse<ResponseBase<QueryResponse>>> Query(RequestBase<QueryRequestModel> request)
         {
             var dic = Sign(request);
 
@@ -131,7 +131,7 @@ namespace Adee.Store.Domain.Pays.TianQue
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<ClientResponse<ResponseBase<RefundResponseModel>>> Refund(RequestBase<RefundRequestModel> request)
+        public async Task<DetailResponse<ResponseBase<RefundResponseModel>>> Refund(RequestBase<RefundRequestModel> request)
         {
             var dic = Sign(request);
 

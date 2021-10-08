@@ -4,9 +4,9 @@ using Volo.Abp.MultiTenancy;
 namespace Adee.Store.Pays
 {
     /// <summary>
-    /// 重试退款
+    /// 查询退款状态
     /// </summary>
-    public class RetryRefundArgs : IMultiTenant
+    public class RefundQueryStatusArgs : IMultiTenant
     {
         /// <summary>
         /// 
@@ -17,6 +17,11 @@ namespace Adee.Store.Pays
         /// 支付订单号
         /// </summary>
         public string PayOrderId { get; set; }
+
+        /// <summary>
+        /// 退款订单号
+        /// </summary>
+        public string RefundPayOrderId { get; set; }
 
         /// <summary>
         /// 退款金额

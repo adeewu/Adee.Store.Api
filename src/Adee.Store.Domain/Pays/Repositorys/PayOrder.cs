@@ -110,7 +110,7 @@ namespace Adee.Store.Pays
         /// <summary>
         /// 退款状态描述
         /// </summary>
-        public string RefundStatusMessage { get; set; }
+        public string RefundStatusMessage { get; set; }        
         /// <summary>
         /// 成功退款次数
         /// </summary>

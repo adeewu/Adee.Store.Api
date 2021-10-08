@@ -37,9 +37,21 @@ namespace Adee.Store.Pays
         Refund = 4,
 
         /// <summary>
+        /// 退款查询
+        /// </summary>
+        [Description("退款查询")]
+        RefundQuery = 5,
+
+        /// <summary>
+        /// 退款通知
+        /// </summary>
+        [Description("退款通知")]
+        RefundNotify = 6,
+
+        /// <summary>
         /// 取消
         /// </summary>
         [Description("取消")]
-        Cancel = 5,
+        Cancel = 7,
     }
 }

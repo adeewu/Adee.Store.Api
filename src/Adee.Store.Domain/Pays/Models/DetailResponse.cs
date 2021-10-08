@@ -2,7 +2,7 @@ using System.Linq;
 
 namespace Adee.Store.Pays
 {
-    public class ClientResponse<T>
+    public class DetailResponse<T>
     {
         /// <summary>
         /// 原始报文

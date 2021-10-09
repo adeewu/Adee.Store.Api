@@ -3,7 +3,7 @@ using Volo.Abp.MultiTenancy;
 
 namespace Adee.Store.Pays
 {
-    public class PayQueryStatusArgs : IMultiTenant
+    public class PayQueryStatusArgs : LoopJobArgs, IMultiTenant
     {
         /// <summary>
         /// 支付订单号
@@ -14,15 +14,5 @@ namespace Adee.Store.Pays
         /// 租户Id
         /// </summary>
         public Guid? TenantId { get; set; }
-
-        /// <summary>
-        /// 执行次数
-        /// </summary>
-        public int Index { get; set; }
-
-        /// <summary>
-        /// 执行间隔
-        /// </summary>
-        public int[] Rates { get; set; }
     }
 }

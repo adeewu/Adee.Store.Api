@@ -32,6 +32,11 @@ namespace System.Linq
         {
             if (model == null) return string.Empty;
 
+            if (model is string)
+            {
+                return model.ToString();
+            }
+
             return JsonConvert.SerializeObject(model, settings ?? JsonSerializerSettings);
         }
 
@@ -63,13 +68,27 @@ namespace System.Linq
         /// Json字符反序列化为对象
         /// </summary>
         /// <typeparam name="TModel">对象类型</typeparam>
-        /// <param name="str"></param>
+        /// <param name="model"></param>
         /// <param name="anonymousTypeObject">目标类型数据模型</param>
         /// <param name="settings">序列化设定</param>
         /// <returns></returns>
-        public static TModel AsAnonymousObject<TModel>(this string str, TModel anonymousTypeObject, JsonSerializerSettings settings = null) where TModel : class
+        public static TModel AsAnonymousObject<TModel>(this object model, TModel anonymousTypeObject, JsonSerializerSettings settings = null) where TModel : class
         {
-            if (string.IsNullOrWhiteSpace(str)) str = "{}";
+            var str = string.Empty;
+
+            if (model == null) str = "{}";
+
+
+            if (model is string)
+            {
+                str = model.ToString();
+            }
+            else
+            {
+                str = model.ToJsonString();
+            }
+
+
             return JsonConvert.DeserializeAnonymousType(str, anonymousTypeObject, settings ?? JsonSerializerSettings);
         }
     }

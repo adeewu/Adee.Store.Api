@@ -6,22 +6,12 @@ namespace Adee.Store.Pays
     /// <summary>
     /// 重试通知
     /// </summary>
-    public class PayNotifyArgs : IMultiTenant
+    public class PayNotifyArgs : LoopJobArgs, IMultiTenant
     {
         /// <summary>
         /// 
         /// </summary>
         public Guid? TenantId { get; set; }
-
-        /// <summary>
-        /// 执行次数
-        /// </summary>
-        public int Index { get; set; }
-
-        /// <summary>
-        /// 执行间隔
-        /// </summary>
-        public int[] Rates { get; set; }
 
         /// <summary>
         /// 支付订单号
@@ -36,6 +26,6 @@ namespace Adee.Store.Pays
         /// <summary>
         /// 通知内容
         /// </summary>
-        public object NotifyContent { get; set; }
+        public string NotifyContent { get; set; }
     }
 }

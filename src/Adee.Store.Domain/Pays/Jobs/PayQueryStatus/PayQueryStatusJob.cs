@@ -100,7 +100,10 @@ namespace Adee.Store.Pays
             {
                 payOrder.PayTime = response.PayTime;
                 payOrder.PayOrganizationOrderId = response.PayOrganizationOrderId;
-                payOrder.Money = response.Money;
+                if (response.Money.HasValue)
+                {
+                    payOrder.Money = response.Money.Value;
+                }
                 payOrder.Status = response.Status;
 
                 stopLoop = true;
@@ -132,13 +135,13 @@ namespace Adee.Store.Pays
                 await _queryOrderCache.RemoveAsync(payOrder.BusinessOrderId);
 
                 var result = _objectMapper.Map<PayOrder, PayTaskOrderResult>(payOrder);
-                var retryNotifyArgs = new PayNotifyArgs
+                var notifyArgs = new PayNotifyArgs
                 {
                     TenantId = payOrder.TenantId,
                     PayOrderId = payOrder.PayOrderId,
-                    NotifyContent = result,
+                    NotifyContent = result.ToJsonString(),
                 };
-                await _backgroundJobManager.EnqueueAsync(retryNotifyArgs);
+                await _backgroundJobManager.EnqueueAsync(notifyArgs);
 
                 if (isCancel)
                 {

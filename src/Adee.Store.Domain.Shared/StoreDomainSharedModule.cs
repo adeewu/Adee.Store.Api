@@ -1,4 +1,5 @@
 ﻿using Adee.Store.Localization;
+using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.AuditLogging;
 using Volo.Abp.BackgroundJobs;
 using Volo.Abp.FeatureManagement;
@@ -54,6 +55,9 @@ namespace Adee.Store
             {
                 options.MapCodeNamespace("Store", typeof(StoreResource));
             });
+
+            var config = context.Services.GetConfiguration();
+            Configure<AppOptions>(config.GetSection("App"));
         }
     }
 }

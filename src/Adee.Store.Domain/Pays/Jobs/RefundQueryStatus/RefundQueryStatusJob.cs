@@ -6,6 +6,7 @@ using Volo.Abp.Caching;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.MultiTenancy;
+using Volo.Abp.ObjectMapping;
 using Volo.Abp.Uow;
 
 namespace Adee.Store.Pays
@@ -18,6 +19,7 @@ namespace Adee.Store.Pays
         private readonly IRepository<PayOrder> _payOrderRepository;
         private readonly IRepository<PayOrderLog> _payOrderLogRepository;
         private readonly IRepository<PayRefund> _payRefundRepository;
+        private readonly IObjectMapper _objectMapper;
 
         public RefundQueryStatusJob(
             PayManager payManager,
@@ -26,7 +28,8 @@ namespace Adee.Store.Pays
             IRepository<PayOrder> payOrderRepository,
             IRepository<PayOrderLog> payOrderLogRepository,
             IRepository<PayRefund> payRefundRepository,
-            ICurrentTenant currentTenant
+            ICurrentTenant currentTenant,
+            IObjectMapper objectMapper
             ) : base(currentTenant)
         {
             _payManager = payManager;
@@ -35,6 +38,7 @@ namespace Adee.Store.Pays
             _payOrderRepository = payOrderRepository;
             _payOrderLogRepository = payOrderLogRepository;
             _payRefundRepository = payRefundRepository;
+            _objectMapper = objectMapper;
         }
 
         [UnitOfWork(isTransactional: false)]
@@ -132,11 +136,13 @@ namespace Adee.Store.Pays
 
                 await _queryOrderCache.RemoveAsync(payOrder.BusinessOrderId);
 
+                var result = _objectMapper.Map<PayOrder, PayTaskOrderResult>(payOrder);
                 var notifyArgs = new PayNotifyArgs
                 {
                     TenantId = payOrder.TenantId,
                     PayOrderId = payOrder.PayOrderId,
-                    NotifyContent = payOrder,
+                    NotifyContent = result.ToJsonString(),
+                    IsRefundNotify = true,
                 };
                 await _backgroundJobManager.EnqueueAsync(notifyArgs);
 

@@ -45,12 +45,12 @@ namespace Adee.Store.Pays
         /// <summary>
         /// 收款时间
         /// </summary>
-        public DateTime PayTime { get; set; }
+        public DateTime? PayTime { get; set; }
 
         /// <summary>
         /// 收款金额，单位：分
         /// </summary>
-        public int Money { get; set; }
+        public int? Money { get; set; }
 
         /// <summary>
         /// 收单机构订单号

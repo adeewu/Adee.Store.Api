@@ -2,6 +2,7 @@ using Adee.Store.Domain.Shared.Utils.Helpers;
 using Adee.Store.Pays;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,6 +24,8 @@ namespace Adee.Store.Orders
 
         public async Task Notify(PayTaskOrderResult result)
         {
+            Logger.LogDebug($"通知内容：{result.ToJsonString()}");
+
             if (result.BusinessType == BusinessType.NoCodePay)
             {
                 await NoCodePay(result);
@@ -36,12 +39,12 @@ namespace Adee.Store.Orders
 
         private Task NoCodePay(PayTaskOrderResult result)
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
 
         private Task WebCheckout(PayTaskOrderResult result)
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
     }
 }

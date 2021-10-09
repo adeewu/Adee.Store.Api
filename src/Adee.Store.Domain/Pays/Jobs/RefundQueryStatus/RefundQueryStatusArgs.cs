@@ -6,7 +6,7 @@ namespace Adee.Store.Pays
     /// <summary>
     /// 查询退款状态
     /// </summary>
-    public class RefundQueryStatusArgs : IMultiTenant
+    public class RefundQueryStatusArgs : LoopJobArgs, IMultiTenant
     {
         /// <summary>
         /// 
@@ -27,15 +27,5 @@ namespace Adee.Store.Pays
         /// 退款金额
         /// </summary>
         public int Money { get; set; }
-
-        /// <summary>
-        /// 执行次数
-        /// </summary>
-        public int Index { get; set; }
-
-        /// <summary>
-        /// 执行间隔
-        /// </summary>
-        public int[] Rates { get; set; }
     }
 }

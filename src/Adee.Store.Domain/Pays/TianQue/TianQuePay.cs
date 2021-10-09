@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Adee.Store.Domain.Pays.TianQue.Models;
 using Adee.Store.Pays;
 using Volo.Abp.DependencyInjection;
-using Volo.Abp.SettingManagement;
 
 namespace Adee.Store.Domain.Pays.TianQue
 {
@@ -99,7 +98,8 @@ namespace Adee.Store.Domain.Pays.TianQue
             {
                 result.Status = PayTaskStatus.Success;
                 result.PayTime = response.Response.respData.payTime.ToDateTime("YYYYMMddHHmmss");
-                result.PayOrganizationOrderId = response.Response.respData.transactionId;
+                result.Money = request.Money;
+                result.PayOrganizationOrderId = response.Response.respData.sxfUuid;
             }
 
             if (response.Response.respData.bizMsg == "用户支付中，请稍后进行查询")
@@ -148,7 +148,7 @@ namespace Adee.Store.Domain.Pays.TianQue
             {
                 result.Status = PayTaskStatus.Success;
                 result.PayTime = response.Response.respData.payTime.ToDateTime("YYYYMMddHHmmss");
-                result.PayOrganizationOrderId = response.Response.respData.transactionId;
+                result.PayOrganizationOrderId = response.Response.respData.sxfUuid;
                 result.Money = Convert.ToInt32(Convert.ToDecimal(response.Response.respData.oriTranAmt) * 100);
 
                 return result;

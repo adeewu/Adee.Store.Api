@@ -42,6 +42,7 @@ namespace Adee.Store.Pays
         private readonly IDistributedCache<QueryOrderCacheItem> _queryOrderCache;
         private readonly IDistributedCache<AssertNotifyResponse> _assertNotifyCache;
         private readonly IOptions<PayOptions> _payOptions;
+        private readonly IOptions<AppOptions> _appOptions;
         private readonly IAbpLazyServiceProvider _serviceProvider;
         private readonly IObjectMapper _objectMapper;
         private readonly ICurrentTenantExt _currentTenantExt;
@@ -59,6 +60,7 @@ namespace Adee.Store.Pays
             IDistributedCache<QueryOrderCacheItem> queryOrderCache,
             IDistributedCache<AssertNotifyResponse> assertNotifyCache,
             IOptions<PayOptions> payOptions,
+            IOptions<AppOptions> appOptions,
             IAbpLazyServiceProvider serviceProvider,
             IObjectMapper objectMapper,
             ICurrentTenantExt currentTenantExt,
@@ -76,6 +78,7 @@ namespace Adee.Store.Pays
             _queryOrderCache = queryOrderCache;
             _assertNotifyCache = assertNotifyCache;
             _payOptions = payOptions;
+            _appOptions = appOptions;
             _serviceProvider = serviceProvider;
             _objectMapper = objectMapper;
             _currentTenantExt = currentTenantExt;
@@ -171,7 +174,8 @@ namespace Adee.Store.Pays
                 {
                     TenantId = payOrder.TenantId,
                     PayOrderId = payOrder.PayOrderId,
-                    NotifyContent = result,
+                    NotifyContent = result.ToJsonString(),
+                    IsRefundNotify = true,
                 };
                 await _backgroundJobManager.EnqueueAsync(notifyArgs);
 
@@ -296,7 +300,7 @@ namespace Adee.Store.Pays
             var request = new B2CPayRequest
             {
                 AuthCode = model.AuthCode,
-                NotifyUrl = payOrder.NotifyUrl,
+                NotifyUrl = $"{_appOptions.Value.SelfUrl}/api/store/notify",
                 PayParameterValue = payParameter.Value,
                 Money = model.Money,
                 Title = model.Title,
@@ -322,6 +326,11 @@ namespace Adee.Store.Pays
 
             payOrder.Status = response.Status;
             payOrder.StatusMessage = response.ResponseMessage;
+            if (response.Status == PayTaskStatus.Success)
+            {
+                payOrder.PayTime = response.PayTime;
+                payOrder.PayOrganizationOrderId = response.PayOrganizationOrderId;
+            }
             payOrder = await _payOrderRepository.UpdateAsync(payOrder);
 
             await _payOrderLogRepository.InsertAsync(new PayOrderLog
@@ -352,17 +361,17 @@ namespace Adee.Store.Pays
                 result.PaymentType = paymentType;
                 result.BusinessOrderId = model.BusinessOrderId;
                 result.PayOrderId = payOrder.PayOrderId;
-                result.PayOrganizationOrderId = result.PayOrganizationOrderId;
+                result.PayOrganizationOrderId = response.PayOrganizationOrderId;
 
                 await _queryOrderCache.RemoveAsync(payOrder.BusinessOrderId);
 
-                var retryNotifyArgs = new PayNotifyArgs
+                var notifyArgs = new PayNotifyArgs
                 {
                     TenantId = payOrder.TenantId,
                     PayOrderId = payOrder.PayOrderId,
-                    NotifyContent = result,
+                    NotifyContent = result.ToJsonString(),
                 };
-                await _backgroundJobManager.EnqueueAsync(retryNotifyArgs);
+                await _backgroundJobManager.EnqueueAsync(notifyArgs);
             }
 
             if (response.Status == PayTaskStatus.Faild)

@@ -38,10 +38,6 @@ namespace Adee.Store.Pays
         /// </summary>
         public string StatusMessage { get; set; }
         /// <summary>
-        /// 异常描述
-        /// </summary>
-        public string ExceptionMessage { get; set; }
-        /// <summary>
         /// 原始提交报文
         /// </summary>
         public string OriginRequest { get; set; }

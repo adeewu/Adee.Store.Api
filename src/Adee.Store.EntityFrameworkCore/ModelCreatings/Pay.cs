@@ -171,9 +171,6 @@ namespace Adee.Store.EntityFrameworkCore
                     .IsRequired()
                     .HasComment("订单Id");
 
-                entity.Property(e => e.ExceptionMessage)
-                    .HasComment("异常描述");
-
                 entity.Property(e => e.OriginRequest)
                     .HasComment("原始提交报文");
 

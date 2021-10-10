@@ -133,13 +133,28 @@ namespace Adee.Store.Pays
 
             await _payOrderLogRepository.InsertAsync(new PayOrderLog
             {
+                TenantId = CurrentTenant.Id,
                 OrderId = payOrder.Id,
                 LogType = OrderLogType.Refund,
                 Status = PayTaskStatus.Executing,
                 OriginRequest = request.ToJsonString(),
             }, true);
 
-            var response = await payProvider.Refund(request);
+            PaySuccessResponse response;
+            try
+            {
+                response = await payProvider.Refund(request);
+            }
+            catch (Exception ex)
+            {
+                response = new PaySuccessResponse
+                {
+                    Status = PayTaskStatus.Faild,
+                    ResponseMessage = ex.Message,
+                    OriginRequest = request.ToJsonString(),
+                    OriginResponse = ex.ToJsonString(),
+                };
+            }
 
             var result = new PayTaskRefundResult
             {
@@ -159,6 +174,7 @@ namespace Adee.Store.Pays
 
             await _payOrderLogRepository.InsertAsync(new PayOrderLog
             {
+                TenantId = CurrentTenant.Id,
                 OrderId = payOrder.Id,
                 LogType = OrderLogType.Refund,
                 Status = response.Status,
@@ -225,13 +241,28 @@ namespace Adee.Store.Pays
 
             await _payOrderLogRepository.InsertAsync(new PayOrderLog
             {
+                TenantId = CurrentTenant.Id,
                 OrderId = payOrder.Id,
                 LogType = OrderLogType.Cancel,
                 Status = PayTaskStatus.Executing,
                 OriginRequest = request.ToJsonString(),
             }, true);
 
-            var response = await payProvider.Cancel(request);
+            PayResponse response;
+            try
+            {
+                response = await payProvider.Cancel(request);
+            }
+            catch (Exception ex)
+            {
+                response = new PaySuccessResponse
+                {
+                    Status = PayTaskStatus.Faild,
+                    ResponseMessage = ex.Message,
+                    OriginRequest = request.ToJsonString(),
+                    OriginResponse = ex.ToJsonString(),
+                };
+            }
 
             payOrder.CancelStatus = response.Status;
             payOrder.CancelStatusMessage = response.ResponseMessage;
@@ -240,6 +271,7 @@ namespace Adee.Store.Pays
 
             await _payOrderLogRepository.InsertAsync(new PayOrderLog
             {
+                TenantId = CurrentTenant.Id,
                 OrderId = payOrder.Id,
                 LogType = OrderLogType.Cancel,
                 Status = response.Status,
@@ -310,13 +342,28 @@ namespace Adee.Store.Pays
 
             await _payOrderLogRepository.InsertAsync(new PayOrderLog
             {
+                TenantId = CurrentTenant.Id,
                 OrderId = payOrder.Id,
                 LogType = OrderLogType.Pay,
                 Status = PayTaskStatus.Executing,
                 OriginRequest = request.ToJsonString(),
             }, true);
 
-            var response = await payProvider.B2C(request);
+            PaySuccessResponse response;
+            try
+            {
+                response = await payProvider.B2C(request);
+            }
+            catch (Exception ex)
+            {
+                response = new PaySuccessResponse
+                {
+                    Status = PayTaskStatus.Faild,
+                    ResponseMessage = ex.Message,
+                    OriginRequest = request.ToJsonString(),
+                    OriginResponse = ex.ToJsonString(),
+                };
+            }
 
             var result = new PayTaskOrderResult
             {
@@ -335,6 +382,7 @@ namespace Adee.Store.Pays
 
             await _payOrderLogRepository.InsertAsync(new PayOrderLog
             {
+                TenantId = CurrentTenant.Id,
                 OrderId = payOrder.Id,
                 LogType = OrderLogType.Pay,
                 Status = payOrder.Status,

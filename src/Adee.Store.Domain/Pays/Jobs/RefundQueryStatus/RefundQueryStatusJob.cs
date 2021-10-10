@@ -82,7 +82,21 @@ namespace Adee.Store.Pays
                 }, true);
             }
 
-            var response = await payProvider.RefundQuery(request);
+            PaySuccessResponse response;
+            try
+            {
+                response = await payProvider.RefundQuery(request);
+            }
+            catch (Exception ex)
+            {
+                response = new PaySuccessResponse
+                {
+                    Status = PayTaskStatus.Faild,
+                    ResponseMessage = ex.Message,
+                    OriginRequest = request.ToJsonString(),
+                    OriginResponse = ex.ToJsonString(),
+                };
+            }
 
             var stopLoop = false;
 
@@ -126,11 +140,11 @@ namespace Adee.Store.Pays
                     OrderId = payOrder.Id,
                     LogType = OrderLogType.RefundQuery,
                     Status = refund.QueryStatus.Value,
+                    StatusMessage = response.ResponseMessage,
                     OriginRequest = response.OriginRequest,
                     SubmitRequest = response.SubmitRequest,
                     OriginResponse = response.OriginResponse,
                     EncryptResponse = response.EncryptResponse,
-                    ExceptionMessage = response.ResponseMessage,
                 };
                 await _payOrderLogRepository.InsertAsync(payOrderLog, true);
 

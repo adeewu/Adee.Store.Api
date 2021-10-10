@@ -76,7 +76,21 @@ namespace Adee.Store.Pays
                 }, true);
             }
 
-            var response = await payProvider.Query(request);
+            PaySuccessResponse response;
+            try
+            {
+                response = await payProvider.Query(request);
+            }
+            catch (Exception ex)
+            {
+                response = new PaySuccessResponse
+                {
+                    Status = PayTaskStatus.Faild,
+                    ResponseMessage = ex.Message,
+                    OriginRequest = request.ToJsonString(),
+                    OriginResponse = ex.ToJsonString(),
+                };
+            }
 
             var isCancel = false;
             var stopLoop = false;
@@ -89,11 +103,10 @@ namespace Adee.Store.Pays
                 OrderId = payOrder.Id,
                 LogType = OrderLogType.Query,
                 Status = payOrder.QueryStatus.Value,
+                StatusMessage = response.ResponseMessage,
                 OriginRequest = response.OriginRequest,
                 SubmitRequest = response.SubmitRequest,
                 OriginResponse = response.OriginResponse,
-                EncryptResponse = response.EncryptResponse,
-                ExceptionMessage = response.ResponseMessage,
             };
 
             if (response.Status == PayTaskStatus.Success)

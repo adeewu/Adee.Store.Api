@@ -66,7 +66,7 @@ namespace Adee.Store.Pays
 
                 responseContent = await _commonClient.ReadStringAsync(response);
 
-                await UpdatePayOrderStatus(payOrder, PayTaskStatus.Success, $"通知成功", requestContent, responseContent, args.IsRefundNotify);
+                await UpdatePayOrderStatus(payOrder, PayTaskStatus.Success, $"通知成功", null, responseContent, args.IsRefundNotify);
                 return;
             }
             catch (Exception ex)
@@ -75,7 +75,7 @@ namespace Adee.Store.Pays
                 Logger.LogError(ex, errorMessage);
                 if (args.Index == 0)
                 {
-                    await UpdatePayOrderLogStatus(payOrder, PayTaskStatus.Faild, errorMessage, requestContent, responseContent, args.IsRefundNotify);
+                    await UpdatePayOrderLogStatus(payOrder, PayTaskStatus.Faild, errorMessage, requestContent, null, args.IsRefundNotify);
                 }
             }
 

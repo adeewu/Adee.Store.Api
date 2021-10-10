@@ -1,7 +1,5 @@
-using Adee.Store.Domain.Shared.Utils.Helpers;
+using Adee.Store.Attributes;
 using Adee.Store.Pays;
-using Microsoft.AspNetCore.Http.Extensions;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -15,6 +13,7 @@ namespace Adee.Store.Orders
     /// <summary>
     /// 订单支付成功回调
     /// </summary>
+    [ApiGroup(ApiGroupType.Order)]
     public class OrderNotifyAppService : StoreAppService, ITransientDependency
     {
         public OrderNotifyAppService()

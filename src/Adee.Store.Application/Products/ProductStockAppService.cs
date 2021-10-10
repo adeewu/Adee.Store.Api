@@ -1,4 +1,5 @@
-﻿using Adee.Store.Utils.Helpers;
+﻿using Adee.Store.Attributes;
+using Adee.Store.Utils.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,7 @@ namespace Adee.Store.Products
     /// <summary>
     /// 商品库存
     /// </summary>
+    [ApiGroup(ApiGroupType.Product)]
     public class ProductStockAppService : CrudAppService<ProductStock, ProductStockDto, Guid, ProductStockListDto, CreateUpdateProductStockDto>, IProductStockAppService
     {
         private readonly IRepository<Product, Guid> _productRespository;

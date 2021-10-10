@@ -1,4 +1,5 @@
-﻿using Adee.Store.Domain.Shared.Utils.Helpers;
+﻿using Adee.Store.Attributes;
+using Adee.Store.Domain.Shared.Utils.Helpers;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -15,6 +16,7 @@ namespace Adee.Store.Pays
     /// <summary>
     /// 支付通知服务
     /// </summary>
+    [ApiGroup(ApiGroupType.Pay)]
     public class NotifyAppService : StoreWithRequestAppService, INotifyAppService, ITransientDependency
     {
         private readonly SignHelper _signHelper;

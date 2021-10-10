@@ -1,14 +1,18 @@
-﻿using Adee.Store.Utils.Extensions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Adee.Store.Attributes;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 
 namespace Adee.Store.Products
 {
+    /// <summary>
+    /// 库存记录
+    /// </summary>
+    [ApiGroup(ApiGroupType.Product)]
     public class ProductStockLogAppService : ReadOnlyAppService<ProductStockLog, ProductStockLogDto, Guid, ProductStockLogListDto>
     {
         public ProductStockLogAppService(IRepository<ProductStockLog, Guid> repository) : base(repository)

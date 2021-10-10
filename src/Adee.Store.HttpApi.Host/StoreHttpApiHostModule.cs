@@ -28,6 +28,9 @@ using Volo.Abp.VirtualFileSystem;
 using Adee.Store.EntityFrameworkCore;
 using Adee.Store.Utils.Filtes;
 using Volo.Abp.MultiTenancy;
+using Swashbuckle.AspNetCore.SwaggerGen;
+using System.ComponentModel;
+using Adee.Store.Attributes;
 
 namespace Adee.Store
 {
@@ -133,11 +136,35 @@ namespace Adee.Store
                 },
                 options =>
                 {
-                    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Store API", Version = "v1" });
-                    options.DocInclusionPredicate((docName, description) => true);
+                    typeof(ApiGroupType)
+                    .GetFields()
+                    .Skip(2)
+                    .Select(p => new
+                    {
+                        p.Name,
+                        Description = p.GetCustomAttributes(typeof(DescriptionAttribute), false).OfType<DescriptionAttribute>().Select(p => p.Description).FirstOrDefault()
+                    })
+                    .ForEach(p =>
+                    {
+                        options.SwaggerDoc(p.Name, new OpenApiInfo { Title = p.Description, Version = "v1" });
+                    });
+                    options.SwaggerDoc(ApiGroupType.NoGroup.ToString(), new OpenApiInfo { Title = ApiGroupType.NoGroup.GetDescription(), Version = "v1" });
+
                     options.CustomSchemaIds(type => type.FullName);
                     options.DocumentFilter<SwaggerEnumFilter>();
                     options.OperationFilter<SwaggerEnumOperationFilter>();
+                    options.DocInclusionPredicate((docName, apiDesc) =>
+                    {
+                        var groupTypes = apiDesc
+                            .CustomAttributes()
+                            .OfType<ApiGroupAttribute>()
+                            .Select(o => o.ApiGroupType.ToString())
+                            .ToList();
+
+                        if (groupTypes.IsNull() && docName == ApiGroupType.NoGroup.ToString()) return true;
+
+                        return groupTypes.Contains(docName);
+                    });
 
                     Action<string> includeXmlAction = (name) =>
                     {
@@ -232,7 +259,19 @@ namespace Adee.Store
             app.UseSwagger();
             app.UseAbpSwaggerUI(options =>
             {
-                options.SwaggerEndpoint("/swagger/v1/swagger.json", "Store API");
+                typeof(ApiGroupType)
+                    .GetFields()
+                    .Skip(2)
+                    .Select(p => new
+                    {
+                        p.Name,
+                        Description = p.GetCustomAttributes(typeof(DescriptionAttribute), false).OfType<DescriptionAttribute>().Select(p => p.Description).FirstOrDefault()
+                    })
+                    .ForEach(p =>
+                    {
+                        options.SwaggerEndpoint($"/swagger/{p.Name}/swagger.json", p.Description);
+                    });
+                    options.SwaggerEndpoint($"/swagger/{ApiGroupType.NoGroup.ToString()}/swagger.json", ApiGroupType.NoGroup.GetDescription());
 
                 var configuration = context.GetConfiguration();
                 options.OAuthClientId(configuration["AuthServer:SwaggerClientId"]);

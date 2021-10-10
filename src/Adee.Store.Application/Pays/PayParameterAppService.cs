@@ -2,16 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Adee.Store.Attributes;
 using Adee.Store.Domain.Tenants;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
-using Volo.Abp.SettingManagement;
 
 namespace Adee.Store.Pays
 {
     /// <summary>
     /// 支付参数服务
     /// </summary>    
+    [ApiGroup(ApiGroupType.Pay)]
     public class PayParameterAppService : CrudAppService<PayParameter, PayParameterDto, Guid, PayParameterListDto, CreateUpdatePayParameterDto>
     {
         private readonly ICurrentTenantExt _currentTenantExt;

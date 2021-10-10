@@ -1,4 +1,5 @@
-﻿using Adee.Store.Permissions;
+﻿using Adee.Store.Attributes;
+using Adee.Store.Permissions;
 using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Collections.Generic;
@@ -13,6 +14,7 @@ namespace Adee.Store.Products
     /// <summary>
     /// 商品服务
     /// </summary>
+    [ApiGroup(ApiGroupType.Product)]
     //[SwaggerResponse((int)HttpStatusCode.OK, type: typeof(ProductListDto))]
     [Authorize(StorePermissions.Products.Default)]
     public class ProductAppService : CrudAppService<Product, ProductDto, Guid, ProductListDto, CreateUpdateProductDto>, IProductAppService

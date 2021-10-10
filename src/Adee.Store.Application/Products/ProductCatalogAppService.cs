@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Adee.Store.Attributes;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
@@ -12,6 +13,7 @@ namespace Adee.Store.Products
     /// <summary>
     /// 商品分类
     /// </summary>
+    [ApiGroup(ApiGroupType.Product)]
     public class ProductCatalogAppService : CrudAppService<ProductCatalog, ProductCatalogDto, Guid, ProductCatalogListDto, CreateUpdateProductCatalogDto>, IProductCatalogAppService
     {
         private readonly IRepository<Product, Guid> _productRepository;

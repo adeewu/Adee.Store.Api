@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Adee.Store.Attributes;
 
 namespace Adee.Store.Pays
 {
     /// <summary>
     /// 支付服务
     /// </summary>    
+    [ApiGroup(ApiGroupType.Pay)]
     public class PayAppService : StoreWithRequestAppService
     {
         private readonly PayManager _payManager;

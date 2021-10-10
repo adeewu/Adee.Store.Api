@@ -31,7 +31,7 @@ namespace Adee.Store.Pays
         /// </summary>
         public const int RefundQueryDuration = 14;
 
-        private readonly IRepository<PayOrder> _payOrderRepository;
+        private readonly IPayOrderRepository _payOrderRepository;
         private readonly IRepository<PayOrderLog> _payOrderLogRepository;
         private readonly IPayParameterRepository _payParameterRepository;
         private readonly IRepository<PayNotify> _payNotifyRepository;
@@ -49,7 +49,7 @@ namespace Adee.Store.Pays
         private readonly ICommonClient _commonClient;
 
         public PayManager(
-            IRepository<PayOrder> payOrderRepository,
+            IPayOrderRepository payOrderRepository,
             IRepository<PayOrderLog> payOrderLogRepository,
             IPayParameterRepository payParameterRepository,
             IRepository<PayNotify> payNotifyRepository,
@@ -295,6 +295,9 @@ namespace Adee.Store.Pays
         /// <returns></returns>
         public async Task<PayTaskOrderResult> B2C(B2C model)
         {
+            var existBusinessOrderId = await _payOrderRepository.ExistBusinessOrderId(model.BusinessOrderId);
+            CheckHelper.IsFalse(existBusinessOrderId, $"业务订单号：{model.BusinessOrderId}已存在");
+
             var paymentType = GetPaymentTypeFromAuthCode(model.AuthCode);
             Check.NotNull(paymentType, nameof(paymentType));
 

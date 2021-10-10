@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Adee.Store.Pays.Utils.Helpers;
+using Microsoft.Extensions.Logging;
 using Volo.Abp.BackgroundJobs;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Repositories;
@@ -56,15 +57,26 @@ namespace Adee.Store.Pays
                 await UpdatePayOrderStatus(payOrder, PayTaskStatus.Executing, $"开始通知", requestContent, null, args.IsRefundNotify);
             }
 
-            var request = await _commonClient.GetHttpRequestMessage(System.Net.Http.HttpMethod.Post, payOrder.NotifyUrl, query: null, body: args.NotifyContent);
-            var response = await _commonClient.GetHttpResponseMessage(request);
+            var responseContent = string.Empty;
 
-            var responseContent = await _commonClient.ReadStringAsync(response);
-
-            if (response.IsSuccessStatusCode)
+            try
             {
+                var request = await _commonClient.GetHttpRequestMessage(System.Net.Http.HttpMethod.Post, payOrder.NotifyUrl, query: null, body: args.NotifyContent);
+                var response = await _commonClient.GetHttpResponseMessage(request);
+
+                responseContent = await _commonClient.ReadStringAsync(response);
+
                 await UpdatePayOrderStatus(payOrder, PayTaskStatus.Success, $"通知成功", requestContent, responseContent, args.IsRefundNotify);
                 return;
+            }
+            catch (Exception ex)
+            {
+                var errorMessage = $"支付订单：{args.PayOrderId}在第{args.Index}次通知发生错误，原因：{ex.Message}";
+                Logger.LogError(ex, errorMessage);
+                if (args.Index == 0)
+                {
+                    await UpdatePayOrderLogStatus(payOrder, PayTaskStatus.Faild, errorMessage, requestContent, responseContent, args.IsRefundNotify);
+                }
             }
 
             if (args.Index >= args.Rates.Length - 1)
@@ -97,7 +109,11 @@ namespace Adee.Store.Pays
                 await _payOrderRepository.UpdateAsync(payOrder);
             }
 
+            await UpdatePayOrderLogStatus(payOrder, status, message, request, response, isRefundNotify);
+        }
 
+        private async Task UpdatePayOrderLogStatus(PayOrder payOrder, PayTaskStatus status, string message, string request, string response, bool isRefundNotify)
+        {
             await _payOrderLogRepository.InsertAsync(new PayOrderLog
             {
                 TenantId = payOrder.TenantId,

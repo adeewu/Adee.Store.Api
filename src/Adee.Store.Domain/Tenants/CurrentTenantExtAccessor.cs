@@ -1,8 +1,8 @@
+using Adee.Store.Pays;
+using Microsoft.Extensions.Caching.Distributed;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Adee.Store.Pays;
-using Microsoft.Extensions.Caching.Distributed;
 using Volo.Abp.Caching;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Repositories;

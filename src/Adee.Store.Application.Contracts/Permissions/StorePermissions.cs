@@ -38,7 +38,7 @@
 
         public static class ProductSales
         {
-            public const string Default = GroupName + "."+ nameof(ProductSales);
+            public const string Default = GroupName + "." + nameof(ProductSales);
             public const string Create = Default + "." + nameof(Create);
             public const string Update = Default + "." + nameof(Update);
             public const string OffSale = Default + "." + nameof(OffSale);

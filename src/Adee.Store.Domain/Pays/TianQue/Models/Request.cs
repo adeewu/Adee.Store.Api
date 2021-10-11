@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace Adee.Store.Domain.Pays.TianQue.Models

@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Adee.Store.Attributes;
 using System.Threading.Tasks;
-using Adee.Store.Attributes;
 
 namespace Adee.Store.Pays
 {

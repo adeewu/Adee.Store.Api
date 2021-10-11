@@ -1,8 +1,6 @@
-﻿using Volo.Abp;
-
-namespace Adee.Store.EntityFrameworkCore
+﻿namespace Adee.Store.EntityFrameworkCore
 {
-    public abstract class StoreEntityFrameworkCoreTestBase : StoreTestBase<StoreEntityFrameworkCoreTestModule> 
+    public abstract class StoreEntityFrameworkCoreTestBase : StoreTestBase<StoreEntityFrameworkCoreTestModule>
     {
 
     }

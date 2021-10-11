@@ -1,7 +1,4 @@
-using System;
 using System.Threading.Tasks;
-using Adee.Store.Pays;
-using Volo.Abp.DependencyInjection;
 
 namespace Adee.Store.Domain.Tenants
 {

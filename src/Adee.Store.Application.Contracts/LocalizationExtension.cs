@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Volo.Abp.Authorization.Permissions;
-using Volo.Abp.Localization;
+﻿using Volo.Abp.Localization;
 using Volo.Abp.MultiTenancy;
 
 namespace Volo.Abp.Authorization.Permissions

@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.MultiTenancy;
 
 namespace Adee.Store.Products
 {
-    public class ProductSaleDto: EntityDto<Guid>, IMultiTenant
+    public class ProductSaleDto : EntityDto<Guid>, IMultiTenant
     {
         /// <summary>
         /// 
@@ -14,7 +12,7 @@ namespace Adee.Store.Products
         public Guid? TenantId { get; set; }
     }
 
-    public class ProductSaleListDto: PagedAndSortedResultRequestDto
+    public class ProductSaleListDto : PagedAndSortedResultRequestDto
     {
         /// <summary>
         /// 搜索条件

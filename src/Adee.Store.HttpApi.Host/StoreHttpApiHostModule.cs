@@ -1,7 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+using Adee.Store.Attributes;
+using Adee.Store.EntityFrameworkCore;
+using Adee.Store.MultiTenancy;
+using Adee.Store.Utils.Filtes;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
@@ -10,9 +10,14 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Adee.Store.MultiTenancy;
-using StackExchange.Redis;
 using Microsoft.OpenApi.Models;
+using StackExchange.Redis;
+using Swashbuckle.AspNetCore.SwaggerGen;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.AspNetCore.Mvc.UI.MultiTenancy;
@@ -23,14 +28,9 @@ using Volo.Abp.Caching;
 using Volo.Abp.Caching.StackExchangeRedis;
 using Volo.Abp.Localization;
 using Volo.Abp.Modularity;
+using Volo.Abp.MultiTenancy;
 using Volo.Abp.Swashbuckle;
 using Volo.Abp.VirtualFileSystem;
-using Adee.Store.EntityFrameworkCore;
-using Adee.Store.Utils.Filtes;
-using Volo.Abp.MultiTenancy;
-using Swashbuckle.AspNetCore.SwaggerGen;
-using System.ComponentModel;
-using Adee.Store.Attributes;
 
 namespace Adee.Store
 {
@@ -271,7 +271,7 @@ namespace Adee.Store
                     {
                         options.SwaggerEndpoint($"/swagger/{p.Name}/swagger.json", p.Description);
                     });
-                    options.SwaggerEndpoint($"/swagger/{ApiGroupType.NoGroup.ToString()}/swagger.json", ApiGroupType.NoGroup.GetDescription());
+                options.SwaggerEndpoint($"/swagger/{ApiGroupType.NoGroup.ToString()}/swagger.json", ApiGroupType.NoGroup.GetDescription());
 
                 var configuration = context.GetConfiguration();
                 options.OAuthClientId(configuration["AuthServer:SwaggerClientId"]);

@@ -1,9 +1,4 @@
-using System;
 using System.Threading.Tasks;
-using Adee.Store.Pays;
-using Volo.Abp.Caching;
-using Volo.Abp.DependencyInjection;
-using Volo.Abp.MultiTenancy;
 
 namespace Adee.Store.Domain.Tenants
 {

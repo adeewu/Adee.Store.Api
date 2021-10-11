@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using Volo.Abp.Domain.Entities.Auditing;
 using Volo.Abp.MultiTenancy;
 
@@ -78,7 +77,7 @@ namespace Adee.Store.Products
         /// 销量，冗余值
         /// </summary>
         public decimal SaleVolume { get; set; }
-        
+
 
         /// <summary>
         /// 商品分类

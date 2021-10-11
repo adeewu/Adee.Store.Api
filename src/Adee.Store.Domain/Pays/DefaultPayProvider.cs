@@ -1,7 +1,7 @@
+using Adee.Store.Pays;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Adee.Store.Pays;
 using Volo.Abp.DependencyInjection;
 
 namespace Adee.Store.Domain.Pays

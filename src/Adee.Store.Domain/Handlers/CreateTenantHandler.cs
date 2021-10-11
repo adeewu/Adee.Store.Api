@@ -1,6 +1,6 @@
+using Adee.Store.Domain.Tenants;
 using System;
 using System.Threading.Tasks;
-using Adee.Store.Domain.Tenants;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Entities.Events;
 using Volo.Abp.Domain.Repositories;
@@ -25,7 +25,7 @@ namespace Adee.Store.Domain.Handlers
 
             var softwareCode = r1.Next(10000, 99999).ToString() + r2.Next(10000, 99999).ToString();
 
-            var existSoftwareCode = await _tenantExtRepository.AnyAsync(p=>p.SoftwareCode == softwareCode);
+            var existSoftwareCode = await _tenantExtRepository.AnyAsync(p => p.SoftwareCode == softwareCode);
             CheckHelper.IsFalse(existSoftwareCode, $"软件编号：{softwareCode}已存在");
 
             await _tenantExtRepository.InsertAsync(new TenantExt

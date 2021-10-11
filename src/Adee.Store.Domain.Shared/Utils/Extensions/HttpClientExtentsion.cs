@@ -15,7 +15,7 @@ namespace System.Net.Http
         /// <returns></returns>
         public static string GetUrl(this HttpClient client, string url, object query = null)
         {
-            var querys = new Dictionary<string,string>();
+            var querys = new Dictionary<string, string>();
             if (query != null)
             {
                 querys = query.GetType().GetRuntimeProperties().ToDictionary(p => p.Name, p => p.GetValue(query).ToString());

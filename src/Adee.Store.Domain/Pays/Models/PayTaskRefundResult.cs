@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
-
 namespace Adee.Store.Pays
 {
-     /// <summary>
+    /// <summary>
     /// 退款结果
     /// </summary>
     public class PayTaskRefundResult : PayTaskResult

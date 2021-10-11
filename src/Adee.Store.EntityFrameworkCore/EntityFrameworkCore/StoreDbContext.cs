@@ -1,4 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using System.Linq;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.Data;
@@ -12,9 +15,6 @@ using Volo.Abp.PermissionManagement.EntityFrameworkCore;
 using Volo.Abp.SettingManagement.EntityFrameworkCore;
 using Volo.Abp.TenantManagement;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
-using System.Linq;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace Adee.Store.EntityFrameworkCore
 {
@@ -57,7 +57,7 @@ namespace Adee.Store.EntityFrameworkCore
         public StoreDbContext(DbContextOptions<StoreDbContext> options)
             : base(options)
         {
-            
+
         }
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -99,7 +99,7 @@ namespace Adee.Store.EntityFrameworkCore
             if (LazyServiceProvider != null)
             {
                 var env = LazyServiceProvider.LazyGetService<IHostEnvironment>();
-                if (env!=null && env.IsDevelopment())
+                if (env != null && env.IsDevelopment())
                 {
                     optionsBuilder.EnableSensitiveDataLogging();
                     optionsBuilder.LogTo(msg => Logger.LogDebug(msg), LogLevel.Information);

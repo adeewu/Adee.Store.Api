@@ -1,6 +1,6 @@
 ﻿namespace Adee.Store
 {
-    public abstract class StoreApplicationTestBase : StoreTestBase<StoreApplicationTestModule> 
+    public abstract class StoreApplicationTestBase : StoreTestBase<StoreApplicationTestModule>
     {
 
     }

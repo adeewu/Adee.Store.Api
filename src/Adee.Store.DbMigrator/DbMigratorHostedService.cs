@@ -1,10 +1,10 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
+﻿using Adee.Store.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Adee.Store.Data;
 using Serilog;
+using System.Threading;
+using System.Threading.Tasks;
 using Volo.Abp;
 
 namespace Adee.Store.DbMigrator

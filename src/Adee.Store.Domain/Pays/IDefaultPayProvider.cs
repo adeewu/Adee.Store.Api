@@ -1,5 +1,5 @@
-﻿using System.Threading.Tasks;
-using Adee.Store.Pays;
+﻿using Adee.Store.Pays;
+using System.Threading.Tasks;
 
 namespace Adee.Store.Domain.Pays
 {

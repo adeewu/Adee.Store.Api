@@ -1,9 +1,5 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace System
 {
@@ -18,7 +14,7 @@ namespace System
         /// <param name="type"></param>
         /// <returns></returns>
         public static bool IsArray(this Type type)
-        {            
+        {
             if (type.GetUnderlyingType().IsArray) return true;
 
             return type.GetUnderlyingType().GetInterfaces().Any(p => p == typeof(ICollection));

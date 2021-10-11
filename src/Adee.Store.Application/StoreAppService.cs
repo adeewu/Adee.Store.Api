@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Adee.Store.Domain.Tenants;
+﻿using Adee.Store.Domain.Tenants;
 using Adee.Store.Localization;
 using Volo.Abp.Application.Services;
 

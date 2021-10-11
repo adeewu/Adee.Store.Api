@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Adee.Store.Attributes;
-using Volo.Abp;
+﻿using Adee.Store.Attributes;
+using System;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 

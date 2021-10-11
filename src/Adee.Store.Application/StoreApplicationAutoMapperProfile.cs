@@ -1,5 +1,4 @@
-﻿using Adee.Store.Domain.Pays;
-using Adee.Store.Pays;
+﻿using Adee.Store.Pays;
 using AutoMapper;
 
 namespace Adee.Store

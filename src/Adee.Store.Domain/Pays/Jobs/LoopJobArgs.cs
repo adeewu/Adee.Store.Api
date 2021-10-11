@@ -1,6 +1,3 @@
-using System;
-using Volo.Abp.MultiTenancy;
-
 namespace Adee.Store.Pays
 {
     /// <summary>

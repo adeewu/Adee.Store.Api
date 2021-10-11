@@ -1,5 +1,4 @@
 using System;
-using Adee.Store.Pays;
 
 namespace Adee.Store.Pays
 {

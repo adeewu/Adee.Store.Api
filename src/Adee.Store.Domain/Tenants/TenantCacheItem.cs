@@ -1,6 +1,3 @@
-using System;
-using Adee.Store.Pays;
-
 namespace Adee.Store.Domain.Tenants
 {
     /// <summary>

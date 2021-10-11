@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
+﻿using Adee.Store.Pays;
 using System.Threading.Tasks;
-using Adee.Store.Pays;
-using Volo.Abp.DependencyInjection;
 
 namespace Adee.Store.Domain.Pays
 {

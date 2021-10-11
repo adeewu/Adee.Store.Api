@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Volo.Abp.Domain.Entities.Auditing;
 using Volo.Abp.MultiTenancy;
 
@@ -20,7 +19,7 @@ namespace Adee.Store.Pays
         /// <summary>
         /// 
         /// </summary>
-        public Guid? TenantId { get; set; }        
+        public Guid? TenantId { get; set; }
         /// <summary>
         /// 请求方式
         /// </summary>

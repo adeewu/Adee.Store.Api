@@ -1,5 +1,5 @@
-﻿using Localization.Resources.AbpUi;
-using Adee.Store.Localization;
+﻿using Adee.Store.Localization;
+using Localization.Resources.AbpUi;
 using Volo.Abp.Account;
 using Volo.Abp.FeatureManagement;
 using Volo.Abp.Identity;

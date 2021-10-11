@@ -1,5 +1,5 @@
-using System;
 using Adee.Store.Pays;
+using System;
 
 namespace Adee.Store.Domain.Pays
 {

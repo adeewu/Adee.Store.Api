@@ -1,7 +1,7 @@
-using System;
-using System.Threading.Tasks;
 using Adee.Store.Domain.Pays.TianQue.Models;
 using Adee.Store.Pays;
+using System;
+using System.Threading.Tasks;
 using Volo.Abp.DependencyInjection;
 
 namespace Adee.Store.Domain.Pays.TianQue

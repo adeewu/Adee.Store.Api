@@ -1,8 +1,8 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using Adee.Store.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Adee.Store.Data;
+using System;
+using System.Threading.Tasks;
 using Volo.Abp.DependencyInjection;
 
 namespace Adee.Store.EntityFrameworkCore

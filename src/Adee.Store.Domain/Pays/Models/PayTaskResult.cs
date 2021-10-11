@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using Adee.Store.Pays;
-
 namespace Adee.Store.Pays
 {
     /// <summary>

@@ -1,8 +1,8 @@
+using IdentityServer4.Models;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using IdentityServer4.Models;
-using Microsoft.Extensions.Configuration;
 using Volo.Abp.Authorization.Permissions;
 using Volo.Abp.Data;
 using Volo.Abp.DependencyInjection;
@@ -160,7 +160,7 @@ namespace Adee.Store.IdentityServer
                     corsOrigins: new[] { webClientRootUrl.RemovePostFix("/") }
                 );
             }
-            
+
 
             //Console Test / Angular Client
             var consoleAndAngularClientId = configurationSection["Store_App:ClientId"];
@@ -179,9 +179,9 @@ namespace Adee.Store.IdentityServer
                     corsOrigins: new[] { webClientRootUrl.RemovePostFix("/") }
                 );
             }
-            
-            
-            
+
+
+
             // Swagger Client
             var swaggerClientId = configurationSection["Store_Swagger:ClientId"];
             if (!swaggerClientId.IsNullOrWhiteSpace())

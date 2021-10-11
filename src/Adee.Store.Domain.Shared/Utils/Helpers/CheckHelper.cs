@@ -1,8 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Volo.Abp;
 
 namespace System
@@ -15,7 +11,7 @@ namespace System
             {
                 if (string.IsNullOrWhiteSpace(name))
                 {
-                    throw new UserFriendlyException ($"${nameof(name)}、{nameof(message)}必须提供一项");
+                    throw new UserFriendlyException($"${nameof(name)}、{nameof(message)}必须提供一项");
                 }
 
                 message = $"{name}需要为空";

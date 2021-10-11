@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Volo.Abp.BackgroundJobs;
-using Volo.Abp.Caching;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.MultiTenancy;
@@ -15,7 +14,7 @@ namespace Adee.Store.Pays
     {
         private readonly PayManager _payManager;
         private readonly IBackgroundJobManager _backgroundJobManager;
-        private readonly IDistributedCache<QueryOrderCacheItem> _queryOrderCache;
+        private readonly QueryOrderCacheItemManager _queryOrderCacheItemManager;
         private readonly IRepository<PayOrder> _payOrderRepository;
         private readonly IRepository<PayOrderLog> _payOrderLogRepository;
         private readonly IObjectMapper _objectMapper;
@@ -23,7 +22,7 @@ namespace Adee.Store.Pays
         public PayQueryStatusJob(
             PayManager payManager,
             IBackgroundJobManager backgroundJobManager,
-            IDistributedCache<QueryOrderCacheItem> queryOrderCache,
+            QueryOrderCacheItemManager queryOrderCacheItemManager,
             IRepository<PayOrder> payOrderRepository,
             IRepository<PayOrderLog> payOrderLogRepository,
             ICurrentTenant currentTenant,
@@ -32,7 +31,7 @@ namespace Adee.Store.Pays
         {
             _payManager = payManager;
             _backgroundJobManager = backgroundJobManager;
-            _queryOrderCache = queryOrderCache;
+            _queryOrderCacheItemManager = queryOrderCacheItemManager;
             _payOrderRepository = payOrderRepository;
             _payOrderLogRepository = payOrderLogRepository;
             _objectMapper = objectMapper;
@@ -145,7 +144,7 @@ namespace Adee.Store.Pays
 
                 await _payOrderLogRepository.InsertAsync(payOrderLog, true);
 
-                await _queryOrderCache.RemoveAsync(payOrder.BusinessOrderId);
+                await _queryOrderCacheItemManager.RemoveAsync(_objectMapper.Map<PayOrder, QueryOrderCacheItem>(payOrder));
 
                 var result = _objectMapper.Map<PayOrder, PayTaskOrderResult>(payOrder);
                 var notifyArgs = new PayNotifyArgs

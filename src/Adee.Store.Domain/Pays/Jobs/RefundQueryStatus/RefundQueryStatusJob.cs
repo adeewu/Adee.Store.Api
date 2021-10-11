@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Volo.Abp.BackgroundJobs;
-using Volo.Abp.Caching;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.MultiTenancy;
@@ -14,8 +13,8 @@ namespace Adee.Store.Pays
     public class RefundQueryStatusJob : StoreTenantBackgroundJob<RefundQueryStatusArgs>, ITransientDependency
     {
         private readonly PayManager _payManager;
+        private readonly QueryOrderCacheItemManager _queryOrderCacheItemManager;
         private readonly IBackgroundJobManager _backgroundJobManager;
-        private readonly IDistributedCache<QueryOrderCacheItem> _queryOrderCache;
         private readonly IRepository<PayOrder> _payOrderRepository;
         private readonly IRepository<PayOrderLog> _payOrderLogRepository;
         private readonly IRepository<PayRefund> _payRefundRepository;
@@ -23,8 +22,8 @@ namespace Adee.Store.Pays
 
         public RefundQueryStatusJob(
             PayManager payManager,
+            QueryOrderCacheItemManager queryOrderCacheItemManager,
             IBackgroundJobManager backgroundJobManager,
-            IDistributedCache<QueryOrderCacheItem> queryOrderCache,
             IRepository<PayOrder> payOrderRepository,
             IRepository<PayOrderLog> payOrderLogRepository,
             IRepository<PayRefund> payRefundRepository,
@@ -33,8 +32,8 @@ namespace Adee.Store.Pays
             ) : base(currentTenant)
         {
             _payManager = payManager;
+            _queryOrderCacheItemManager = queryOrderCacheItemManager;
             _backgroundJobManager = backgroundJobManager;
-            _queryOrderCache = queryOrderCache;
             _payOrderRepository = payOrderRepository;
             _payOrderLogRepository = payOrderLogRepository;
             _payRefundRepository = payRefundRepository;
@@ -148,7 +147,7 @@ namespace Adee.Store.Pays
                 };
                 await _payOrderLogRepository.InsertAsync(payOrderLog, true);
 
-                await _queryOrderCache.RemoveAsync(payOrder.BusinessOrderId);
+                await _queryOrderCacheItemManager.RemoveAsync(_objectMapper.Map<PayOrder, QueryOrderCacheItem>(payOrder));
 
                 var result = _objectMapper.Map<PayOrder, PayTaskOrderResult>(payOrder);
                 var notifyArgs = new PayNotifyArgs

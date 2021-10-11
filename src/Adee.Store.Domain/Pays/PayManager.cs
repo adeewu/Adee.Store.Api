@@ -39,14 +39,13 @@ namespace Adee.Store.Pays
         private readonly IBackgroundJobManager _backgroundJobManager;
         private readonly ISettingManager _settingManager;
         private readonly ILogger<PayManager> _logger;
-        private readonly IDistributedCache<QueryOrderCacheItem> _queryOrderCache;
         private readonly IDistributedCache<AssertNotifyResponse> _assertNotifyCache;
         private readonly IOptions<PayOptions> _payOptions;
         private readonly IOptions<AppOptions> _appOptions;
         private readonly IAbpLazyServiceProvider _serviceProvider;
         private readonly IObjectMapper _objectMapper;
         private readonly ICurrentTenantExt _currentTenantExt;
-        private readonly ICommonClient _commonClient;
+        private readonly QueryOrderCacheItemManager _queryOrderCacheItemManager;
 
         public PayManager(
             IPayOrderRepository payOrderRepository,
@@ -57,14 +56,13 @@ namespace Adee.Store.Pays
             IBackgroundJobManager backgroundJobManager,
             ISettingManager settingManager,
             ILogger<PayManager> logger,
-            IDistributedCache<QueryOrderCacheItem> queryOrderCache,
             IDistributedCache<AssertNotifyResponse> assertNotifyCache,
             IOptions<PayOptions> payOptions,
             IOptions<AppOptions> appOptions,
             IAbpLazyServiceProvider serviceProvider,
             IObjectMapper objectMapper,
             ICurrentTenantExt currentTenantExt,
-            ICommonClient commonClient
+            QueryOrderCacheItemManager queryOrderCacheItemManager
             )
         {
             _payOrderRepository = payOrderRepository;
@@ -75,14 +73,13 @@ namespace Adee.Store.Pays
             _backgroundJobManager = backgroundJobManager;
             _settingManager = settingManager;
             _logger = logger;
-            _queryOrderCache = queryOrderCache;
             _assertNotifyCache = assertNotifyCache;
             _payOptions = payOptions;
             _appOptions = appOptions;
             _serviceProvider = serviceProvider;
             _objectMapper = objectMapper;
             _currentTenantExt = currentTenantExt;
-            _commonClient = commonClient;
+            _queryOrderCacheItemManager = queryOrderCacheItemManager;
         }
 
         // public async Task<object> Excution(PayTaskType type, string payTaskContent)
@@ -414,7 +411,7 @@ namespace Adee.Store.Pays
                 result.PayOrderId = payOrder.PayOrderId;
                 result.PayOrganizationOrderId = response.PayOrganizationOrderId;
 
-                await _queryOrderCache.RemoveAsync(payOrder.BusinessOrderId);
+                await _queryOrderCacheItemManager.RemoveAsync(_objectMapper.Map<PayOrder, QueryOrderCacheItem>(payOrder));
 
                 var notifyArgs = new PayNotifyArgs
                 {
@@ -423,11 +420,6 @@ namespace Adee.Store.Pays
                     NotifyContent = result.ToJsonString(),
                 };
                 await _backgroundJobManager.EnqueueAsync(notifyArgs);
-            }
-
-            if (response.Status == PayTaskStatus.Faild)
-            {
-                await _queryOrderCache.RemoveAsync(payOrder.BusinessOrderId);
             }
 
             return result;
@@ -440,17 +432,17 @@ namespace Adee.Store.Pays
         /// <returns></returns>
         public async Task<PayTaskOrderResult> GetQueryFromCache(string orderId)
         {
-            var queryOrderCacheItem = await _queryOrderCache.GetAsync(orderId);
+            var queryOrderCacheItem = await _queryOrderCacheItemManager.GetAsync(orderId);
             if (queryOrderCacheItem.IsNotNull())
             {
                 return _objectMapper.Map<QueryOrderCacheItem, PayTaskOrderResult>(queryOrderCacheItem);
             }
 
-            var payOrder = await _payOrderRepository.FindAsync(p => p.BusinessOrderId == orderId);
+            var payOrder = await _payOrderRepository.FindAsync(p => p.BusinessOrderId == orderId || p.PayOrderId == orderId || p.PayOrganizationOrderId == orderId);
             CheckHelper.IsNotNull(payOrder, $"订单：{orderId} 不存在");
 
             queryOrderCacheItem = _objectMapper.Map<PayOrder, QueryOrderCacheItem>(payOrder);
-            await _queryOrderCache.SetAsync(orderId, queryOrderCacheItem);
+            await _queryOrderCacheItemManager.SetAsync(queryOrderCacheItem);
 
             return _objectMapper.Map<QueryOrderCacheItem, PayTaskOrderResult>(queryOrderCacheItem);
         }

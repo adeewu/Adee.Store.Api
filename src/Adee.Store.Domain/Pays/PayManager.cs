@@ -482,9 +482,10 @@ namespace Adee.Store.Pays
                     Url = notify.Url,
                     Body = notify.Body,
                     Query = notify.Query,
+                    Headers = notify.Header.AsObject<Dictionary<string, string[]>>()
                 };
 
-                var payOrganizationTypes = PayOrganizationType.GetValues<PayOrganizationType>();
+                var payOrganizationTypes = Enum.GetValues<PayOrganizationType>();
 
                 var assertNotifyResults = new Dictionary<PayOrganizationType, AssertNotifyResponse>();
                 foreach (var payOrganizationType in payOrganizationTypes)

@@ -3,6 +3,7 @@ using Adee.Store.Domain.Shared.Utils.Helpers;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Volo.Abp.DependencyInjection;
@@ -49,8 +50,8 @@ namespace Adee.Store.Pays
                 Method = HttpMethod.Get,
                 Query = HttpContext.Request.QueryString.HasValue ? HttpContext.Request.QueryString.Value : string.Empty,
                 Url = HttpContext.Request.GetDisplayUrl(),
+                Headers = HttpContext.Request.Headers.ToDictionary(p=>p.Key, p=>p.Value.ToArray()),
                 TenantId = CurrentTenant.Id,
-                TargetDomain = CurrentDomain,
             });
 
             return result;
@@ -73,8 +74,8 @@ namespace Adee.Store.Pays
                 Body = body,
                 Query = HttpContext.Request.QueryString.HasValue ? HttpContext.Request.QueryString.Value : string.Empty,
                 Url = HttpContext.Request.GetDisplayUrl(),
+                Headers = HttpContext.Request.Headers.ToDictionary(p => p.Key, p => p.Value.ToArray()),
                 TenantId = CurrentTenant.Id,
-                TargetDomain = CurrentDomain,
             });
 
             return result;
@@ -99,6 +100,7 @@ namespace Adee.Store.Pays
                     dto.Method,
                     dto.Query,
                     dto.Body,
+                    dto.Headers
                 }, nameof(NotifyDto), separator: "&", containKey: true);
 
                 var isNotify = await _payNotifyRepository.AnyAsync(p => p.HashCode == hashCode);
@@ -110,10 +112,12 @@ namespace Adee.Store.Pays
                     Method = dto.Method.Method,
                     Query = dto.Query,
                     Url = dto.Url,
+                    Header = dto.Headers.ToJsonString(),
                     HashCode = hashCode,
                     TenantId = dto.TenantId,
                     Status = PayTaskStatus.Normal,
                 };
+
                 await _payManager.AssertNotify(notify);
             }
             catch (Exception ex)
@@ -121,8 +125,6 @@ namespace Adee.Store.Pays
                 response.Code = System.Net.HttpStatusCode.BadRequest;
                 response.Msg = ex.Message;
             }
-
-            //根据通道处理返回值
 
             return response;
         }

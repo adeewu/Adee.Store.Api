@@ -37,6 +37,10 @@ namespace Adee.Store.Pays
         /// </summary>
         public string Query { get; set; }
         /// <summary>
+        /// 请求头部
+        /// </summary>
+        public string Header { get; set; }
+        /// <summary>
         /// Method、Url、Body、Query经过MD5计算的值
         /// </summary>
         public string HashCode { get; set; }

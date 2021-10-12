@@ -44,6 +44,9 @@ namespace Adee.Store.EntityFrameworkCore
                 entity.Property(e => e.Query)
                     .HasComment("请求参数");
 
+                entity.Property(e => e.Header)
+                    .HasComment("请求头部");
+
                 entity.Property(e => e.BusinessOrderId)
                     .HasMaxLength(50)
                     .HasComment("业务订单号");

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 
 namespace Adee.Store.Pays
@@ -34,8 +35,8 @@ namespace Adee.Store.Pays
         public string Body { get; set; }
 
         /// <summary>
-        /// 触发域名
+        /// 头部
         /// </summary>
-        public string TargetDomain { get; set; }
+        public Dictionary<string, string[]> Headers { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Adee.Store.Pays
 {
@@ -163,6 +164,7 @@ namespace Adee.Store.Pays
         public AssertNotifyRequest()
         {
             PayTaskType = PayTaskType.AssertNotify;
+            Headers = new Dictionary<string, string[]>();
         }
 
         /// <summary>
@@ -189,5 +191,10 @@ namespace Adee.Store.Pays
         /// 请求参数
         /// </summary>
         public string Query { get; set; }
+
+        /// <summary>
+        /// 头部
+        /// </summary>
+        public Dictionary<string, string[]> Headers { get; set; }
     }
 }

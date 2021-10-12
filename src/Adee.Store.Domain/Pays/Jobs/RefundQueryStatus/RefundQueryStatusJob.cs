@@ -66,7 +66,7 @@ namespace Adee.Store.Pays
             {
                 if (args.Rates.IsNull())
                 {
-                    args.Rates = GetRefundDelay(PayManager.RefundQueryDuration);
+                    args.Rates = GetQueryDelay(PayConsts.RefundQueryDuration);
                 }
 
                 refund.QueryStatus = PayTaskStatus.Executing;
@@ -167,15 +167,18 @@ namespace Adee.Store.Pays
         }
 
         /// <summary>
-        /// 获取退款速度（小时）
+        /// 获取查询速度（毫秒）
         /// </summary>
-        /// <param name="delayDuration">轮询时长，单位：天</param>
+        /// <param name="delayDuration">轮询时长，单位：分钟</param>
         /// <returns></returns>
-        public int[] GetRefundDelay(int delayDuration)
+        public int[] GetQueryDelay(int delayDuration)
         {
-            CheckHelper.IsTrue(delayDuration > 1, $"轮询时长不能小于1天");
+            CheckHelper.IsTrue(delayDuration > 1, $"轮询时长不能小于1分钟");
 
-            return Enumerable.Repeat(3, delayDuration * 24 / 3).ToArray();
+            var firstMinute = Enumerable.Repeat(3000, 60 * 1000 / 3000);
+            var lastMinute = Enumerable.Repeat(5000, (delayDuration - 1) * 60 * 1000 / 5000);
+
+            return firstMinute.Concat(lastMinute).ToArray();
         }
     }
 }

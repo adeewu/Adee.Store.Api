@@ -21,16 +21,6 @@ namespace Adee.Store.Pays
 {
     public class PayManager : DomainService, ITransientDependency
     {
-        /// <summary>
-        /// 查询时长，秒
-        /// </summary>
-        public const int QueryDuration = 600;
-
-        /// <summary>
-        /// 退款时长，天
-        /// </summary>
-        public const int RefundQueryDuration = 14;
-
         private readonly IPayOrderRepository _payOrderRepository;
         private readonly IRepository<PayOrderLog> _payOrderLogRepository;
         private readonly IPayParameterRepository _payParameterRepository;

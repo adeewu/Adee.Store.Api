@@ -60,7 +60,7 @@ namespace Adee.Store.Pays
             {
                 if (args.Rates.IsNull())
                 {
-                    args.Rates = GetQueryDelay(PayManager.QueryDuration);
+                    args.Rates = GetQueryDelay(PayConsts.QueryDuration);
                 }
 
                 payOrder.QueryStatus = PayTaskStatus.Executing;

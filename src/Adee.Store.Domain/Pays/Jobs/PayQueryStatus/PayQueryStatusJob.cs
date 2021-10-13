@@ -49,7 +49,7 @@ namespace Adee.Store.Pays
             var payProvider = _payManager.GetPayProvider(payOrder.PayOrganizationType);
             CheckHelper.IsNotNull(payProvider, name: nameof(payProvider));
 
-            var request = new PayRequest
+            var request = new PayTaskRequest
             {
                 PayTaskType = PayTaskType.Query,
                 PayParameterValue = payParameter.Value,
@@ -75,14 +75,14 @@ namespace Adee.Store.Pays
                 }, true);
             }
 
-            PaySuccessResponse response;
+            SuccessResponse response;
             try
             {
                 response = await payProvider.Query(request);
             }
             catch (Exception ex)
             {
-                response = new PaySuccessResponse
+                response = new SuccessResponse
                 {
                     Status = PayTaskStatus.Faild,
                     ResponseMessage = ex.Message,
@@ -146,7 +146,7 @@ namespace Adee.Store.Pays
 
                 await _queryOrderCacheItemManager.RemoveAsync(_objectMapper.Map<PayOrder, QueryOrderCacheItem>(payOrder));
 
-                var result = _objectMapper.Map<PayOrder, PayTaskOrderResult>(payOrder);
+                var result = _objectMapper.Map<PayOrder, OrderResult>(payOrder);
                 var notifyArgs = new PayNotifyArgs
                 {
                     TenantId = payOrder.TenantId,

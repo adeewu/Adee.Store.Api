@@ -13,21 +13,28 @@ namespace Adee.Store.Domain.Pays
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<PaySuccessResponse> Query(PayRequest request);
+        Task<SuccessResponse> Query(PayTaskRequest request);
 
         /// <summary>
         /// B2C收款
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<PaySuccessResponse> B2C(B2CPayRequest request);
+        Task<SuccessResponse> B2C(B2CRequest request);
 
         /// <summary>
         /// C2B收款
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<PayResponse> C2B(PayRequest request);
+        Task<PayResponse> C2B(PayTaskRequest request);
+
+        /// <summary>
+        /// JS收款
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<JsApiResponse> JSApi(JSApiRequest request);
 
         /// <summary>
         /// 断言通知
@@ -41,20 +48,20 @@ namespace Adee.Store.Domain.Pays
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<PaySuccessResponse> Refund(RefundPayRequest request);
+        Task<SuccessResponse> Refund(RefundRequest request);
 
         /// <summary>
         /// 查询退款结果
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<PaySuccessResponse> RefundQuery(PayRequest request);
+        Task<SuccessResponse> RefundQuery(PayTaskRequest request);
 
         /// <summary>
         /// 取消订单
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<PayResponse> Cancel(PayRequest request);
+        Task<PayResponse> Cancel(PayTaskRequest request);
     }
 }

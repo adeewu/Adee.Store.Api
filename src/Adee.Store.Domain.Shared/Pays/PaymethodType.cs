@@ -36,5 +36,23 @@ namespace Adee.Store.Pays
         /// </summary>
         [Description("WechatMP")]
         WechatMP = 4,
+
+        /// <summary>
+        /// 支付宝小程序
+        /// </summary>
+        [Description("AlipayMiniPro")]
+        AlipayMiniPro = 5,
+
+        /// <summary>
+        /// 支付宝服务窗
+        /// </summary>
+        [Description("AlipayMP")]
+        AlipayMP = 6,
+
+        /// <summary>
+        /// 银联JS支付
+        /// </summary>
+        [Description("UnionJSPay")]
+        UnionJSPay = 7,
     }
 }

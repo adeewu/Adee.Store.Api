@@ -88,6 +88,21 @@ namespace Adee.Store.Domain.Pays.TianQue
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<DetailResponse<ResponseBase<JSApiResponseModel>>> JSApiPay(RequestBase<JSApiRequestModel> request)
+        {
+            var dic = Sign(request);
+
+            var result = await PostAsync<JSApiResponseModel>("/order/jsapiScan", body: dic);
+            result.OriginRequest = request.ToJsonString();
+
+            return result;
+        }
+
+        /// <summary>
         /// 异步post方式
         /// </summary>
         /// <typeparam name="TResult"></typeparam>

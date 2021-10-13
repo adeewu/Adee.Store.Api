@@ -8,6 +8,6 @@ namespace Adee.Store.Domain.Pays
     /// </summary>
     public interface IBusinessTypeProvider
     {
-        Task<TPayResponse> Excute<TPayRequest, TPayResponse>(TPayRequest request) where TPayRequest : PayRequest where TPayResponse : PayResponse;
+        Task<TPayResponse> Excute<TPayRequest, TPayResponse>(TPayRequest request) where TPayRequest : PayTaskRequest where TPayResponse : PayResponse;
     }
 }

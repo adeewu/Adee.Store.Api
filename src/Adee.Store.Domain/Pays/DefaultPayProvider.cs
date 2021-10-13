@@ -8,32 +8,27 @@ namespace Adee.Store.Domain.Pays
 {
     public class DefaultPayProvider : IDefaultPayProvider, ITransientDependency
     {
-        public virtual Task<PaySuccessResponse> B2C(B2CPayRequest request)
+        public virtual Task<SuccessResponse> B2C(B2CRequest request)
         {
             throw new NotImplementedException();
         }
 
-        public virtual Task<PayResponse> C2B(PayRequest request)
+        public virtual Task<PayResponse> C2B(PayTaskRequest request)
         {
             throw new NotImplementedException();
         }
 
-        public virtual Task<PaySuccessResponse> Query(PayRequest request)
+        public virtual Task<SuccessResponse> Query(PayTaskRequest request)
         {
             throw new NotImplementedException();
         }
 
-        public virtual Task<PaySuccessResponse> Refund(RefundPayRequest request)
+        public virtual Task<SuccessResponse> Refund(RefundRequest request)
         {
             throw new NotImplementedException();
         }
 
-        public virtual Task<PaySuccessResponse> RefundQuery(PayRequest request)
-        {
-            throw new NotImplementedException();
-        }
-
-        public virtual Task<PaySuccessResponse> WechatJS(PayRequest request)
+        public virtual Task<SuccessResponse> RefundQuery(PayTaskRequest request)
         {
             throw new NotImplementedException();
         }
@@ -44,7 +39,7 @@ namespace Adee.Store.Domain.Pays
         }
 
         public virtual Task<TPayResponse> Excute<TPayRequest, TPayResponse>(TPayRequest request)
-            where TPayRequest : PayRequest
+            where TPayRequest : PayTaskRequest
             where TPayResponse : PayResponse
         {
             var method = GetType().GetMethod(request.PayTaskType.ToString());
@@ -58,7 +53,12 @@ namespace Adee.Store.Domain.Pays
             return (Task<TPayResponse>)method.Invoke(this, new object[] { request });
         }
 
-        public Task<PayResponse> Cancel(PayRequest request)
+        public virtual Task<PayResponse> Cancel(PayTaskRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual Task<JsApiResponse> JSApi(JSApiRequest request)
         {
             throw new NotImplementedException();
         }

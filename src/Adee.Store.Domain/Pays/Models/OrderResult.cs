@@ -5,7 +5,7 @@ namespace Adee.Store.Pays
     /// <summary>
     /// 支付任务结果
     /// </summary>
-    public class PayTaskOrderResult : PayTaskResult
+    public class OrderResult : PayTaskResult
     {
         /// <summary>
         /// 收款时间

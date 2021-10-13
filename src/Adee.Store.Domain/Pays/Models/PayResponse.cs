@@ -39,7 +39,7 @@ namespace Adee.Store.Pays
         public string ResponseMessage { get; set; }
     }
 
-    public class PaySuccessResponse : PayResponse
+    public class SuccessResponse : PayResponse
     {
         /// <summary>
         /// 收款时间
@@ -58,9 +58,25 @@ namespace Adee.Store.Pays
     }
 
     /// <summary>
+    /// 
+    /// </summary>
+    public class JsApiResponse : PayResponse
+    {
+        /// <summary>
+        /// 收单机构订单号
+        /// </summary>
+        public string PayOrganizationOrderId { get; set; }
+
+        /// <summary>
+        /// 支付参数，格式需要参考PaymentType+JSApiTradeType组合
+        /// </summary>
+        public string Parameter { get; set; }
+    }
+
+    /// <summary>
     /// 断定通知响应
     /// </summary>
-    public class AssertNotifyResponse : PaySuccessResponse
+    public class AssertNotifyResponse : SuccessResponse
     {
         /// <summary>
         /// 支付订单号
@@ -76,7 +92,7 @@ namespace Adee.Store.Pays
     /// <summary>
     /// 
     /// </summary>
-    public class PayRequest
+    public class PayTaskRequest
     {
         /// <summary>
         /// 任务类型
@@ -94,56 +110,17 @@ namespace Adee.Store.Pays
         public string PayOrderId { get; set; }
     }
 
-    /// <summary>
-    /// 退款
-    /// </summary>
-    public class RefundPayRequest : PayRequest
+    public class OrderRequest : PayTaskRequest
     {
-        public RefundPayRequest()
-        {
-            PayTaskType = PayTaskType.Refund;
-        }
-
         /// <summary>
-        /// 支付金额，分
+        /// 交易金额，分
         /// </summary>
         public int Money { get; set; }
-
-        /// <summary>
-        /// 退款订单号
-        /// </summary>
-        public string RefundOrderId { get; set; }
-
-        /// <summary>
-        /// 触发域名
-        /// </summary>
-        public string TargetDomain { get; set; }
-    }
-
-    /// <summary>
-    /// B2C
-    /// </summary>
-    public class B2CPayRequest : PayRequest
-    {
-        public B2CPayRequest()
-        {
-            PayTaskType = PayTaskType.B2C;
-        }
-
-        /// <summary>
-        /// 付款码
-        /// </summary>
-        public string AuthCode { get; set; }
 
         /// <summary>
         /// 通知地址
         /// </summary>
         public string NotifyUrl { get; set; }
-
-        /// <summary>
-        /// 支付金额，分
-        /// </summary>
-        public int Money { get; set; }
 
         /// <summary>
         /// 收款标题
@@ -157,9 +134,82 @@ namespace Adee.Store.Pays
     }
 
     /// <summary>
+    /// 退款
+    /// </summary>
+    public class RefundRequest : PayTaskRequest
+    {
+        public RefundRequest()
+        {
+            PayTaskType = PayTaskType.Refund;
+        }
+
+        /// <summary>
+        /// 退款订单号
+        /// </summary>
+        public string RefundOrderId { get; set; }
+
+        /// <summary>
+        /// 退款金额，分
+        /// </summary>
+        public int Money { get; set; }
+    }
+
+    /// <summary>
+    /// B2C
+    /// </summary>
+    public class B2CRequest : OrderRequest
+    {
+        public B2CRequest()
+        {
+            PayTaskType = PayTaskType.B2C;
+        }
+
+        /// <summary>
+        /// 付款码
+        /// </summary>
+        public string AuthCode { get; set; }
+    }
+
+    /// <summary>
+    /// JSApi
+    /// </summary>
+    public class JSApiRequest : OrderRequest
+    {
+        public JSApiRequest()
+        {
+            PayTaskType = PayTaskType.JSApiPay;
+        }
+
+        /// <summary>
+        /// 付款方式
+        /// </summary>
+        public PaymentType PaymentType { get; set; }
+
+        /// <summary>
+        /// 支付端形式
+        /// </summary>
+        public JSApiTradeType TradeType { get; set; }
+
+        /// <summary>
+        /// 微信OpenId，支付宝UserId，银联UserId
+        /// </summary>
+        public string UserId { get; set; }
+
+        /// <summary>
+        /// 应用Id，仅限微信小程序、微信公众号
+        /// </summary>
+        public string SubAppId { get; set; }
+
+        /// <summary>
+        /// 支付超时时间，单位：分钟
+        /// </summary>
+        public int PayExpire { get; set; }
+    }
+
+    /// <summary>
     /// 断定通知
     /// </summary>
-    public class AssertNotifyRequest : PayRequest
+    public class AssertNotifyRequest : PayTaskRequest
     {
         public AssertNotifyRequest()
         {

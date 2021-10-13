@@ -44,10 +44,10 @@ namespace Adee.Store.Pays
         RefundQuery = 5,
 
         /// <summary>
-        /// WechatJSPay
+        /// JSApiPay
         /// </summary>
-        [Description("WechatJS")]
-        WechatJSPay = 6,
+        [Description("JSApiPay")]
+        JSApiPay = 6,
 
         /// <summary>
         /// AssertNotify

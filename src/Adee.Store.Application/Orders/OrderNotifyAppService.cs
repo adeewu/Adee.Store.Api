@@ -18,7 +18,7 @@ namespace Adee.Store.Orders
 
         }
 
-        public async Task Notify(PayTaskOrderResult result)
+        public async Task Notify(OrderResult result)
         {
             Logger.LogDebug($"通知内容：{result.ToJsonString()}");
 
@@ -33,12 +33,12 @@ namespace Adee.Store.Orders
             }
         }
 
-        private Task NoCodePay(PayTaskOrderResult result)
+        private Task NoCodePay(OrderResult result)
         {
             return Task.CompletedTask;
         }
 
-        private Task WebCheckout(PayTaskOrderResult result)
+        private Task WebCheckout(OrderResult result)
         {
             return Task.CompletedTask;
         }

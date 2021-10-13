@@ -28,7 +28,7 @@ namespace Adee.Store.Pays
         /// </summary>
         /// <param name="orderId">支持BusinessOrderId、PayOrderId、PayOrganizationOrderId</param>
         /// <returns></returns>
-        public async Task<PayTaskOrderResult> GetQuery(string orderId)
+        public async Task<OrderResult> Query(string orderId)
         {
             return await _payManager.GetQueryFromCache(orderId);
         }
@@ -37,7 +37,7 @@ namespace Adee.Store.Pays
         /// B2C收款
         /// </summary>
         /// <returns></returns>
-        public async Task<PayTaskOrderResult> B2C(B2CPayTaskDto dto)
+        public async Task<OrderResult> B2c(B2CPayTaskDto dto)
         {
             var model = ObjectMapper.Map<B2CPayTaskDto, B2C>(dto);
 
@@ -45,11 +45,22 @@ namespace Adee.Store.Pays
         }
 
         /// <summary>
+        /// JSApi收款
+        /// </summary>
+        /// <returns></returns>
+        public async Task<ParameterResult> Jsapi(JSApiPayTaskDto dto)
+        {
+            var model = ObjectMapper.Map<JSApiPayTaskDto, JSApi>(dto);
+
+            return await _payManager.JSApi(model);   
+        }
+
+        /// <summary>
         /// 原路退回
         /// </summary>
         /// <param name="dto"></param>
         /// <returns></returns>
-        public async Task<PayTaskRefundResult> Refund(RefundPayTaskDto dto)
+        public async Task<RefundResult> Refund(RefundPayTaskDto dto)
         {
             return await _payManager.Refund(dto.OrderId, dto.Money);
         }

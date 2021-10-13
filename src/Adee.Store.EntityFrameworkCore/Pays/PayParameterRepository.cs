@@ -27,8 +27,8 @@ namespace Adee.Store.EntityFrameworkCore.Pays
                 query = query.Where(p => p.Version == version);
             }
 
-            var result = await query.SingleOrDefaultAsync();
-            Check.NotNull(result, nameof(result));
+            var result = await query.AsNoTracking().SingleOrDefaultAsync();
+            Check.NotNull(result, nameof(result), $"未找到付款方式：{paymentType} 的支付参数");
 
             if (result.PaymentType.HasValue == false)
             {

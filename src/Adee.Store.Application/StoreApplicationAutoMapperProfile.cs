@@ -15,11 +15,13 @@ namespace Adee.Store
             CreateMap<CreateUpdatePayParameterDto, PayParameter>();
 
             CreateMap<PayOrder, QueryOrderCacheItem>();
-            CreateMap<PayOrder, PayTaskOrderResult>();
+            CreateMap<PayOrder, OrderResult>();
 
-            CreateMap<QueryOrderCacheItem, PayTaskOrderResult>();
+            CreateMap<QueryOrderCacheItem, OrderResult>();
 
             CreateMap<B2CPayTaskDto, B2C>();
+
+            CreateMap<JSApiPayTaskDto, JSApi>();
         }
     }
 }

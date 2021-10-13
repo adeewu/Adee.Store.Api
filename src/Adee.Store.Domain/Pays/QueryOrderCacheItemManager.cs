@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Volo.Abp.Caching;
+using Volo.Abp.DependencyInjection;
 
 namespace Adee.Store.Pays
 {
-    public class QueryOrderCacheItemManager
+    public class QueryOrderCacheItemManager : ITransientDependency
     {
         private readonly IDistributedCache<QueryOrderCacheItem> _distributedCache;
 

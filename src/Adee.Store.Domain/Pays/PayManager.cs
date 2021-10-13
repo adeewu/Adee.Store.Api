@@ -87,7 +87,7 @@ namespace Adee.Store.Pays
         /// <param name="orderId"></param>
         /// <param name="money"></param>
         /// <returns></returns>
-        public async Task<PayTaskRefundResult> Refund(string orderId, int money)
+        public async Task<RefundResult> Refund(string orderId, int money)
         {
             var payOrder = await _payOrderRepository.SingleOrDefaultAsync(p => p.PayOrderId == orderId || p.BusinessOrderId == orderId || p.PayOrganizationOrderId == orderId);
             CheckHelper.IsNotNull(payOrder, name: nameof(payOrder));
@@ -107,7 +107,7 @@ namespace Adee.Store.Pays
                 Status = PayTaskStatus.Executing,
             }, true);
 
-            var request = new RefundPayRequest
+            var request = new RefundRequest
             {
                 PayParameterValue = payParameter.Value,
                 Money = money,
@@ -127,14 +127,14 @@ namespace Adee.Store.Pays
                 OriginRequest = request.ToJsonString(),
             }, true);
 
-            PaySuccessResponse response;
+            SuccessResponse response;
             try
             {
                 response = await payProvider.Refund(request);
             }
             catch (Exception ex)
             {
-                response = new PaySuccessResponse
+                response = new SuccessResponse
                 {
                     Status = PayTaskStatus.Faild,
                     ResponseMessage = ex.Message,
@@ -143,7 +143,7 @@ namespace Adee.Store.Pays
                 };
             }
 
-            var result = new PayTaskRefundResult
+            var result = new RefundResult
             {
                 Status = response.Status,
                 Message = response.ResponseMessage,
@@ -219,7 +219,7 @@ namespace Adee.Store.Pays
             payOrder.CancelStatus = PayTaskStatus.Executing;
             payOrder = await _payOrderRepository.UpdateAsync(payOrder);
 
-            var request = new PayRequest
+            var request = new PayTaskRequest
             {
                 PayTaskType = PayTaskType.Cancel,
                 PayParameterValue = payParameter.Value,
@@ -242,7 +242,7 @@ namespace Adee.Store.Pays
             }
             catch (Exception ex)
             {
-                response = new PaySuccessResponse
+                response = new SuccessResponse
                 {
                     Status = PayTaskStatus.Faild,
                     ResponseMessage = ex.Message,
@@ -280,7 +280,7 @@ namespace Adee.Store.Pays
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public async Task<PayTaskOrderResult> B2C(B2C model)
+        public async Task<OrderResult> B2C(B2C model)
         {
             var existBusinessOrderId = await _payOrderRepository.ExistBusinessOrderId(model.BusinessOrderId);
             CheckHelper.IsFalse(existBusinessOrderId, $"业务订单号：{model.BusinessOrderId}已存在");
@@ -307,19 +307,19 @@ namespace Adee.Store.Pays
                     PayOrganizationType = payParameter.PayOrganizationType,
                     PaymethodType = PaymethodType.B2C,
                     SoftwareCode = _currentTenantExt.SoftwareCode,
-                    BusinessType = BusinessType.NoCodePay,
+                    BusinessType = model.BusinessType,
                 }.ToString(),
                 ParameterVersion = payParameter.Version,
                 PaymentType = paymentType,
                 PayOrganizationType = payParameter.PayOrganizationType,
                 PaymethodType = PaymethodType.B2C,
                 BusinessType = model.BusinessType,
-                Status = PayTaskStatus.Waiting,
+                Status = PayTaskStatus.Executing,
                 PayRemark = model.PayRemark,
             };
             payOrder = await _payOrderRepository.InsertAsync(payOrder);
 
-            var request = new B2CPayRequest
+            var request = new B2CRequest
             {
                 AuthCode = model.AuthCode,
                 NotifyUrl = $"{_appOptions.Value.SelfUrl}/api/store/notify",
@@ -339,14 +339,14 @@ namespace Adee.Store.Pays
                 OriginRequest = request.ToJsonString(),
             }, true);
 
-            PaySuccessResponse response;
+            SuccessResponse response;
             try
             {
                 response = await payProvider.B2C(request);
             }
             catch (Exception ex)
             {
-                response = new PaySuccessResponse
+                response = new SuccessResponse
                 {
                     Status = PayTaskStatus.Faild,
                     ResponseMessage = ex.Message,
@@ -355,7 +355,7 @@ namespace Adee.Store.Pays
                 };
             }
 
-            var result = new PayTaskOrderResult
+            var result = new OrderResult
             {
                 Status = response.Status,
                 Message = response.ResponseMessage,
@@ -416,16 +416,146 @@ namespace Adee.Store.Pays
         }
 
         /// <summary>
+        /// B2C收款
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public async Task<ParameterResult> JSApi(JSApi model)
+        {
+            var existBusinessOrderId = await _payOrderRepository.ExistBusinessOrderId(model.BusinessOrderId);
+            CheckHelper.IsFalse(existBusinessOrderId, $"业务订单号：{model.BusinessOrderId}已存在");
+
+            CheckHelper.AreNotEqual(model.PaymentType, PaymentType.Unknown, message: "请提供支付方式");
+            CheckHelper.AreNotEqual(model.PaymentType, PaymentType.CCB, message: $"暂时不支持{PaymentType.CCB.GetDescription()}");
+
+            var payParameter = await GetPayParameter(model.PaymentType);
+            CheckHelper.IsNotNull(payParameter, name: nameof(payParameter));
+
+            var payProvider = GetPayProvider(payParameter.PayOrganizationType);
+            CheckHelper.IsNotNull(payProvider, name: nameof(payProvider));
+
+            var paymethodType = GetPaymethodType(model.PaymentType, model.TradeType);
+
+            var payOrder = new PayOrder(GuidGenerator.Create())
+            {
+                TenantId = CurrentTenant.Id,
+                Money = model.Money,
+                NotifyUrl = model.NotifyUrl,
+                Title = model.Title,
+                BusinessOrderId = model.BusinessOrderId,
+                PayOrderId = new PayOrderId
+                {
+                    PaymentType = model.PaymentType,
+                    PayOrganizationType = payParameter.PayOrganizationType,
+                    PaymethodType = paymethodType,
+                    SoftwareCode = _currentTenantExt.SoftwareCode,
+                    BusinessType = model.BusinessType,
+                }.ToString(),
+                ParameterVersion = payParameter.Version,
+                PaymentType = model.PaymentType,
+                PayOrganizationType = payParameter.PayOrganizationType,
+                PaymethodType = paymethodType,
+                BusinessType = model.BusinessType,
+                Status = PayTaskStatus.Waiting,
+                PayRemark = model.PayRemark,
+            };
+            payOrder = await _payOrderRepository.InsertAsync(payOrder);
+
+            var request = new JSApiRequest
+            {
+                NotifyUrl = $"{_appOptions.Value.SelfUrl}/api/store/notify",
+                PayParameterValue = payParameter.Value,
+                Money = model.Money,
+                Title = model.Title,
+                IPAddress = model.IPAddress,
+                PayOrderId = payOrder.PayOrderId,
+                TradeType = model.TradeType,
+                PaymentType = model.PaymentType,
+                PayExpire = model.PayExpire,
+                SubAppId = model.SubAppId,
+                UserId = model.UserId,
+            };
+
+            await _payOrderLogRepository.InsertAsync(new PayOrderLog
+            {
+                TenantId = CurrentTenant.Id,
+                OrderId = payOrder.Id,
+                LogType = OrderLogType.Pay,
+                Status = PayTaskStatus.Waiting,
+                OriginRequest = request.ToJsonString(),
+            }, true);
+
+            JsApiResponse response;
+            try
+            {
+                response = await payProvider.JSApi(request);
+            }
+            catch (Exception ex)
+            {
+                response = new JsApiResponse
+                {
+                    Status = PayTaskStatus.Faild,
+                    ResponseMessage = ex.Message,
+                    OriginRequest = request.ToJsonString(),
+                    OriginResponse = ex.ToJsonString(),
+                };
+            }
+
+            var result = new ParameterResult
+            {
+                Status = response.Status,
+                Message = response.ResponseMessage,
+                PayOrganizationOrderId = response.PayOrganizationOrderId,
+                PayOrderId = payOrder.PayOrderId,
+                Parameter = response.Parameter,
+            };
+
+            payOrder.Status = response.Status;
+            payOrder.StatusMessage = response.ResponseMessage;
+
+            if (response.Status == PayTaskStatus.Success)
+            {
+                payOrder.Status = PayTaskStatus.Executing;
+                payOrder.StatusMessage = "下单成功，待支付";
+                payOrder.PayOrganizationOrderId = response.PayOrganizationOrderId;
+            }
+            payOrder = await _payOrderRepository.UpdateAsync(payOrder);
+
+            await _payOrderLogRepository.InsertAsync(new PayOrderLog
+            {
+                TenantId = CurrentTenant.Id,
+                OrderId = payOrder.Id,
+                LogType = OrderLogType.Pay,
+                Status = payOrder.Status,
+                OriginRequest = response.OriginRequest,
+                SubmitRequest = response.SubmitRequest,
+                OriginResponse = response.OriginResponse,
+                EncryptResponse = response.EncryptResponse,
+            }, true);
+
+            if (response.Status == PayTaskStatus.Success)
+            {
+                await _backgroundJobManager.EnqueueAsync(new PayQueryStatusArgs
+                {
+                    TenantId = CurrentTenant.Id.Value,
+                    PayOrderId = payOrder.PayOrderId,
+                }, delay: TimeSpan.FromSeconds(1));
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// 获取订单状态(缓存)
         /// </summary>
         /// <param name="orderId"></param>
         /// <returns></returns>
-        public async Task<PayTaskOrderResult> GetQueryFromCache(string orderId)
+        public async Task<OrderResult> GetQueryFromCache(string orderId)
         {
             var queryOrderCacheItem = await _queryOrderCacheItemManager.GetAsync(orderId);
             if (queryOrderCacheItem.IsNotNull())
             {
-                return _objectMapper.Map<QueryOrderCacheItem, PayTaskOrderResult>(queryOrderCacheItem);
+                return _objectMapper.Map<QueryOrderCacheItem, OrderResult>(queryOrderCacheItem);
             }
 
             var payOrder = await _payOrderRepository.FindAsync(p => p.BusinessOrderId == orderId || p.PayOrderId == orderId || p.PayOrganizationOrderId == orderId);
@@ -434,7 +564,7 @@ namespace Adee.Store.Pays
             queryOrderCacheItem = _objectMapper.Map<PayOrder, QueryOrderCacheItem>(payOrder);
             await _queryOrderCacheItemManager.SetAsync(queryOrderCacheItem);
 
-            return _objectMapper.Map<QueryOrderCacheItem, PayTaskOrderResult>(queryOrderCacheItem);
+            return _objectMapper.Map<QueryOrderCacheItem, OrderResult>(queryOrderCacheItem);
         }
 
         /// <summary>
@@ -581,6 +711,23 @@ namespace Adee.Store.Pays
             }
 
             throw new UserFriendlyException($"未知条码：{authCode}");
+        }
+
+        /// <summary>
+        /// 获取支付方式
+        /// </summary>
+        /// <param name="paymentType"></param>
+        /// <param name="tradeType"></param>
+        /// <returns></returns>
+        private PaymethodType GetPaymethodType(PaymentType paymentType, JSApiTradeType tradeType)
+        {
+            if (paymentType == PaymentType.UnionPay && tradeType == JSApiTradeType.MP) return PaymethodType.UnionJSPay;
+
+            if (paymentType == PaymentType.Alipay) return tradeType == JSApiTradeType.MINIPRO ? PaymethodType.AlipayMiniPro : PaymethodType.AlipayMP;
+
+            if (paymentType == PaymentType.WechatPay) return tradeType == JSApiTradeType.MINIPRO ? PaymethodType.WechatMiniPro : PaymethodType.WechatMP;
+
+            throw new UserFriendlyException($"不支持的组合方式：paymentType：{paymentType}，tradeType：{tradeType}");
         }
     }
 }

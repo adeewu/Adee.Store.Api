@@ -113,7 +113,7 @@ namespace Adee.Store.Domain.Pays.TianQue
 
         public override async Task<JsApiResponse> JSApi(JSApiRequest request)
         {
-            var request1 = _client.GetRequest(request.PayParameterValue, new JSApiRequestModel
+            var jsApiRequest = _client.GetRequest(request.PayParameterValue, new JSApiRequestModel
             {
                 ordNo = request.PayOrderId,
                 amt = Math.Round(request.Money / 100m, 2).ToString("#0.00"),
@@ -129,7 +129,7 @@ namespace Adee.Store.Domain.Pays.TianQue
                 customerIp = request.IPAddress,
             });
 
-            var response = await _client.JSApiPay(request1);
+            var response = await _client.JSApiPay(jsApiRequest);
 
             var result = new JsApiResponse
             {

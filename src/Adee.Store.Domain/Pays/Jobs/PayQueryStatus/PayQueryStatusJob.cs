@@ -97,17 +97,6 @@ namespace Adee.Store.Pays
             payOrder.QueryStatus = response.Status;
             payOrder.QueryStatusMessage = response.ResponseMessage;
 
-            var payOrderLog = new PayOrderLog
-            {
-                OrderId = payOrder.Id,
-                LogType = OrderLogType.Query,
-                Status = payOrder.QueryStatus.Value,
-                StatusMessage = response.ResponseMessage,
-                OriginRequest = response.OriginRequest,
-                SubmitRequest = response.SubmitRequest,
-                OriginResponse = response.OriginResponse,
-            };
-
             if (response.Status == PayTaskStatus.Success)
             {
                 payOrder.PayTime = response.PayTime;
@@ -142,6 +131,17 @@ namespace Adee.Store.Pays
             {
                 payOrder = await _payOrderRepository.UpdateAsync(payOrder);
 
+                var payOrderLog = new PayOrderLog
+                {
+                    OrderId = payOrder.Id,
+                    LogType = OrderLogType.Query,
+                    Status = payOrder.QueryStatus.Value,
+                    StatusMessage = response.ResponseMessage,
+                    OriginRequest = response.OriginRequest,
+                    SubmitRequest = response.SubmitRequest,
+                    OriginResponse = response.OriginResponse,
+                    EncryptResponse = response.EncryptResponse,
+                };
                 await _payOrderLogRepository.InsertAsync(payOrderLog, true);
 
                 await _queryOrderCacheItemManager.RemoveAsync(_objectMapper.Map<PayOrder, QueryOrderCacheItem>(payOrder));

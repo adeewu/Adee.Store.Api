@@ -156,9 +156,10 @@ namespace Adee.Store
                     options.DocInclusionPredicate((docName, apiDesc) =>
                     {
                         var groupTypes = apiDesc
-                            .CustomAttributes()
+                            .ActionDescriptor
+                            .EndpointMetadata
                             .OfType<ApiGroupAttribute>()
-                            .Select(o => o.ApiGroupType.ToString())
+                            .Select(p => p.ApiGroupType.ToString())
                             .ToList();
 
                         if (groupTypes.IsNull() && docName == ApiGroupType.NoGroup.ToString()) return true;

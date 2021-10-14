@@ -27,7 +27,7 @@ namespace Adee.Store.Domain.Pays
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<PayResponse> C2B(PayTaskRequest request);
+        Task<PayUrlResponse> C2B(C2BRequest request);
 
         /// <summary>
         /// JS收款

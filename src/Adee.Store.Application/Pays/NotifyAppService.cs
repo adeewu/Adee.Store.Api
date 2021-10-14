@@ -50,7 +50,7 @@ namespace Adee.Store.Pays
                 Method = HttpMethod.Get,
                 Query = HttpContext.Request.QueryString.HasValue ? HttpContext.Request.QueryString.Value : string.Empty,
                 Url = HttpContext.Request.GetDisplayUrl(),
-                Headers = HttpContext.Request.Headers.ToDictionary(p=>p.Key, p=>p.Value.ToArray()),
+                Headers = HttpContext.Request.Headers.ToDictionary(p => p.Key, p => p.Value.ToArray()),
                 TenantId = CurrentTenant.Id,
             });
 

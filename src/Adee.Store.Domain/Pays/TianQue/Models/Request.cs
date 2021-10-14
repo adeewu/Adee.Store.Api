@@ -144,6 +144,18 @@ namespace Adee.Store.Domain.Pays.TianQue.Models
         /// </summary>
         public string mobileNum { get; set; }
         /// <summary>
+        /// Condional String 蚂蚁门店编号 未来校园活动需上传
+        /// </summary>
+        public string alipayStoreId { get; set; }
+        /// <summary>
+        /// Optional String 天阙终端编号，长度128位 天阙后台绑定终端后生成的终端唯一标识
+        /// </summary>
+        public string deviceNo { get; set; }
+        /// <summary>
+        /// Optional String 门店编号，长度32位
+        /// </summary>
+        public string storeNum { get; set; }
+        /// <summary>
         /// String	0	128	备用
         /// </summary>
         public string extend { get; set; }

@@ -45,6 +45,17 @@ namespace Adee.Store.Pays
         }
 
         /// <summary>
+        /// C2B收款
+        /// </summary>
+        /// <returns></returns>
+        public async Task<PayUrlResult> C2b(C2BPayTaskDto dto)
+        {
+            var model = ObjectMapper.Map<C2BPayTaskDto, C2B>(dto);
+
+            return await _payManager.C2B(model);
+        }
+
+        /// <summary>
         /// JSApi收款
         /// </summary>
         /// <returns></returns>
@@ -52,7 +63,7 @@ namespace Adee.Store.Pays
         {
             var model = ObjectMapper.Map<JSApiPayTaskDto, JSApi>(dto);
 
-            return await _payManager.JSApi(model);   
+            return await _payManager.JSApi(model);
         }
 
         /// <summary>

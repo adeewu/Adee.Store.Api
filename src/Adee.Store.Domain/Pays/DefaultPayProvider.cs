@@ -13,7 +13,7 @@ namespace Adee.Store.Domain.Pays
             throw new NotImplementedException();
         }
 
-        public virtual Task<PayResponse> C2B(PayTaskRequest request)
+        public virtual Task<PayUrlResponse> C2B(C2BRequest request)
         {
             throw new NotImplementedException();
         }

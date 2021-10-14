@@ -21,6 +21,8 @@ namespace Adee.Store
 
             CreateMap<B2CPayTaskDto, B2C>();
 
+            CreateMap<C2BPayTaskDto, C2B>();
+
             CreateMap<JSApiPayTaskDto, JSApi>();
         }
     }

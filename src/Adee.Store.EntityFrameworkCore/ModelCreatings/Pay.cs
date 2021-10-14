@@ -51,6 +51,10 @@ namespace Adee.Store.EntityFrameworkCore
                     .HasMaxLength(50)
                     .HasComment("业务订单号");
 
+                entity.Property(e => e.PayOrganizationOrderId)
+                    .HasMaxLength(128)
+                    .HasComment("收单机构订单号");
+
                 entity.Property(e => e.Status)
                     .IsRequired()
                     .HasComment("通知执行状态");

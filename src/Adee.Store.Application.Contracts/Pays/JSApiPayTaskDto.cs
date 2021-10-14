@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Adee.Store.Pays
+﻿namespace Adee.Store.Pays
 {
     /// <summary>
     /// JSApi收款任务

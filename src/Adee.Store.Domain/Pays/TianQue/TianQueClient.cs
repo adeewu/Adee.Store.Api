@@ -2,7 +2,6 @@ using Adee.Store.Domain.Pays.TianQue.Models;
 using Adee.Store.Domain.Shared.Utils.Helpers;
 using Adee.Store.Pays;
 using Adee.Store.Pays.Utils.Helpers;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -17,60 +16,59 @@ namespace Adee.Store.Domain.Pays.TianQue
     {
         private readonly ICommonClient _client;
         private readonly SignHelper _signHelper;
-        private readonly IOptions<TianQueOptions> _options;
+
+        public PaymentConfigModel PaymentConfig { get; set; }
 
         public TianQueClient(
             ICommonClient client,
-            IConfiguration config,
             SignHelper signHelper,
             IOptions<TianQueOptions> options)
         {
             _signHelper = signHelper;
-            _options = options;
 
             _client = client;
-            _client.SetBaseAddress(_options.Value.IsTest ? "https://openapi-test.tianquetech.com" : "https://openapi.tianquetech.com");
+            _client.SetBaseAddress(options.Value.IsTest ? "https://openapi-test.tianquetech.com" : "https://openapi.tianquetech.com");
         }
 
+        public void SetPayparameterValue(string payParameterValue)
+        {
+            PaymentConfig = payParameterValue.AsObject<PaymentConfigModel>();
+        }
 
         /// <summary>
         /// 获取基础的请求参数
         /// </summary>
         /// <returns></returns>
-        public RequestBase<T> GetRequest<T>(string payParameterValue, T t)
+        public RequestBase<T> GetRequest<T>(T t)
         {
-            var paymentConfig = payParameterValue.AsObject<PaymentConfigModel>();
-
             var request = new RequestBase<T>
             {
-                orgId = _options.Value.OrgId,
+                orgId = PaymentConfig.orgId,
                 reqId = DateTimeOffset.Now.ToUnixTimeMilliseconds() + new Random(GetHashCode()).Next(1000, 9999).ToString(),
                 version = "1.0",
                 timestamp = DateTime.Now.ToString("yyyyMMddHHmmss"),
                 signType = "RSA",
                 reqData = t
             };
-            request.reqData.SetPropValue(nameof(paymentConfig.mno), paymentConfig.mno);
+            request.reqData.SetPropValue(nameof(PaymentConfig.mno), PaymentConfig.mno);
 
             return request;
         }
 
-        // /// <summary>
-        // /// 
-        // /// </summary>
-        // /// <param name="request"></param>
-        // /// <returns></returns>
-        // public async Task<ResponseBase<C2BResponseModel>> C2BPay(RequestBase<C2BRequestModel> request)
-        // {
-        //     if (string.IsNullOrWhiteSpace(request.reqData.subAppid))
-        //     {
-        //         request.reqData.subAppid = _options.Value.ServiceAppId;
-        //     }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<DetailResponse<ResponseBase<C2BResponseModel>>> C2BPay(RequestBase<C2BRequestModel> request)
+        {
+            var dic = Sign(request);
 
-        //     var dic = Sign(request);
+            var result = await PostAsync<C2BResponseModel>("/order/activeScan", body: dic);
+            result.OriginRequest = request.ToJsonString();
 
-        //     return await PostAsync<C2BResponseModel>("/order/activeScan", body: dic);
-        // }
+            return result;
+        }
 
         /// <summary>
         /// 
@@ -179,7 +177,7 @@ namespace Adee.Store.Domain.Pays.TianQue
 
             var encryptString = _signHelper.Sign(signDic, string.Empty, "sign", separator: "&", containKey: true, justCombine: true, isLowerKey: false);
 
-            var verifyResult = _signHelper.Verify(_options.Value.PublicKey, encryptString, sign);
+            var verifyResult = _signHelper.Verify(PaymentConfig.PublicKey, encryptString, sign);
             CheckHelper.IsTrue(verifyResult, $"支付平台验签失败，验签内容：{responseResult}");
         }
 
@@ -205,7 +203,7 @@ namespace Adee.Store.Domain.Pays.TianQue
             var signDic = dic.Where(p => p.Key != nameof(request.sign)).ToDictionary(p => p.Key, p => p.Value.ToString());
 
             var encryptString = _signHelper.Sign(signDic, string.Empty, "sign", sortKey: true, separator: "&", containKey: true, justCombine: true, isLowerKey: false);
-            var sign = _signHelper.SignRSA(_options.Value.PrivateKey, encryptString);
+            var sign = _signHelper.SignRSA(PaymentConfig.PrivateKey, encryptString);
 
             signDic.Add(nameof(request.sign), sign);
             return signDic;

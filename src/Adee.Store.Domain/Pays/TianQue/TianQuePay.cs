@@ -19,14 +19,15 @@ namespace Adee.Store.Domain.Pays.TianQue
 
         public override async Task<SuccessResponse> Refund(RefundRequest request)
         {
-            var refundRequest = _client.GetRequest(request.PayParameterValue, new RefundRequestModel
+            _client.SetPayparameterValue(request.PayParameterValue);
+            var clientRequest = _client.GetRequest(new RefundRequestModel
             {
                 amt = Math.Round(request.Money / 100m, 2).ToString("#0.00"),
                 ordNo = request.RefundOrderId,
                 origOrderNo = request.PayOrderId.ToString(),
             });
 
-            var response = await _client.Refund(refundRequest);
+            var response = await _client.Refund(clientRequest);
             CheckHelper.IsNotNull(response, name: nameof(response));
             CheckHelper.IsNotNull(response.Response, name: nameof(response.Response));
 
@@ -64,7 +65,8 @@ namespace Adee.Store.Domain.Pays.TianQue
 
         public override async Task<SuccessResponse> B2C(B2CRequest request)
         {
-            var b2cRequest = _client.GetRequest(request.PayParameterValue, new B2CRequestModel
+            _client.SetPayparameterValue(request.PayParameterValue);
+            var clientRequest = _client.GetRequest(new B2CRequestModel
             {
                 amt = Math.Round(request.Money / 100m, 2).ToString("#0.00"),
                 authCode = request.AuthCode,
@@ -75,7 +77,7 @@ namespace Adee.Store.Domain.Pays.TianQue
                 notifyUrl = request.NotifyUrl,
             });
 
-            var response = await _client.B2CPay(b2cRequest);
+            var response = await _client.B2CPay(clientRequest);
             CheckHelper.IsNotNull(response, name: nameof(response));
             CheckHelper.IsNotNull(response.Response, name: nameof(response.Response));
 
@@ -111,9 +113,58 @@ namespace Adee.Store.Domain.Pays.TianQue
             return result;
         }
 
+        public override async Task<PayUrlResponse> C2B(C2BRequest request)
+        {
+            _client.SetPayparameterValue(request.PayParameterValue);
+            var clientRequest = _client.GetRequest(new C2BRequestModel
+            {
+                ordNo = request.PayOrderId,
+                amt = Math.Round(request.Money / 100m, 2).ToString("#0.00"),
+                payType = GetPayChannel(request.PaymentType),
+                timeExpire = request.PayExpire.ToString(),
+                subject = request.Title,
+                tradeSource = "01",
+                trmIp = request.IPAddress,
+                notifyUrl = request.NotifyUrl,
+            });
+
+            if (string.IsNullOrWhiteSpace(clientRequest.reqData.subAppid) && request.PaymentType == PaymentType.WechatPay)
+            {
+                clientRequest.reqData.subAppid = _client.PaymentConfig.ServiceAppId;
+            }
+
+            var response = await _client.C2BPay(clientRequest);
+
+            var result = new PayUrlResponse
+            {
+                Status = PayTaskStatus.Faild,
+                EncryptResponse = response.EncryptResponse,
+                OriginResponse = response.OriginResponse,
+                OriginRequest = response.OriginRequest,
+                SubmitRequest = response.SubmitRequest,
+                ResponseMessage = response.Response.GetPropValue(p => p.respData).GetPropValue(p => p.bizMsg) ?? response.Response.GetPropValue(p => p.msg),
+            };
+
+            if (response.Response.code != "0000" || response.Response.respData == null)
+            {
+                result.ResponseMessage = $"(返回码：{response.Response.code}){response.Response.msg}";
+                return result;
+            }
+
+            if (response.Response.respData.bizCode == "0000")
+            {
+                result.Status = PayTaskStatus.Success;
+                result.PayOrganizationOrderId = response.Response.respData.sxfUuid;
+                result.PayUrl = response.Response.respData.payUrl;
+            }
+
+            return result;
+        }
+
         public override async Task<JsApiResponse> JSApi(JSApiRequest request)
         {
-            var jsApiRequest = _client.GetRequest(request.PayParameterValue, new JSApiRequestModel
+            _client.SetPayparameterValue(request.PayParameterValue);
+            var clientRequest = _client.GetRequest(new JSApiRequestModel
             {
                 ordNo = request.PayOrderId,
                 amt = Math.Round(request.Money / 100m, 2).ToString("#0.00"),
@@ -129,7 +180,7 @@ namespace Adee.Store.Domain.Pays.TianQue
                 customerIp = request.IPAddress,
             });
 
-            var response = await _client.JSApiPay(jsApiRequest);
+            var response = await _client.JSApiPay(clientRequest);
 
             var result = new JsApiResponse
             {
@@ -185,12 +236,13 @@ namespace Adee.Store.Domain.Pays.TianQue
 
         public override async Task<SuccessResponse> Query(PayTaskRequest request)
         {
-            var queryRequest = _client.GetRequest(request.PayParameterValue, new QueryRequestModel
+            _client.SetPayparameterValue(request.PayParameterValue);
+            var clientRequest = _client.GetRequest(new QueryRequestModel
             {
                 ordNo = request.PayOrderId
             });
 
-            var response = await _client.Query(queryRequest);
+            var response = await _client.Query(clientRequest);
 
             var result = new SuccessResponse
             {

@@ -57,6 +57,10 @@ namespace Adee.Store.Pays
         /// </summary>
         public string BusinessOrderId { get; set; }
         /// <summary>
+        /// 收单机构订单号
+        /// </summary>
+        public string PayOrganizationOrderId { get; set; }
+        /// <summary>
         /// 支付订单Id
         /// </summary>
         public string PayOrderId { get; set; }

@@ -74,19 +74,32 @@ namespace Adee.Store.Pays
     }
 
     /// <summary>
+    /// 
+    /// </summary>
+    public class PayUrlResponse : PayResponse
+    {
+        /// <summary>
+        /// 支付地址
+        /// </summary>
+        public string PayUrl { get; set; }
+
+        /// <summary>
+        /// 收单机构订单号
+        /// </summary>
+        public string PayOrganizationOrderId { get; set; }
+    }
+
+    /// <summary>
     /// 断定通知响应
     /// </summary>
     public class AssertNotifyResponse : SuccessResponse
     {
         /// <summary>
-        /// 支付订单号
-        /// </summary>
-        public PayOrderId PayOrderId { get; set; }
-
-        /// <summary>
         /// 租户Id
         /// </summary>
         public Guid? TenantId { get; set; }
+
+        public string BusinessOrderId { get; set; }
     }
 
     /// <summary>
@@ -173,17 +186,33 @@ namespace Adee.Store.Pays
     /// <summary>
     /// JSApi
     /// </summary>
-    public class JSApiRequest : OrderRequest
+    public class C2BRequest : OrderRequest
     {
-        public JSApiRequest()
+        public C2BRequest()
         {
-            PayTaskType = PayTaskType.JSApiPay;
+            PayTaskType = PayTaskType.C2B;
         }
 
         /// <summary>
         /// 付款方式
         /// </summary>
         public PaymentType PaymentType { get; set; }
+
+        /// <summary>
+        /// 支付超时时间，单位：分钟
+        /// </summary>
+        public int PayExpire { get; set; }
+    }
+
+    /// <summary>
+    /// JSApi
+    /// </summary>
+    public class JSApiRequest : C2BRequest
+    {
+        public JSApiRequest()
+        {
+            PayTaskType = PayTaskType.JSApiPay;
+        }
 
         /// <summary>
         /// 支付端形式
@@ -199,11 +228,6 @@ namespace Adee.Store.Pays
         /// 应用Id，仅限微信小程序、微信公众号
         /// </summary>
         public string SubAppId { get; set; }
-
-        /// <summary>
-        /// 支付超时时间，单位：分钟
-        /// </summary>
-        public int PayExpire { get; set; }
     }
 
     /// <summary>

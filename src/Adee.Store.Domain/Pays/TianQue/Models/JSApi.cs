@@ -46,91 +46,79 @@ namespace Adee.Store.Domain.Pays.TianQue.Models
         public string outFrontFailUrl { get; set; }
 
         /// <summary>
-        /// Condional String 蚂蚁门店编号 未来校园活动需上传
-        /// </summary>
-        public string alipayStoreId { get; set; }
-
-        /// <summary>
-        /// Optional String 天阙终端编号，长度128位 天阙后台绑定终端后生成的终端唯一标识
-        /// </summary>
-        public string deviceNo { get; set; }
-
-        /// <summary>
-        /// Optional String 门店编号，长度32位
-        /// </summary>
-        public string storeNum { get; set; }
-
-        /// <summary>
         /// Optional String 银联扫码点餐-门店标识，长度288位
         /// </summary>
         public string addnInfo { get; set; }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public class JSApiResponseModel : Response
     {
         /// <summary>
         /// Required String 商户订单号，长度64位
         /// </summary>
-        public string ordNo { get; set; } 
+        public string ordNo { get; set; }
 
         /// <summary>
         /// Required String 天阙平台订单号，长度32位
         /// </summary>
-        public string uuid { get; set; } 
+        public string uuid { get; set; }
 
         /// <summary>
         /// Conditional String 落单号，长度32位 供退款和退款查询使用。
         /// </summary>
-        public string sxfUuid { get; set; } 
+        public string sxfUuid { get; set; }
 
         /// <summary>
         /// Optional String 微信预下单id
         /// </summary>
-        public string prepayId { get; set; } 
+        public string prepayId { get; set; }
 
         /// <summary>
         /// Optional String 微信 AppId
         /// </summary>
-        public string payAppId { get; set; } 
+        public string payAppId { get; set; }
 
         /// <summary>
         /// Optional String 微信 TimeStamp
         /// </summary>
-        public string payTimeStamp { get; set; } 
+        public string payTimeStamp { get; set; }
 
         /// <summary>
         /// Optional String 微信 NonceStr
         /// </summary>
-        public string paynonceStr { get; set; } 
+        public string paynonceStr { get; set; }
 
         /// <summary>
         /// Optional String 微信 Package
         /// </summary>
-        public string payPackage { get; set; } 
+        public string payPackage { get; set; }
 
         /// <summary>
         /// Optional String 微信 SignType
         /// </summary>
-        public string paySignType { get; set; } 
+        public string paySignType { get; set; }
 
         /// <summary>
         /// Optional String 微信 Sign
         /// </summary>
-        public string paySign { get; set; } 
+        public string paySign { get; set; }
 
         /// <summary>
         /// Optional String 微信 PartnerId
         /// </summary>
-        public string partnerId { get; set; } 
+        public string partnerId { get; set; }
 
         /// <summary>
         /// Conditional String 银联重定向跳转地址
         /// </summary>
-        public string redirectUrl { get; set; } 
+        public string redirectUrl { get; set; }
 
         /// <summary>
         /// Conditional String 支付宝流水号或支付宝支付链接 服务商需做判断，若返回为流水号需将流水号拼装为链接调起支付控件，若为支付链接则可拿链接调起支付控件（对应trade_no）
         /// </summary>
-        public string source { get; set; } 
+        public string source { get; set; }
     }
 }

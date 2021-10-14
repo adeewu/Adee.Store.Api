@@ -1,6 +1,5 @@
 using Adee.Store.Domain.Pays;
 using Adee.Store.Domain.Tenants;
-using Adee.Store.Pays.Utils.Helpers;
 using Adee.Store.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -149,6 +148,7 @@ namespace Adee.Store.Pays
                 Message = response.ResponseMessage,
                 PayOrderId = payOrder.PayOrderId,
                 RefundOrderId = payRefund.RefundOrderId,
+                BusinessOrderId = payOrder.BusinessOrderId,
             };
 
             payOrder.RefundStatus = response.Status;
@@ -359,6 +359,8 @@ namespace Adee.Store.Pays
             {
                 Status = response.Status,
                 Message = response.ResponseMessage,
+                PayOrderId = request.PayOrderId,
+                BusinessOrderId = payOrder.BusinessOrderId,
             };
 
             payOrder.Status = response.Status;
@@ -397,8 +399,6 @@ namespace Adee.Store.Pays
                 result.Money = response.Money;
                 result.BusinessType = model.BusinessType;
                 result.PaymentType = paymentType;
-                result.BusinessOrderId = model.BusinessOrderId;
-                result.PayOrderId = payOrder.PayOrderId;
                 result.PayOrganizationOrderId = response.PayOrganizationOrderId;
 
                 await _queryOrderCacheItemManager.RemoveAsync(_objectMapper.Map<PayOrder, QueryOrderCacheItem>(payOrder));
@@ -410,6 +410,132 @@ namespace Adee.Store.Pays
                     NotifyContent = result.ToJsonString(),
                 };
                 await _backgroundJobManager.EnqueueAsync(notifyArgs);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// B2C收款
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public async Task<PayUrlResult> C2B(C2B model)
+        {
+            var existBusinessOrderId = await _payOrderRepository.ExistBusinessOrderId(model.BusinessOrderId);
+            CheckHelper.IsFalse(existBusinessOrderId, $"业务订单号：{model.BusinessOrderId}已存在");
+
+            CheckHelper.AreNotEqual(model.PaymentType, PaymentType.Unknown, message: "请提供支付方式");
+            CheckHelper.AreNotEqual(model.PaymentType, PaymentType.CCB, message: $"暂时不支持{PaymentType.CCB.GetDescription()}");
+
+            var payParameter = await GetPayParameter(model.PaymentType);
+            CheckHelper.IsNotNull(payParameter, name: nameof(payParameter));
+
+            var payProvider = GetPayProvider(payParameter.PayOrganizationType);
+            CheckHelper.IsNotNull(payProvider, name: nameof(payProvider));
+
+            var payOrder = new PayOrder(GuidGenerator.Create())
+            {
+                TenantId = CurrentTenant.Id,
+                Money = model.Money,
+                NotifyUrl = model.NotifyUrl,
+                Title = model.Title,
+                BusinessOrderId = model.BusinessOrderId,
+                PayOrderId = new PayOrderId
+                {
+                    PaymentType = model.PaymentType,
+                    PayOrganizationType = payParameter.PayOrganizationType,
+                    PaymethodType = PaymethodType.C2B,
+                    SoftwareCode = _currentTenantExt.SoftwareCode,
+                    BusinessType = model.BusinessType,
+                }.ToString(),
+                ParameterVersion = payParameter.Version,
+                PaymentType = model.PaymentType,
+                PayOrganizationType = payParameter.PayOrganizationType,
+                PaymethodType = PaymethodType.C2B,
+                BusinessType = model.BusinessType,
+                Status = PayTaskStatus.Waiting,
+                PayRemark = model.PayRemark,
+            };
+            payOrder = await _payOrderRepository.InsertAsync(payOrder);
+
+            var request = new C2BRequest
+            {
+                NotifyUrl = $"{_appOptions.Value.SelfUrl}/api/store/notify",
+                PayParameterValue = payParameter.Value,
+                Money = model.Money,
+                Title = model.Title,
+                IPAddress = model.IPAddress,
+                PayOrderId = payOrder.PayOrderId,
+                PaymentType = model.PaymentType,
+                PayExpire = model.PayExpire,
+            };
+
+            await _payOrderLogRepository.InsertAsync(new PayOrderLog
+            {
+                TenantId = CurrentTenant.Id,
+                OrderId = payOrder.Id,
+                LogType = OrderLogType.Pay,
+                Status = PayTaskStatus.Waiting,
+                OriginRequest = request.ToJsonString(),
+            }, true);
+
+            PayUrlResponse response;
+            try
+            {
+                response = await payProvider.C2B(request);
+            }
+            catch (Exception ex)
+            {
+                response = new PayUrlResponse
+                {
+                    Status = PayTaskStatus.Faild,
+                    ResponseMessage = ex.Message,
+                    OriginRequest = request.ToJsonString(),
+                    OriginResponse = ex.ToJsonString(),
+                };
+            }
+
+            var result = new PayUrlResult
+            {
+                Status = response.Status,
+                Message = response.ResponseMessage,
+                PayOrganizationOrderId = response.PayOrganizationOrderId,
+                PayOrderId = payOrder.PayOrderId,
+                BusinessOrderId = payOrder.BusinessOrderId,
+                PayUrl = response.PayUrl,
+            };
+
+            payOrder.Status = response.Status;
+            payOrder.StatusMessage = response.ResponseMessage;
+
+            if (response.Status == PayTaskStatus.Success)
+            {
+                payOrder.Status = PayTaskStatus.Executing;
+                payOrder.StatusMessage = "下单成功，待支付";
+                payOrder.PayOrganizationOrderId = response.PayOrganizationOrderId;
+            }
+            payOrder = await _payOrderRepository.UpdateAsync(payOrder);
+
+            await _payOrderLogRepository.InsertAsync(new PayOrderLog
+            {
+                TenantId = CurrentTenant.Id,
+                OrderId = payOrder.Id,
+                LogType = OrderLogType.Pay,
+                Status = payOrder.Status,
+                OriginRequest = response.OriginRequest,
+                SubmitRequest = response.SubmitRequest,
+                OriginResponse = response.OriginResponse,
+                EncryptResponse = response.EncryptResponse,
+            }, true);
+
+            if (response.Status == PayTaskStatus.Success)
+            {
+                await _backgroundJobManager.EnqueueAsync(new PayQueryStatusArgs
+                {
+                    TenantId = CurrentTenant.Id.Value,
+                    PayOrderId = payOrder.PayOrderId,
+                }, delay: TimeSpan.FromSeconds(1));
             }
 
             return result;
@@ -647,11 +773,12 @@ namespace Adee.Store.Pays
                 }
 
                 var hitAssertNotifyResult = assertNotifyResults.Select(p => p.Value).Single();
-                await _assertNotifyCache.SetAsync(hitAssertNotifyResult.PayOrderId.ToString(), hitAssertNotifyResult);
+                await _assertNotifyCache.SetAsync(notify.PayOrderId, hitAssertNotifyResult);
 
                 notify.Status = PayTaskStatus.Success;
-                notify.BusinessOrderId = hitAssertNotifyResult.PayOrganizationOrderId;
-                notify.PayOrderId = hitAssertNotifyResult.PayOrderId.ToString();
+                notify.PayOrderId = notify.PayOrderId;
+                notify.BusinessOrderId = hitAssertNotifyResult.BusinessOrderId;
+                notify.PayOrganizationOrderId = hitAssertNotifyResult.PayOrganizationOrderId;
             }
             catch (Exception ex)
             {

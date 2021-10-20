@@ -1,5 +1,8 @@
 ﻿using Adee.Store.Pays;
+using Adee.Store.Products;
 using AutoMapper;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Adee.Store
 {
@@ -24,6 +27,27 @@ namespace Adee.Store
             CreateMap<C2BPayTaskDto, C2B>();
 
             CreateMap<JSApiPayTaskDto, JSApi>();
+
+            CreateMap<Product, ProductDto>()
+                .ForMember(p => p.Specs, config => config.MapFrom(src => src.Specs.AsObject<List<ProductSpec>>(null)));
+
+            CreateMap<CreateUpdateProductDto, Product>()
+                .ForMember(p => p.Specs, config => config.MapFrom(src => src.Specs.ToJsonString(null)));
+
+            CreateMap<ProductCatalog, ProductCatalogDto>();
+            CreateMap<CreateUpdateProductCatalogDto, ProductCatalog>();
+
+            CreateMap<ProductStock, ProductStockDto>();
+            CreateMap<CreateUpdateProductStockDto, ProductStock>();
+
+            CreateMap<ProductStockLog, ProductStockLogDto>();
+            CreateMap<CreateUpdateProductStockLogDto, ProductStockLog>();
+
+            CreateMap<ProductSale, ProductSaleDto>();
+            CreateMap<CreateUpdateProductSaleDto, ProductSale>();
+
+            CreateMap<ProductStockOrder, ProductStockOrderDto>();
+            CreateMap<CreateUpdateProductStockOrderDto, ProductStockOrder>();
         }
     }
 }

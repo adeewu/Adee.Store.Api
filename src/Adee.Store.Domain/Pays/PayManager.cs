@@ -27,7 +27,6 @@ namespace Adee.Store.Pays
         private readonly IRepository<PayRefund> _payRefundRepository;
         private readonly IBackgroundJobManager _backgroundJobManager;
         private readonly ISettingManager _settingManager;
-        private readonly ILogger<PayManager> _logger;
         private readonly IDistributedCache<AssertNotifyResponse> _assertNotifyCache;
         private readonly IOptions<PayOptions> _payOptions;
         private readonly IOptions<AppOptions> _appOptions;
@@ -44,7 +43,6 @@ namespace Adee.Store.Pays
             IRepository<PayRefund> payRefundRepository,
             IBackgroundJobManager backgroundJobManager,
             ISettingManager settingManager,
-            ILogger<PayManager> logger,
             IDistributedCache<AssertNotifyResponse> assertNotifyCache,
             IOptions<PayOptions> payOptions,
             IOptions<AppOptions> appOptions,
@@ -61,7 +59,6 @@ namespace Adee.Store.Pays
             _payRefundRepository = payRefundRepository;
             _backgroundJobManager = backgroundJobManager;
             _settingManager = settingManager;
-            _logger = logger;
             _assertNotifyCache = assertNotifyCache;
             _payOptions = payOptions;
             _appOptions = appOptions;
@@ -757,18 +754,18 @@ namespace Adee.Store.Pays
                     }
                     catch (NotImplementedException ex)
                     {
-                        _logger.LogDebug(ex, $"通道：{payOrganizationType}未实现AssertNotify方法");
+                        Logger.LogDebug(ex, $"通道：{payOrganizationType}未实现AssertNotify方法");
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, $"通道：{payOrganizationType}断定通知消息失败，原因：{ex.Message}");
+                        Logger.LogError(ex, $"通道：{payOrganizationType}断定通知消息失败，原因：{ex.Message}");
                     }
                 }
 
                 CheckHelper.IsNotNull(assertNotifyResults, $"通知内容不合法，原因：未正确解析返回内容");
                 if (assertNotifyResults.Count() != 1)
                 {
-                    _logger.LogCritical($"断定通知结果有多个，无法确定通道通知，命中通道：{assertNotifyResults.Select(p => p.Key).JoinAsString()}，通知内容：{notify.ToJsonString()}");
+                    Logger.LogCritical($"断定通知结果有多个，无法确定通道通知，命中通道：{assertNotifyResults.Select(p => p.Key).JoinAsString()}，通知内容：{notify.ToJsonString()}");
                     throw new UserFriendlyException($"断定结果有多个，无法确定具体通道通知，命中通道：{assertNotifyResults.Select(p => p.Key).JoinAsString()}");
                 }
 

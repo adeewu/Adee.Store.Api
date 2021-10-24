@@ -66,7 +66,7 @@ namespace Adee.Store.Pays
         {
             CheckHelper.IsNotNull(__tenant, $"{nameof(__tenant)}不能为空");
 
-            var body = await HttpContext.Request.GetBodyAsync();
+            var body = await HttpContext.Request.ReadBodyAsync();
 
             var result = await Save(new NotifyDto
             {

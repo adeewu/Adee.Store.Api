@@ -39,7 +39,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public static async Task<string> GetBodyAsync(this HttpRequest request)
+        public static async Task<string> ReadBodyAsync(this HttpRequest request)
         {
             using (var sr = new StreamReader(request.Body))
             {

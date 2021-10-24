@@ -1,5 +1,7 @@
 ﻿using Adee.Store.Pays;
 using Adee.Store.Products;
+using Adee.Store.Wechats.Components;
+using Adee.Store.Wechats.Components.Models;
 using AutoMapper;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,6 +50,9 @@ namespace Adee.Store
 
             CreateMap<ProductStockOrder, ProductStockOrderDto>();
             CreateMap<CreateUpdateProductStockOrderDto, ProductStockOrder>();
+
+            CreateMap<AuthUrlDto, AuthUrl>();
+            CreateMap<AuthNotifyDto, Auth>();
         }
     }
 }

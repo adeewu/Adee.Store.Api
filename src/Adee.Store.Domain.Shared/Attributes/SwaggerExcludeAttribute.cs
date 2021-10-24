@@ -56,5 +56,11 @@ namespace Adee.Store.Attributes
         /// </summary>
         [Description("订单接口")]
         Order,
+
+        /// <summary>
+        /// 第三方平台接口
+        /// </summary>
+        [Description("第三方平台接口")]
+        WechatComponent,
     }
 }

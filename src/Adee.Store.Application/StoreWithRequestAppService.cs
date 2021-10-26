@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace Adee.Store
 {
@@ -17,17 +15,6 @@ namespace Adee.Store
             get
             {
                 return LazyServiceProvider.LazyGetRequiredService<IHttpContextAccessor>().HttpContext;
-            }
-        }
-
-        /// <summary>
-        /// 请求
-        /// </summary>
-        protected HttpRequest Request
-        {
-            get
-            {
-                return HttpContext?.Request;
             }
         }
 

@@ -1,14 +1,12 @@
 using System;
-using System.Collections;
 using System.IO;
-using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using Volo.Abp.DependencyInjection;
 
 namespace Adee.Store.Pays.Utils.Helpers
 {
-    public class AESHelper: ISingletonDependency
+    public class AESHelper : ISingletonDependency
     {
         /// <summary>
         /// 解密

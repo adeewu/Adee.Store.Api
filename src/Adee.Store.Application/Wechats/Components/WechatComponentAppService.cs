@@ -1,13 +1,11 @@
 ﻿using Adee.Store.Attributes;
+using Adee.Store.CallbackRequests;
 using Adee.Store.Wechats.Components.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Volo.Abp.Domain.Repositories;
 
 namespace Adee.Store.Wechats.Components
 {
@@ -18,10 +16,15 @@ namespace Adee.Store.Wechats.Components
     public class WechatComponentAppService : StoreWithRequestAppService
     {
         private readonly WechatComponentManager _wechatComponentManager;
+        private readonly IRepository<CallbackRequest> _callbackRequestRepository;
 
-        public WechatComponentAppService(WechatComponentManager wechatComponentManager)
+        public WechatComponentAppService(
+            WechatComponentManager wechatComponentManager,
+            IRepository<CallbackRequest> callbackRequestRepository
+            )
         {
             _wechatComponentManager = wechatComponentManager;
+            _callbackRequestRepository = callbackRequestRepository;
         }
 
         /// <summary>
@@ -31,14 +34,13 @@ namespace Adee.Store.Wechats.Components
         /// <returns></returns>
         public async Task<string> AuthNotify([FromQuery] AuthNotifyDto dto)
         {
-            var body = await Request.ReadBodyAsync();
-            Logger.LogDebug($"通知内容：{body}");
-
-            var model = ObjectMapper.Map<AuthNotifyDto, Auth>(dto);
+            var request = await Log(CallbackType.WechatComponentAuthNoity);
 
             try
             {
-                await _wechatComponentManager.AuthNotify(model, body);
+                var model = ObjectMapper.Map<AuthNotifyDto, Auth>(dto);
+
+                await _wechatComponentManager.AuthNotify(model, request.Body);
                 return "success";
             }
             catch (Exception ex)
@@ -71,31 +73,44 @@ namespace Adee.Store.Wechats.Components
             await _wechatComponentManager.StartPushTicket(componentAppId);
         }
 
-        public async Task<string> GetBusiness(string appId)
+        /// <summary>
+        /// 第三方平台消息通知
+        /// </summary>
+        /// <param name="appId"></param>
+        /// <returns></returns>
+        public async Task<string> GetNotify(string appId)
         {
-            await Log();
+            await Log(CallbackType.WechatComponentNotify, appId);
 
             return "success";
         }
 
-        public async Task<string> PostBusiness(string appId)
+        /// <summary>
+        /// 第三方平台消息通知
+        /// </summary>
+        /// <param name="appId"></param>
+        /// <returns></returns>
+        public async Task<string> PostNotify(string appId)
         {
-            await Log();
+            await Log(CallbackType.WechatComponentNotify, appId);
 
             return "success";
         }
 
-        private async Task Log()
+        private async Task<Request> Log(CallbackType callbackType, string appId = default)
         {
-            var body = await Request.ReadBodyAsync();
-
-            var query = string.Empty;
-            if (Request.QueryString.HasValue)
+            var request = await HttpContext.Request.GetRequest();
+            if (appId.IsNullOrWhiteSpace() == false)
             {
-                query = Request.QueryString.Value;
+                request.Headers.Add("AppId", new string[] { appId });
             }
 
-            Logger.LogWarning($"method：{Request.Method}，path：{Request.Path}，query：{query}，Body：{body}");
+            var callbackRequest = ObjectMapper.Map<Request, CallbackRequest>(request);
+            callbackRequest.CallbackType = callbackType;
+
+            await _callbackRequestRepository.InsertAsync(callbackRequest);
+
+            return request;
         }
     }
 }

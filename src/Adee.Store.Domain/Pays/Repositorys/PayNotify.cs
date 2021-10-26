@@ -21,29 +21,9 @@ namespace Adee.Store.Pays
         /// </summary>
         public Guid? TenantId { get; set; }
         /// <summary>
-        /// 请求方式
+        /// 回调Id
         /// </summary>
-        public string Method { get; set; }
-        /// <summary>
-        /// 通知地址
-        /// </summary>
-        public string Url { get; set; }
-        /// <summary>
-        /// 请求正文
-        /// </summary>
-        public string Body { get; set; }
-        /// <summary>
-        /// 请求参数
-        /// </summary>
-        public string Query { get; set; }
-        /// <summary>
-        /// 请求头部
-        /// </summary>
-        public string Header { get; set; }
-        /// <summary>
-        /// Method、Url、Body、Query经过MD5计算的值
-        /// </summary>
-        public string HashCode { get; set; }
+        public Guid CallbackRequestId { get; set; }
         /// <summary>
         /// 通知执行状态
         /// </summary>

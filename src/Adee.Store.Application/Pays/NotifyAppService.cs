@@ -1,10 +1,8 @@
 ﻿using Adee.Store.Attributes;
+using Adee.Store.CallbackRequests;
 using Adee.Store.Domain.Shared.Utils.Helpers;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Repositories;
@@ -16,23 +14,26 @@ namespace Adee.Store.Pays
     /// 支付通知服务
     /// </summary>
     [ApiGroup(ApiGroupType.Pay)]
-    public class NotifyAppService : StoreWithRequestAppService, INotifyAppService, ITransientDependency
+    public class NotifyAppService : StoreWithRequestAppService, ITransientDependency
     {
         private readonly SignHelper _signHelper;
         private readonly IRepository<PayNotify> _payNotifyRepository;
         private readonly IRepository<Tenant> _tenantRepository;
+        private readonly IRepository<CallbackRequest> _callbackRequestRepository;
         private readonly PayManager _payManager;
 
         public NotifyAppService(
             SignHelper signHelper,
             IRepository<PayNotify> payNotifyRepository,
             IRepository<Tenant> tenantRepository,
+            IRepository<CallbackRequest> callbackRequestRepository,
             PayManager payManager
             )
         {
             _signHelper = signHelper;
             _payNotifyRepository = payNotifyRepository;
             _tenantRepository = tenantRepository;
+            _callbackRequestRepository = callbackRequestRepository;
             _payManager = payManager;
         }
 
@@ -45,14 +46,7 @@ namespace Adee.Store.Pays
         {
             CheckHelper.IsNotNull(__tenant, $"{nameof(__tenant)}不能为空");
 
-            var result = await Save(new NotifyDto
-            {
-                Method = HttpMethod.Get,
-                Query = HttpContext.Request.QueryString.HasValue ? HttpContext.Request.QueryString.Value : string.Empty,
-                Url = HttpContext.Request.GetDisplayUrl(),
-                Headers = HttpContext.Request.Headers.ToDictionary(p => p.Key, p => p.Value.ToArray()),
-                TenantId = CurrentTenant.Id,
-            });
+            var result = await Save();
 
             return result;
         }
@@ -66,17 +60,7 @@ namespace Adee.Store.Pays
         {
             CheckHelper.IsNotNull(__tenant, $"{nameof(__tenant)}不能为空");
 
-            var body = await HttpContext.Request.ReadBodyAsync();
-
-            var result = await Save(new NotifyDto
-            {
-                Method = HttpMethod.Post,
-                Body = body,
-                Query = HttpContext.Request.QueryString.HasValue ? HttpContext.Request.QueryString.Value : string.Empty,
-                Url = HttpContext.Request.GetDisplayUrl(),
-                Headers = HttpContext.Request.Headers.ToDictionary(p => p.Key, p => p.Value.ToArray()),
-                TenantId = CurrentTenant.Id,
-            });
+            var result = await Save();
 
             return result;
         }
@@ -84,41 +68,39 @@ namespace Adee.Store.Pays
         /// <summary>
         /// 保存通知内容
         /// </summary>
-        /// <param name="dto"></param>
         /// <returns></returns>
-        public async Task<object> Save(NotifyDto dto)
+        private async Task<object> Save()
         {
-            var existTenant = await _tenantRepository.AnyAsync(p => p.Id == dto.TenantId);
-            CheckHelper.IsTrue(existTenant, $"租户Id：{dto.TenantId} 无效");
+            var request = await HttpContext.Request.GetRequest();
+            var callbackRequest = ObjectMapper.Map<Request, CallbackRequest>(request);
+            callbackRequest.TenantId = CurrentTenant.Id;
+            callbackRequest.CallbackType = CallbackType.PayNotify;
 
             var response = new JsonResponse { Code = System.Net.HttpStatusCode.OK };
             try
             {
-                var hashCode = _signHelper.Sign(new
+                callbackRequest.HashCode = _signHelper.Sign(new
                 {
-                    dto.Url,
-                    dto.Method,
-                    dto.Query,
-                    dto.Body,
-                    dto.Headers
-                }, nameof(NotifyDto), separator: "&", containKey: true);
+                    callbackRequest.Url,
+                    callbackRequest.Method,
+                    callbackRequest.Query,
+                    callbackRequest.Body,
+                    callbackRequest.Header
+                }, nameof(CallbackRequest), separator: "&", containKey: true);
 
-                var isNotify = await _payNotifyRepository.AnyAsync(p => p.HashCode == hashCode);
-                CheckHelper.IsFalse(isNotify, "内容已通知，通知码：" + hashCode);
+                var isNotify = await _callbackRequestRepository.AnyAsync(p => p.HashCode == callbackRequest.HashCode);
+                CheckHelper.IsFalse(isNotify, "内容已通知，通知码：" + callbackRequest.HashCode);
 
-                var notify = new PayNotify
+                await _payManager.AssertNotify(new AssertNotifyRequest
                 {
-                    Body = dto.Body,
-                    Method = dto.Method.Method,
-                    Query = dto.Query,
-                    Url = dto.Url,
-                    Header = dto.Headers.ToJsonString(),
-                    HashCode = hashCode,
-                    TenantId = dto.TenantId,
-                    Status = PayTaskStatus.Normal,
-                };
-
-                await _payManager.AssertNotify(notify);
+                    Body = callbackRequest.Body,
+                    HashCode = callbackRequest.HashCode,
+                    Headers = request.Headers,
+                    Method = callbackRequest.Method,
+                    Query = callbackRequest.Query,
+                    Url = callbackRequest.Url,
+                    PayTaskType = PayTaskType.AssertNotify,
+                });
             }
             catch (Exception ex)
             {

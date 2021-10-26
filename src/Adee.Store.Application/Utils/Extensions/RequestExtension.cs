@@ -1,5 +1,8 @@
+using Adee.Store;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Microsoft.AspNetCore.Mvc
@@ -45,6 +48,23 @@ namespace Microsoft.AspNetCore.Mvc
             {
                 return await sr.ReadToEndAsync();
             }
+        }
+
+        /// <summary>
+        /// 获取可序列化请求
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public static async Task<Request> GetRequest(this HttpRequest request)
+        {
+            return new Request
+            {
+                Method = request.Method,
+                Query = request.QueryString.HasValue ? request.QueryString.Value : string.Empty,
+                Body = await request.ReadBodyAsync(),
+                Headers = request.Headers.ToDictionary(p => p.Key, p => p.Value.ToArray()),
+                Url = request.GetDisplayUrl(),
+            };
         }
     }
 }

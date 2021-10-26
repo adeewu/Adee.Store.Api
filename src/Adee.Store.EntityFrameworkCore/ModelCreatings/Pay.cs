@@ -25,27 +25,9 @@ namespace Adee.Store.EntityFrameworkCore
 
                 entity.HasComment("支付回调通知");
 
-                entity.Property(e => e.Body).HasComment("请求正文");
-
-                entity.Property(e => e.HashCode)
-                    .IsRequired()
-                    .HasMaxLength(255)
-                    .HasComment("Method、Url、Body、Query经过MD5计算的值");
-
-                entity.Property(e => e.Method)
-                    .IsRequired()
-                    .HasMaxLength(10)
-                    .HasComment("请求方式");
-
                 entity.Property(e => e.PayOrderId)
                     .HasMaxLength(50)
                     .HasComment("支付订单Id");
-
-                entity.Property(e => e.Query)
-                    .HasComment("请求参数");
-
-                entity.Property(e => e.Header)
-                    .HasComment("请求头部");
 
                 entity.Property(e => e.BusinessOrderId)
                     .HasMaxLength(50)
@@ -62,9 +44,9 @@ namespace Adee.Store.EntityFrameworkCore
                 entity.Property(e => e.StatusMessage)
                     .HasComment("通知状态状态描述");
 
-                entity.Property(e => e.Url)
+                entity.Property(e => e.CallbackRequestId)
                     .IsRequired()
-                    .HasComment("通知地址");
+                    .HasComment("回调Id");
             });
 
             builder.Entity<PayOrder>(entity =>

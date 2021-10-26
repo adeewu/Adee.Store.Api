@@ -1,42 +1,41 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Http;
+﻿using System.Collections.Generic;
+using System.Linq;
 
-namespace Adee.Store.Pays
+namespace Adee.Store
 {
     /// <summary>
-    /// 通知内容
+    /// 请求
     /// </summary>
-    public class NotifyDto
+    public class Request
     {
         /// <summary>
-        /// 租户Id
+        /// 请求方式
         /// </summary>
-        public Guid? TenantId { get; set; }
+        public string Method { get; set; }
 
         /// <summary>
-        /// 地址
+        /// 请求地址
         /// </summary>
         public string Url { get; set; }
 
         /// <summary>
-        /// 地址参数
+        /// 请求参数
         /// </summary>
         public string Query { get; set; }
 
         /// <summary>
-        /// 请求方式
-        /// </summary>
-        public HttpMethod Method { get; set; }
-
-        /// <summary>
-        /// 提交内容，POST、PUT可用
+        /// 请求正文
         /// </summary>
         public string Body { get; set; }
 
         /// <summary>
-        /// 头部
+        /// 请求头
         /// </summary>
         public Dictionary<string, string[]> Headers { get; set; }
+
+        public override string ToString()
+        {
+            return this.ToJsonString();
+        }
     }
 }

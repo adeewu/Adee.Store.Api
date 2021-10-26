@@ -1,4 +1,5 @@
-﻿using Adee.Store.Pays;
+﻿using Adee.Store.CallbackRequests;
+using Adee.Store.Pays;
 using Adee.Store.Products;
 using Adee.Store.Wechats.Components;
 using Adee.Store.Wechats.Components.Models;
@@ -53,6 +54,9 @@ namespace Adee.Store
 
             CreateMap<AuthUrlDto, AuthUrl>();
             CreateMap<AuthNotifyDto, Auth>();
+
+            CreateMap<AssertNotifyRequest, CallbackRequest>()
+                .ForMember(p => p.Header, config => config.MapFrom(src => src.Headers.ToJsonString(null)));
         }
     }
 }

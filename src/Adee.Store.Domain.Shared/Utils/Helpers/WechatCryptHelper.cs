@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.IO;
 using System.Net;
 //using System.Web;
 using System.Security.Cryptography;
@@ -171,7 +170,7 @@ namespace Adee.Store.Pays.Utils.Helpers
             key = Convert.FromBase64String(encodingAESKey + "=");
             byte[] iv = new byte[16];
             Array.Copy(key, iv, 16);
-            byte[] btmpMsg =_aesHelper.Decrypt(input, iv, key);
+            byte[] btmpMsg = _aesHelper.Decrypt(input, iv, key);
 
             int len = BitConverter.ToInt32(btmpMsg, 16);
             len = IPAddress.NetworkToHostOrder(len);

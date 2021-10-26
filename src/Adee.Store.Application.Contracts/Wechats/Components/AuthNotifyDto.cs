@@ -1,10 +1,4 @@
-﻿using Adee.Store.Wechats.Components.Models;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Text;
-
-namespace Adee.Store.Wechats.Components
+﻿namespace Adee.Store.Wechats.Components
 {
     /// <summary>
     /// 

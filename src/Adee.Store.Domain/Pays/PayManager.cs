@@ -1,3 +1,4 @@
+using Adee.Store.CallbackRequests;
 using Adee.Store.Domain.Pays;
 using Adee.Store.Domain.Tenants;
 using Adee.Store.Settings;
@@ -25,6 +26,7 @@ namespace Adee.Store.Pays
         private readonly IPayParameterRepository _payParameterRepository;
         private readonly IRepository<PayNotify> _payNotifyRepository;
         private readonly IRepository<PayRefund> _payRefundRepository;
+        private readonly IRepository<CallbackRequest> _callbackRequestRepository;
         private readonly IBackgroundJobManager _backgroundJobManager;
         private readonly ISettingManager _settingManager;
         private readonly IDistributedCache<AssertNotifyResponse> _assertNotifyCache;
@@ -41,6 +43,7 @@ namespace Adee.Store.Pays
             IPayParameterRepository payParameterRepository,
             IRepository<PayNotify> payNotifyRepository,
             IRepository<PayRefund> payRefundRepository,
+            IRepository<CallbackRequest> callbackRequestRepository,
             IBackgroundJobManager backgroundJobManager,
             ISettingManager settingManager,
             IDistributedCache<AssertNotifyResponse> assertNotifyCache,
@@ -57,6 +60,7 @@ namespace Adee.Store.Pays
             _payParameterRepository = payParameterRepository;
             _payNotifyRepository = payNotifyRepository;
             _payRefundRepository = payRefundRepository;
+            _callbackRequestRepository = callbackRequestRepository;
             _backgroundJobManager = backgroundJobManager;
             _settingManager = settingManager;
             _assertNotifyCache = assertNotifyCache;
@@ -718,25 +722,23 @@ namespace Adee.Store.Pays
         /// <summary>
         /// 断言回调通知
         /// </summary>
-        /// <param name="notify"></param>
+        /// <param name="request"></param>
+        /// <param name="payOrderId"></param>
         /// <returns></returns>
-        public async Task AssertNotify(PayNotify notify)
+        public async Task AssertNotify(AssertNotifyRequest request)
         {
+            var notify = new PayNotify
+            {
+                TenantId = CurrentTenant.Id,
+                Status = PayTaskStatus.Waiting,
+            };
             try
             {
-                notify = await _payNotifyRepository.InsertAsync(notify, autoSave: true);
+                var callbackRequest = _objectMapper.Map<AssertNotifyRequest, CallbackRequest>(request);
+                callbackRequest = await _callbackRequestRepository.InsertAsync(callbackRequest);
 
-                var request = new AssertNotifyRequest
-                {
-                    HashCode = notify.HashCode,
-                    PayTaskType = PayTaskType.AssertNotify,
-                    PayOrderId = notify.PayOrderId,
-                    Method = notify.Method,
-                    Url = notify.Url,
-                    Body = notify.Body,
-                    Query = notify.Query,
-                    Headers = notify.Header.AsObject<Dictionary<string, string[]>>()
-                };
+                notify.CallbackRequestId = callbackRequest.Id;
+                notify = await _payNotifyRepository.InsertAsync(notify, autoSave: true);
 
                 var payOrganizationTypes = Enum.GetValues<PayOrganizationType>();
 
@@ -765,15 +767,15 @@ namespace Adee.Store.Pays
                 CheckHelper.IsNotNull(assertNotifyResults, $"通知内容不合法，原因：未正确解析返回内容");
                 if (assertNotifyResults.Count() != 1)
                 {
-                    Logger.LogCritical($"断定通知结果有多个，无法确定通道通知，命中通道：{assertNotifyResults.Select(p => p.Key).JoinAsString()}，通知内容：{notify.ToJsonString()}");
+                    Logger.LogCritical($"断定通知结果有多个，无法确定通道通知，命中通道：{assertNotifyResults.Select(p => p.Key).JoinAsString()}，通知内容：{request.ToJsonString()}");
                     throw new UserFriendlyException($"断定结果有多个，无法确定具体通道通知，命中通道：{assertNotifyResults.Select(p => p.Key).JoinAsString()}");
                 }
 
                 var hitAssertNotifyResult = assertNotifyResults.Select(p => p.Value).Single();
-                await _assertNotifyCache.SetAsync(notify.PayOrderId, hitAssertNotifyResult);
+                await _assertNotifyCache.SetAsync(hitAssertNotifyResult.PayOrderId, hitAssertNotifyResult);
 
                 notify.Status = PayTaskStatus.Success;
-                notify.PayOrderId = notify.PayOrderId;
+                notify.PayOrderId = hitAssertNotifyResult.PayOrderId;
                 notify.BusinessOrderId = hitAssertNotifyResult.BusinessOrderId;
                 notify.PayOrganizationOrderId = hitAssertNotifyResult.PayOrganizationOrderId;
             }

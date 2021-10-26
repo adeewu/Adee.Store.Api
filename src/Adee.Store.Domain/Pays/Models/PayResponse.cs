@@ -99,7 +99,15 @@ namespace Adee.Store.Pays
         /// </summary>
         public Guid? TenantId { get; set; }
 
+        /// <summary>
+        /// 业务订单Id
+        /// </summary>
         public string BusinessOrderId { get; set; }
+
+        /// <summary>
+        /// 支付订单Id
+        /// </summary>
+        public string PayOrderId { get; set; }
     }
 
     /// <summary>

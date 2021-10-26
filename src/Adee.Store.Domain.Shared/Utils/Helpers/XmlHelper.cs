@@ -8,7 +8,7 @@ namespace Adee.Store.Pays.Utils.Helpers
     /// <summary>
     /// Xml序列化与反序列化
     /// </summary>
-    public class XmlHelper: ISingletonDependency
+    public class XmlHelper : ISingletonDependency
     {
         /// <summary>
         /// 反序列化

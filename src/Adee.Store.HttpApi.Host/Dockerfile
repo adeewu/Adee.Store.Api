@@ -14,7 +14,6 @@ COPY ["src/Adee.Store.Application.Contracts/Adee.Store.Application.Contracts.csp
 COPY ["src/Adee.Store.Domain.Shared/Adee.Store.Domain.Shared.csproj", "src/Adee.Store.Domain.Shared/"]
 COPY ["src/Adee.Store.Application/Adee.Store.Application.csproj", "src/Adee.Store.Application/"]
 COPY ["src/Adee.Store.Domain/Adee.Store.Domain.csproj", "src/Adee.Store.Domain/"]
-COPY ["src/Adee.Store.EntityFrameworkCore.DbMigrations/Adee.Store.EntityFrameworkCore.DbMigrations.csproj", "src/Adee.Store.EntityFrameworkCore.DbMigrations/"]
 COPY ["src/Adee.Store.EntityFrameworkCore/Adee.Store.EntityFrameworkCore.csproj", "src/Adee.Store.EntityFrameworkCore/"]
 RUN dotnet restore "src/Adee.Store.HttpApi.Host/Adee.Store.HttpApi.Host.csproj"
 COPY . .

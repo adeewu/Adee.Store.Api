@@ -9,7 +9,6 @@ FROM adeewu-docker.pkg.coding.net/adee.store/aspnet/sdk:5.0 AS build
 WORKDIR /src
 COPY ["NuGet.Config", "."]
 COPY ["src/Adee.Store.IdentityServer/Adee.Store.IdentityServer.csproj", "src/Adee.Store.IdentityServer/"]
-COPY ["src/Adee.Store.EntityFrameworkCore.DbMigrations/Adee.Store.EntityFrameworkCore.DbMigrations.csproj", "src/Adee.Store.EntityFrameworkCore.DbMigrations/"]
 COPY ["src/Adee.Store.EntityFrameworkCore/Adee.Store.EntityFrameworkCore.csproj", "src/Adee.Store.EntityFrameworkCore/"]
 COPY ["src/Adee.Store.Domain/Adee.Store.Domain.csproj", "src/Adee.Store.Domain/"]
 COPY ["src/Adee.Store.Domain.Shared/Adee.Store.Domain.Shared.csproj", "src/Adee.Store.Domain.Shared/"]

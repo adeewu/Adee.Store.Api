@@ -2,7 +2,6 @@
 
 FROM adeewu-docker.pkg.coding.net/adee.store/aspnet/runtime:5.0-alpine AS base
 WORKDIR /app
-EXPOSE 80
 EXPOSE 443
 
 FROM adeewu-docker.pkg.coding.net/adee.store/aspnet/sdk:5.0 AS build
@@ -22,5 +21,10 @@ RUN dotnet publish "Adee.Store.IdentityServer.csproj" -c Release -o /app/publish
 
 FROM base
 WORKDIR /app
+EXPOSE 443
+ENV ASPNETCORE_URLS=https://+:443
+ENV ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certs/localhost.p12
+ENV ASPNETCORE_Kestrel__Certificates__Default__Password=changeit
+COPY ["certs/", "certs/"]
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "Adee.Store.IdentityServer.dll"]

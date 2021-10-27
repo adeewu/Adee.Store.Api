@@ -20,10 +20,8 @@ namespace Adee.Store
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                 .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
                 .Enrich.FromLogContext()
-                .WriteTo.Async(c => c.File("Logs/logs.txt"))
-#if DEBUG
+                .WriteTo.Async(c => c.File("Logs/log-.log", rollingInterval: RollingInterval.Day))
                 .WriteTo.Async(c => c.Console())
-#endif
                 .CreateLogger();
 
             try
@@ -34,7 +32,7 @@ namespace Adee.Store
             }
             catch (Exception ex)
             {
-                Log.Fatal(ex, "Host terminated unexpectedly!");
+                Log.Fatal(ex, "Adee.Store.HttpApi.Host terminated unexpectedly!");
                 return 1;
             }
             finally

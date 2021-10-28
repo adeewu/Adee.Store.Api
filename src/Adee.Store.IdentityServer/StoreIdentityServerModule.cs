@@ -147,7 +147,6 @@ namespace Adee.Store
             if (!env.IsDevelopment())
             {
                 app.UseErrorPage();
-                app.UseHsts();
             }
 
             app.UseHttpsRedirection();

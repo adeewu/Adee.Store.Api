@@ -18,10 +18,13 @@ pipeline {
             "${CCI_CURRENT_WEB_PROTOCOL}://${CODING_DOCKER_REG_HOST}",
             "${CODING_ARTIFACTS_CREDENTIALS_ID}"
           ) {
-            def dockerApiImage = docker.build("${CODING_DOCKER_IMAGE_API_NAME}:${DOCKER_IMAGE_VERSION}", "-f ${DOCKERFILE_PATH_API} ${DOCKER_BUILD_CONTEXT}")
+            def dockerImageVersion = "${DOCKER_IMAGE_VERSION}"
+            dockerImageVersion = dockerImageVersion.replace("/","-")
+
+            def dockerApiImage = docker.build("${CODING_DOCKER_IMAGE_API_NAME}:${dockerImageVersion}", "-f ${DOCKERFILE_PATH_API} ${DOCKER_BUILD_CONTEXT}")
             dockerApiImage.push()
 
-            def dockerIDS4Image = docker.build("${CODING_DOCKER_IMAGE_IDS4_NAME}:${DOCKER_IMAGE_VERSION}", "-f ${DOCKERFILE_PATH_IDS4} ${DOCKER_BUILD_CONTEXT}")
+            def dockerIDS4Image = docker.build("${CODING_DOCKER_IMAGE_IDS4_NAME}:${dockerImageVersion}", "-f ${DOCKERFILE_PATH_IDS4} ${DOCKER_BUILD_CONTEXT}")
             dockerIDS4Image.push()
           }
         }
@@ -30,7 +33,7 @@ pipeline {
     }
   }
   environment {
-    DOCKER_IMAGE_VERSION = '${GIT_LOCAL_BRANCH.replace("/","-")}'
+    DOCKER_IMAGE_VERSION = '${GIT_LOCAL_BRANCH:-branch}'
     CODING_DOCKER_REG_HOST = "${CCI_CURRENT_TEAM}-docker.pkg.${CCI_CURRENT_DOMAIN}"
     CODING_DOCKER_IMAGE_API_NAME = "${PROJECT_NAME.toLowerCase()}/${DOCKER_REPO_NAME}/${DOCKER_IMAGE_API_NAME}"
     CODING_DOCKER_IMAGE_IDS4_NAME = "${PROJECT_NAME.toLowerCase()}/${DOCKER_REPO_NAME}/${DOCKER_IMAGE_IDS4_NAME}"

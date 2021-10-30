@@ -17,11 +17,15 @@ pipeline {
           docker.withRegistry(
             "${CCI_CURRENT_WEB_PROTOCOL}://${CODING_DOCKER_REG_HOST}",
             "${CODING_ARTIFACTS_CREDENTIALS_ID}"
-          ) {
-            def dockerApiImage = docker.build("${CODING_DOCKER_IMAGE_API_NAME}:${DOCKER_IMAGE_VERSION}", "-f ${DOCKERFILE_PATH_API} ${DOCKER_BUILD_CONTEXT}")
+          ) {        
+            def branchName = "${GIT_LOCAL_BRANCH}"
+            def dockerImageVersion = branchName.replace('/','-')
+            echo dockerImageVersion
+
+            def dockerApiImage = docker.build("${CODING_DOCKER_IMAGE_API_NAME}:${dockerImageVersion}", "-f ${DOCKERFILE_PATH_API} ${DOCKER_BUILD_CONTEXT}")
             dockerApiImage.push()
 
-            def dockerIDS4Image = docker.build("${CODING_DOCKER_IMAGE_IDS4_NAME}:${DOCKER_IMAGE_VERSION}", "-f ${DOCKERFILE_PATH_IDS4} ${DOCKER_BUILD_CONTEXT}")
+            def dockerIDS4Image = docker.build("${CODING_DOCKER_IMAGE_IDS4_NAME}:${dockerImageVersion}", "-f ${DOCKERFILE_PATH_IDS4} ${DOCKER_BUILD_CONTEXT}")
             dockerIDS4Image.push()
           }
         }

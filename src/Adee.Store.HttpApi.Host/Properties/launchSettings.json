@@ -19,7 +19,9 @@
       "commandName": "Project",
       "launchBrowser": false,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_Kestrel__Certificates__Default__Path": "C:\\Users\\Adee\\Documents\\Repos\\cert\\adee.huobsj.com.pfx",
+        "ASPNETCORE_Kestrel__Certificates__Default__Password": "12345678"
       },
       "applicationUrl": "https://localhost:44381"
     }

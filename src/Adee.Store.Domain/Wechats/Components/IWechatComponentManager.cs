@@ -11,10 +11,10 @@ namespace Adee.Store.Wechats.Components
         /// <summary>
         /// 授权通知
         /// </summary>
-        /// <param name="dto"></param>
+        /// <param name="auth"></param>
         /// <param name="body"></param>
         /// <returns></returns>
-        Task AuthNotify(Auth dto, string body);
+        Task AuthNotify(Auth auth, string body);
 
         /// <summary>
         /// 启动票据推送服务

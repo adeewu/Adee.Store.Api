@@ -1,12 +1,16 @@
 ﻿using Adee.Store.Attributes;
 using Adee.Store.CallbackRequests;
 using Adee.Store.Domain.Shared.Utils.Helpers;
+using Adee.Store.Wechats.Components.Jobs.UpdateAccessToken;
 using Adee.Store.Wechats.Components.Models;
 using Adee.Store.Wechats.Components.Repositorys;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
+using Volo.Abp.BackgroundJobs;
+using Volo.Abp.Caching;
 using Volo.Abp.Domain.Repositories;
 
 namespace Adee.Store.Wechats.Components
@@ -21,18 +25,27 @@ namespace Adee.Store.Wechats.Components
         private readonly IRepository<CallbackRequest> _callbackRequestRepository;
         private readonly IRepository<WechatComponentAuth> _wechatComponentAuthRepository;
         private readonly SignHelper _signHelper;
+        private readonly IBackgroundJobManager _backgroundJobManager;
+        private readonly IDistributedCache<UpdateAccessTokenArgs> _updateAccessTokenCache;
+        private readonly IDistributedCache<UpdateComponentAccessTokenArgs> _updateComponentAccessTokenCache;
 
         public WechatComponentAppService(
             WechatComponentManager wechatComponentManager,
             IRepository<CallbackRequest> callbackRequestRepository,
             IRepository<WechatComponentAuth> wechatComponentRepository,
-            SignHelper signHelper
+            SignHelper signHelper,
+            IBackgroundJobManager backgroundJobManager,
+            IDistributedCache<UpdateAccessTokenArgs> updateAccessTokenCache,
+            IDistributedCache<UpdateComponentAccessTokenArgs> updateComponentAccessTokenCache
             )
         {
             _wechatComponentManager = wechatComponentManager;
             _callbackRequestRepository = callbackRequestRepository;
             _wechatComponentAuthRepository = wechatComponentRepository;
             _signHelper = signHelper;
+            _backgroundJobManager = backgroundJobManager;
+            _updateAccessTokenCache = updateAccessTokenCache;
+            _updateComponentAccessTokenCache = updateComponentAccessTokenCache;
         }
 
         /// <summary>
@@ -81,7 +94,7 @@ namespace Adee.Store.Wechats.Components
             var query = await _wechatComponentManager.QueryAuth(dto.ComponentAppId, dto.auth_code);
             CheckHelper.IsNotNull(query, name: nameof(query));
 
-            var authInfo = await _wechatComponentAuthRepository.FindAsync(p => p.AuthAppId == query.authorization_info.authorizer_appid && p.ComponentAppId == dto.ComponentAppId);
+            var authInfo = await _wechatComponentAuthRepository.FindAsync(p => p.AuthAppId == query.Authorization.AuthorizerAppId && p.ComponentAppId == dto.ComponentAppId);
             var isUpdate = true;
             if (authInfo.IsNull())
             {
@@ -91,8 +104,8 @@ namespace Adee.Store.Wechats.Components
             }
 
             authInfo.AuthorizationCode = dto.auth_code;
-            authInfo.AuthorizerRefreshToken = query.authorization_info.authorizer_refresh_token;
-            authInfo.FuncInfo = query.authorization_info.func_info;
+            authInfo.AuthorizerRefreshToken = query.Authorization.AuthorizerRefreshToken;
+            authInfo.FuncInfo = query.Authorization.FunctionList.ToJsonString();
 
             if (isUpdate)
             {
@@ -102,6 +115,15 @@ namespace Adee.Store.Wechats.Components
             {
                 await _wechatComponentAuthRepository.InsertAsync(authInfo);
             }
+
+            var args = new UpdateAccessTokenArgs
+            {
+                AppId = query.Authorization.AuthorizerAppId,
+                ComponentAppId = dto.ComponentAppId,
+                UpdateTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            };
+            await _updateAccessTokenCache.SetAsync(query.Authorization.AuthorizerAppId, args);
+            await _backgroundJobManager.EnqueueAsync(args, delay: TimeSpan.FromSeconds(query.Authorization.ExpiresIn * 0.9));
 
             return "授权完成";
         }
@@ -114,11 +136,20 @@ namespace Adee.Store.Wechats.Components
         public async Task Open(string componentAppId)
         {
             await _wechatComponentManager.StartPushTicket(componentAppId);
+
+            var args = new UpdateComponentAccessTokenArgs
+            {
+                ComponentAppId = componentAppId,
+                UpdateTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            };
+            await _updateComponentAccessTokenCache.SetAsync(componentAppId, args);
+            await _backgroundJobManager.EnqueueAsync(args);
         }
 
         /// <summary>
         /// 第三方平台消息通知
         /// </summary>
+        /// <param name="componentAppId"></param>
         /// <param name="appId"></param>
         /// <returns></returns>
         public async Task<string> GetNotify(string appId)
@@ -131,6 +162,7 @@ namespace Adee.Store.Wechats.Components
         /// <summary>
         /// 第三方平台消息通知
         /// </summary>
+        /// <param name="componentAppId"></param>
         /// <param name="appId"></param>
         /// <returns></returns>
         public async Task<string> PostNotify(string appId)

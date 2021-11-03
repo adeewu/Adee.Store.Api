@@ -12,8 +12,6 @@ namespace Adee.Store.Pays.Jobs
     /// <typeparam name="TArgs"></typeparam>
     public abstract class StoreBackgroundJob<TArgs> : BackgroundJob<TArgs>
     {
-        public bool IsChangeTenant { get; set; } = false;
-
         public sealed override void Execute(TArgs args)
         {
             try

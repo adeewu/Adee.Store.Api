@@ -57,6 +57,7 @@ namespace Adee.Store
 
             CreateMap<AssertNotifyRequest, CallbackRequest>()
                 .ForMember(p => p.Header, config => config.MapFrom(src => src.Headers.ToJsonString(null)));
+            CreateMap<Request, CallbackRequest>();
         }
     }
 }

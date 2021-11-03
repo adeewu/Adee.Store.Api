@@ -3,8 +3,11 @@ using Adee.Store.Domain.Pays.TianQue.Models;
 using Adee.Store.Domain.Tenants;
 using Adee.Store.MultiTenancy;
 using Adee.Store.Pays;
+using Adee.Store.Pays.Utils.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using System.Net;
+using System.Net.Http;
 using Volo.Abp.AuditLogging;
 using Volo.Abp.BackgroundJobs;
 using Volo.Abp.Emailing;
@@ -56,6 +59,17 @@ namespace Adee.Store
             {
                 options.AddPayProviders<TianQuePay>();
             });
+
+            context.Services.AddHttpClient<ICommonClient, CommonClient>()
+                .ConfigurePrimaryHttpMessageHandler(() =>
+                {
+                    var httpclientHandler = new HttpClientHandler();
+                    httpclientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, error) => true;
+                    httpclientHandler.Proxy = new WebProxy("proxy.adee.huobsj.com", 8892);
+                    //httpclientHandler.Proxy.Credentials = new NetworkCredential("decerp", "decerp2020");
+
+                    return httpclientHandler;
+                });
         }
     }
 }

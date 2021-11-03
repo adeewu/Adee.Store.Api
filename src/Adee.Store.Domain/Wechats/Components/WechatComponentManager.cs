@@ -3,11 +3,14 @@ using Adee.Store.Wechats.Components.Clients;
 using Adee.Store.Wechats.Components.Models;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
+using SKIT.FlurlHttpClient.Wechat.Api;
+using SKIT.FlurlHttpClient.Wechat.Api.Events;
 using System;
 using System.Threading.Tasks;
 using System.Web;
 using Volo.Abp.Caching;
 using Volo.Abp.DependencyInjection;
+using Volo.Abp.MultiTenancy;
 
 namespace Adee.Store.Wechats.Components
 {
@@ -20,6 +23,7 @@ namespace Adee.Store.Wechats.Components
         private readonly IDistributedCache<ComponentVerifyTicketCacheItem> _verifyTicketCache;
         private readonly XmlHelper _xmlHelper;
         private readonly WechatCryptHelper _wechatCryptHelper;
+        private readonly ICurrentTenant _currentTenant;
 
         public WechatComponentManager(
             ILogger<WechatComponentManager> logger,
@@ -28,7 +32,8 @@ namespace Adee.Store.Wechats.Components
             IDistributedCache<AccessTokenCacheItem> accessTokenCache,
             IDistributedCache<ComponentVerifyTicketCacheItem> verifyTicketCache,
             XmlHelper xmlHelper,
-            WechatCryptHelper wechatCryptHelper)
+            WechatCryptHelper wechatCryptHelper,
+            ICurrentTenant currentTenant)
         {
             _logger = logger;
             _wechatComponentClient = wechatComponentClient;
@@ -37,21 +42,22 @@ namespace Adee.Store.Wechats.Components
             _verifyTicketCache = verifyTicketCache;
             _xmlHelper = xmlHelper;
             _wechatCryptHelper = wechatCryptHelper;
+            _currentTenant = currentTenant;
         }
 
-        public async Task<string> GetAuthUrl(AuthUrl dto)
+        public async Task<AccessTokenCacheItem> GetComponentAccessToken(string componentAppId)
         {
-            var accessTokenItem = await _accessTokenCache.GetAsync(dto.ComponentAppId);
+            var accessTokenItem = await _accessTokenCache.GetAsync(componentAppId);
             if (accessTokenItem == null || accessTokenItem.AccessToken.IsNullOrWhiteSpace())
             {
-                var ticket = await _verifyTicketCache.GetAsync(dto.ComponentAppId);
-                CheckHelper.IsNotNull(ticket, $"未找到ComponentVerifyTicket：{dto.ComponentAppId}的缓存");
+                var ticket = await _verifyTicketCache.GetAsync(componentAppId);
+                CheckHelper.IsNotNull(ticket, $"未找到ComponentVerifyTicket：{componentAppId}的缓存");
                 CheckHelper.IsNotNull(ticket.ComponentVerifyTicket, $"缓存出错，令牌不能为空");
 
-                var configItem = await GetComponentConfig(dto.ComponentAppId);
-                CheckHelper.IsNotNull(configItem.Secret, $"第三方平台：{dto.ComponentAppId}的密钥不能为空");
+                var configItem = await GetComponentConfig(componentAppId);
+                CheckHelper.IsNotNull(configItem.Secret, $"第三方平台：{componentAppId}的密钥不能为空");
 
-                var acceccTokenResult = await _wechatComponentClient.GetComponentAcceccToken(dto.ComponentAppId, configItem.Secret, ticket.ComponentVerifyTicket);
+                var acceccTokenResult = await _wechatComponentClient.GetComponentAcceccToken(componentAppId, configItem.Secret, ticket.ComponentVerifyTicket);
                 CheckHelper.IsNotNull(acceccTokenResult, name: nameof(acceccTokenResult));
                 CheckHelper.IsNotNull(acceccTokenResult.component_access_token, name: nameof(acceccTokenResult.component_access_token));
                 CheckHelper.IsTrue(acceccTokenResult.expires_in > 0, "第三方平台令牌有效期不能小于120秒");
@@ -60,15 +66,47 @@ namespace Adee.Store.Wechats.Components
                 accessTokenItem.AccessToken = acceccTokenResult.component_access_token;
                 accessTokenItem.ExpiresIn = acceccTokenResult.expires_in;
 
-                await _accessTokenCache.SetAsync(dto.ComponentAppId, accessTokenItem, options: new DistributedCacheEntryOptions
+                await _accessTokenCache.SetAsync(componentAppId, accessTokenItem, options: new DistributedCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(acceccTokenResult.expires_in - 10)
                 });
             }
 
+            return accessTokenItem;
+        }
+
+        public async Task<AccessTokenCacheItem> GetAccessToken(string appId, string componentAppId)
+        {
+            var accessTokenItem = await _accessTokenCache.GetAsync(appId);
+            if (accessTokenItem == null || accessTokenItem.AccessToken.IsNullOrWhiteSpace())
+            {
+
+                var componentAccessToken = await GetComponentAccessToken(componentAppId);
+
+                var appAccessToken = await _wechatComponentClient.AuthorizerToken(componentAppId, componentAccessToken.AccessToken, appId, "???");
+
+                if (accessTokenItem == null) accessTokenItem = new AccessTokenCacheItem();
+                accessTokenItem.AccessToken = appAccessToken.authorizer_access_token;
+                accessTokenItem.ExpiresIn = appAccessToken.expires_in;
+
+                await _accessTokenCache.SetAsync(appId, accessTokenItem, options: new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(appAccessToken.expires_in - 10)
+                });
+            }
+
+            return accessTokenItem;
+        }
+
+        public async Task<string> GetAuthUrl(AuthUrl dto)
+        {
+            var accessTokenItem = await GetComponentAccessToken(dto.ComponentAppId);
+
             var preAuthCode = await _wechatComponentClient.GetPreAuthCode(dto.ComponentAppId, accessTokenItem.AccessToken);
             CheckHelper.IsNotNull(preAuthCode, name: nameof(preAuthCode));
 
+            dto.RedirectUrl = (dto.RedirectUrl.Contains('?') ? "&" : "?") + $"__tenantId={_currentTenant.Id}";
+            dto.RedirectUrl += $"&ComponentAppId={dto.ComponentAppId}";
             dto.RedirectUrl = HttpUtility.UrlEncode(dto.RedirectUrl);
 
             if (dto.IsMobile && string.IsNullOrWhiteSpace(dto.BizAppId) == true)
@@ -134,8 +172,21 @@ namespace Adee.Store.Wechats.Components
 
             }
 
-            await Task.CompletedTask;
             _logger.LogCritical($"未知的通知类型：{authNotifyDto.InfoType}");
+        }
+
+        public async Task<QueryAuthWechatResponse> QueryAuth(string componentAppId, string authorizationCode)
+        {
+            var accessTokenItem = await GetComponentAccessToken(componentAppId);
+
+            var result = await _wechatComponentClient.QueryAuth(componentAppId, accessTokenItem.AccessToken, authorizationCode);
+            await _accessTokenCache.SetAsync(result.authorization_info.authorizer_appid, new AccessTokenCacheItem
+            {
+                AccessToken = result.authorization_info.authorizer_access_token,
+                ExpiresIn = result.authorization_info.expires_in,
+            });
+
+            return result;
         }
 
         private async Task<ConfigCacheItem> GetComponentConfig(string componentAppId)

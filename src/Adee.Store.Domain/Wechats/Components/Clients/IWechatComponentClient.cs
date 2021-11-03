@@ -32,5 +32,24 @@ namespace Adee.Store.Wechats.Components.Clients
         /// <param name="componentAccessToken"></param>
         /// <returns></returns>
         Task<PreAuthCodeWechatResponse> GetPreAuthCode(string componentAppId, string componentAccessToken);
+
+        /// <summary>
+        /// 使用授权码获取授权信息
+        /// </summary>
+        /// <param name="componentAppId"></param>
+        /// <param name="componentAccessToken"></param>
+        /// <param name="authorizationCode"></param>
+        /// <returns></returns>
+        Task<QueryAuthWechatResponse> QueryAuth(string componentAppId, string componentAccessToken, string authorizationCode);
+
+        /// <summary>
+        /// 获取/刷新接口调用令牌
+        /// </summary>
+        /// <param name="componentAppId"></param>
+        /// <param name="componentAccessToken"></param>
+        /// <param name="authorizerAppid"></param>
+        /// <param name="authorizerRefreshToken"></param>
+        /// <returns></returns>
+        Task<AuthorizerTokenWechatReponse> AuthorizerToken(string componentAppId, string componentAccessToken, string authorizerAppid, string authorizerRefreshToken);
     }
 }

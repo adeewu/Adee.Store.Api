@@ -48,6 +48,37 @@ namespace Adee.Store.Wechats.Components.Clients
             });
         }
 
+        public async Task<QueryAuthWechatResponse> QueryAuth(string componentAppId, string componentAccessToken, string authorizationCode)
+        {
+            return await PostAsync<QueryAuthWechatResponse>(
+                "/api_query_auth",
+                query: new
+                {
+                    component_access_token = componentAccessToken
+                },
+                body: new
+                {
+                    component_appid = componentAppId,
+                    authorization_code = authorizationCode
+                });
+        }
+
+        public async Task<AuthorizerTokenWechatReponse> AuthorizerToken(string componentAppId, string componentAccessToken, string authorizerAppid, string authorizerRefreshToken)
+        {
+            return await PostAsync<AuthorizerTokenWechatReponse>(
+                "/api_authorizer_token",
+                query: new
+                {
+                    component_access_token = componentAccessToken
+                },
+                body: new
+                {
+                    component_appid = componentAppId,
+                    authorizer_refresh_token = authorizerRefreshToken,
+                    authorizer_appid = authorizerAppid,
+                });
+        }
+
         private async Task<T> PostAsync<T>(string url, object query = null, object body = null) where T : WechatResponse, new()
         {
             var result = await _commonClient.PostAsync<T>(url, query, body);

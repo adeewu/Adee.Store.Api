@@ -1,6 +1,8 @@
 ﻿using Adee.Store.Attributes;
 using Adee.Store.CallbackRequests;
+using Adee.Store.Domain.Shared.Utils.Helpers;
 using Adee.Store.Wechats.Components.Models;
+using Adee.Store.Wechats.Components.Repositorys;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
@@ -17,14 +19,20 @@ namespace Adee.Store.Wechats.Components
     {
         private readonly WechatComponentManager _wechatComponentManager;
         private readonly IRepository<CallbackRequest> _callbackRequestRepository;
+        private readonly IRepository<WechatComponentAuth> _wechatComponentAuthRepository;
+        private readonly SignHelper _signHelper;
 
         public WechatComponentAppService(
             WechatComponentManager wechatComponentManager,
-            IRepository<CallbackRequest> callbackRequestRepository
+            IRepository<CallbackRequest> callbackRequestRepository,
+            IRepository<WechatComponentAuth> wechatComponentRepository,
+            SignHelper signHelper
             )
         {
             _wechatComponentManager = wechatComponentManager;
             _callbackRequestRepository = callbackRequestRepository;
+            _wechatComponentAuthRepository = wechatComponentRepository;
+            _signHelper = signHelper;
         }
 
         /// <summary>
@@ -52,7 +60,7 @@ namespace Adee.Store.Wechats.Components
         }
 
         /// <summary>
-        /// 获取授权地址
+        /// 获取授权地址（传递__tenantId）
         /// </summary>
         /// <param name="dto"></param>
         /// <returns>返回授权地址</returns>
@@ -61,6 +69,41 @@ namespace Adee.Store.Wechats.Components
             var model = ObjectMapper.Map<AuthUrlDto, AuthUrl>(dto);
 
             return await _wechatComponentManager.GetAuthUrl(model);
+        }
+
+        /// <summary>
+        /// 授权成功(AuthUrl接口已传递__tenantId)
+        /// </summary>
+        /// <param name="dto"></param>
+        /// <returns></returns>
+        public async Task<string> AuthSuccess(AuthSuccessDto dto)
+        {
+            var query = await _wechatComponentManager.QueryAuth(dto.ComponentAppId, dto.auth_code);
+            CheckHelper.IsNotNull(query, name: nameof(query));
+
+            var authInfo = await _wechatComponentAuthRepository.FindAsync(p => p.AuthAppId == query.authorization_info.authorizer_appid && p.ComponentAppId == dto.ComponentAppId);
+            var isUpdate = true;
+            if (authInfo.IsNull())
+            {
+                authInfo = new WechatComponentAuth(GuidGenerator.Create());
+                authInfo.TenantId = CurrentTenant.Id;
+                isUpdate = false;
+            }
+
+            authInfo.AuthorizationCode = dto.auth_code;
+            authInfo.AuthorizerRefreshToken = query.authorization_info.authorizer_refresh_token;
+            authInfo.FuncInfo = query.authorization_info.func_info;
+
+            if (isUpdate)
+            {
+                await _wechatComponentAuthRepository.UpdateAsync(authInfo);
+            }
+            else
+            {
+                await _wechatComponentAuthRepository.InsertAsync(authInfo);
+            }
+
+            return "授权完成";
         }
 
         /// <summary>
@@ -107,8 +150,16 @@ namespace Adee.Store.Wechats.Components
 
             var callbackRequest = ObjectMapper.Map<Request, CallbackRequest>(request);
             callbackRequest.CallbackType = callbackType;
+            callbackRequest.HashCode = _signHelper.Sign(new
+            {
+                callbackRequest.Url,
+                callbackRequest.Method,
+                callbackRequest.Query,
+                callbackRequest.Body,
+                callbackRequest.Header
+            }, nameof(CallbackRequest), separator: "&", containKey: true);
 
-            await _callbackRequestRepository.InsertAsync(callbackRequest);
+            await _callbackRequestRepository.InsertAsync(callbackRequest, autoSave: true);
 
             return request;
         }

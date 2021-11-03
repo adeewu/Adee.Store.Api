@@ -9,7 +9,7 @@ using Volo.Abp.Domain.Repositories;
 using Volo.Abp.MultiTenancy;
 using Volo.Abp.Uow;
 
-namespace Adee.Store.Pays
+namespace Adee.Store.Pays.Jobs
 {
     public class PayNotifyJob : StoreTenantBackgroundJob<PayNotifyArgs>, ITransientDependency
     {

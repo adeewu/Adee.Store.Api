@@ -4,34 +4,37 @@ using System;
 using System.Threading.Tasks;
 using Volo.Abp.BackgroundJobs;
 
-/// <summary>
-/// 后台任务
-/// </summary>
-/// <typeparam name="TArgs"></typeparam>
-public abstract class StoreBackgroundJob<TArgs> : BackgroundJob<TArgs>
+namespace Adee.Store.Pays.Jobs
 {
-    public bool IsChangeTenant { get; set; } = false;
-
-    public sealed override void Execute(TArgs args)
+    /// <summary>
+    /// 后台任务
+    /// </summary>
+    /// <typeparam name="TArgs"></typeparam>
+    public abstract class StoreBackgroundJob<TArgs> : BackgroundJob<TArgs>
     {
-        try
+        public bool IsChangeTenant { get; set; } = false;
+
+        public sealed override void Execute(TArgs args)
         {
-            var task = ExecuteAsync(args);
-            task.Wait();
+            try
+            {
+                var task = ExecuteAsync(args);
+                task.Wait();
+            }
+            catch (Exception ex)
+            {
+                var task = ExceptionAsync(ex);
+                task.Wait();
+            }
         }
-        catch (Exception ex)
+
+        public abstract Task ExecuteAsync(TArgs args);
+
+        public virtual async Task ExceptionAsync(Exception exception)
         {
-            var task = ExceptionAsync(ex);
-            task.Wait();
+            Logger.LogError(exception, exception.Message);
+
+            await Task.CompletedTask;
         }
-    }
-
-    public abstract Task ExecuteAsync(TArgs args);
-
-    public virtual async Task ExceptionAsync(Exception exception)
-    {
-        Logger.LogError(exception, exception.Message);
-
-        await Task.CompletedTask;
     }
 }

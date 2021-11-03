@@ -8,7 +8,7 @@ using Volo.Abp.MultiTenancy;
 using Volo.Abp.ObjectMapping;
 using Volo.Abp.Uow;
 
-namespace Adee.Store.Pays
+namespace Adee.Store.Pays.Jobs
 {
     public class RefundQueryStatusJob : StoreTenantBackgroundJob<RefundQueryStatusArgs>, ITransientDependency
     {

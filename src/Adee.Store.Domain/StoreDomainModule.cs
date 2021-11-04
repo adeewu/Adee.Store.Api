@@ -4,6 +4,8 @@ using Adee.Store.Domain.Tenants;
 using Adee.Store.MultiTenancy;
 using Adee.Store.Pays;
 using Adee.Store.Pays.Utils.Helpers;
+using Adee.Store.Wechats.Components;
+using Flurl.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Net;
@@ -49,6 +51,12 @@ namespace Adee.Store
             context.Services.Replace(ServiceDescriptor.Singleton<IEmailSender, NullEmailSender>());
 #endif
 
+#if DEBUG
+            FlurlHttp.Configure(settings => {
+                settings.HttpClientFactory = new ProxyHttpClientFactory("proxy.adee.huobsj.com", 8892);
+            });
+#endif
+
             context.Services.AddHttpClient();
             context.Services.AddTransient<ICurrentTenantExt, CurrentTenantExt>();
 
@@ -61,6 +69,7 @@ namespace Adee.Store
             });
 
             context.Services.AddHttpClient<ICommonClient, CommonClient>()
+#if DEBUG
                 .ConfigurePrimaryHttpMessageHandler(() =>
                 {
                     var httpclientHandler = new HttpClientHandler();
@@ -69,7 +78,9 @@ namespace Adee.Store
                     //httpclientHandler.Proxy.Credentials = new NetworkCredential("decerp", "decerp2020");
 
                     return httpclientHandler;
-                });
+                })
+#endif
+                ;
         }
     }
 }

@@ -4,6 +4,7 @@ using Adee.Store.Products;
 using Adee.Store.Wechats.Components;
 using Adee.Store.Wechats.Components.Models;
 using AutoMapper;
+using SKIT.FlurlHttpClient.Wechat.Api.Events;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -58,6 +59,8 @@ namespace Adee.Store
             CreateMap<AssertNotifyRequest, CallbackRequest>()
                 .ForMember(p => p.Header, config => config.MapFrom(src => src.Headers.ToJsonString(null)));
             CreateMap<Request, CallbackRequest>();
+
+            CreateMap<ComponentVerifyTicketEvent, ComponentVerifyTicketCacheItem>();
         }
     }
 }

@@ -149,7 +149,6 @@ namespace Adee.Store.Wechats.Components
         /// <summary>
         /// 第三方平台消息通知
         /// </summary>
-        /// <param name="componentAppId"></param>
         /// <param name="appId"></param>
         /// <returns></returns>
         public async Task<string> GetNotify(string appId)
@@ -162,7 +161,6 @@ namespace Adee.Store.Wechats.Components
         /// <summary>
         /// 第三方平台消息通知
         /// </summary>
-        /// <param name="componentAppId"></param>
         /// <param name="appId"></param>
         /// <returns></returns>
         public async Task<string> PostNotify(string appId)
@@ -191,7 +189,11 @@ namespace Adee.Store.Wechats.Components
                 callbackRequest.Header
             }, nameof(CallbackRequest), separator: "&", containKey: true);
 
-            await _callbackRequestRepository.InsertAsync(callbackRequest, autoSave: true);
+            var existHashCode = await _callbackRequestRepository.AnyAsync(p => p.HashCode == callbackRequest.HashCode);
+            if (existHashCode == false)
+            {
+                await _callbackRequestRepository.InsertAsync(callbackRequest, autoSave: true);
+            }
 
             return request;
         }

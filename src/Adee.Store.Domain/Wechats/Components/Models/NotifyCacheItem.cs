@@ -9,13 +9,13 @@
         /// 第三方平台 appid
         /// </summary>
         /// <value></value>
-        public string AppId { get; set; }
+        public string ComponentAppId { get; set; }
 
         /// <summary>
         /// 时间戳
         /// </summary>
         /// <value></value>
-        public long CreateTime { get; set; }
+        public long CreateTimestamp { get; set; }
 
         /// <summary>
         /// 通知类型

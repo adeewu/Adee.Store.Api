@@ -152,25 +152,26 @@ namespace Adee.Store.Wechats.Components
             CheckHelper.IsNotNull(body, name: nameof(body));
 
             var client = new WechatApiClient(string.Empty, string.Empty);
-            var authEncryptEvent = client.DeserializeEventFromXml(body);
-            CheckHelper.IsNotNull(authEncryptEvent, $"报文格式不正确，内容：{body}");
+            var baseEvent = client.DeserializeEventFromXml(body);
+            CheckHelper.IsNotNull(baseEvent, $"报文格式不正确，内容：{body}");
+            CheckHelper.IsNotNull(baseEvent.ComponentAppId, $"无法获取{nameof(baseEvent.ComponentAppId)}");
 
-            client = await GetClient(authEncryptEvent.ComponentAppId);
+            client = await GetClient(baseEvent.ComponentAppId);
 
             var isValid = client.VerifyEventSignatureFromXml(auth.timestamp, auth.nonce, body, auth.msg_signature);
             CheckHelper.IsTrue(isValid, "回调数据验证失败");
 
-            var authNotifyDto = client.DeserializeEventFromXml(body);
+            var authNotifyDto = client.DeserializeEventFromXml(body, true);
             CheckHelper.IsNotNull(authNotifyDto, $"解密失败，内容：{body}");
 
             if (authNotifyDto.InfoType == "component_verify_ticket")
             {
-                var eventDto = client.DeserializeEventFromXml<ComponentVerifyTicketEvent>(body);
+                var eventDto = client.DeserializeEventFromXml<ComponentVerifyTicketEvent>(body, true);
                 var ticket = _objectMapper.Map<ComponentVerifyTicketEvent, ComponentVerifyTicketCacheItem>(eventDto);
 
-                await _verifyTicketCache.SetAsync(ticket.AppId, ticket, new DistributedCacheEntryOptions
+                await _verifyTicketCache.SetAsync(ticket.ComponentAppId, ticket, new DistributedCacheEntryOptions
                 {
-                    AbsoluteExpiration = DateTimeOffset.FromUnixTimeSeconds(ticket.CreateTime).AddHours(12),
+                    AbsoluteExpiration = DateTimeOffset.FromUnixTimeSeconds(ticket.CreateTimestamp).AddHours(12),
                 });
                 return;
             }

@@ -38,7 +38,7 @@ namespace Adee.Store.Pays.Jobs
         }
 
         [UnitOfWork(isTransactional: false)]
-        public override async Task ExecuteAsync(PayQueryStatusArgs args)
+        public override async Task ToExecuteAsync(PayQueryStatusArgs args)
         {
             var payOrder = await _payOrderRepository.SingleOrDefaultAsync(p => p.PayOrderId == args.PayOrderId);
             CheckHelper.IsNotNull(payOrder, name: nameof(payOrder));

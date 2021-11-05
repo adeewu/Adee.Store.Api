@@ -36,7 +36,7 @@ namespace Adee.Store.Pays.Jobs
         }
 
         [UnitOfWork(isTransactional: false)]
-        public override async Task ExecuteAsync(PayNotifyArgs args)
+        public override async Task ToExecuteAsync(PayNotifyArgs args)
         {
             var payOrder = await _payOrderRepository.SingleOrDefaultAsync(p => p.PayOrderId == args.PayOrderId);
             CheckHelper.IsNotNull(payOrder, $"支付订单：{args.PayOrderId}不存在");

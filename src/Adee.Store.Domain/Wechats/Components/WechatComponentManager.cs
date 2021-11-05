@@ -118,8 +118,13 @@ namespace Adee.Store.Wechats.Components
             });
             CheckHelper.IsNotNull(preAuthCode, name: nameof(preAuthCode));
 
-            dto.RedirectUrl = (dto.RedirectUrl.Contains('?') ? "&" : "?") + $"__tenantId={_currentTenant.Id}";
-            dto.RedirectUrl += $"&ComponentAppId={dto.ComponentAppId}";
+            dto.RedirectUrl += dto.RedirectUrl.Contains('?') ? "&" : "?";
+            if (_currentTenant.Id.HasValue)
+            {
+                dto.RedirectUrl += $"__tenantId={_currentTenant.Id}&";
+            }
+            dto.RedirectUrl += $"ComponentAppId={dto.ComponentAppId}&";
+            dto.RedirectUrl = dto.RedirectUrl.Substring(0, dto.RedirectUrl.Length - 1);
             dto.RedirectUrl = HttpUtility.UrlEncode(dto.RedirectUrl);
 
             if (dto.IsMobile && string.IsNullOrWhiteSpace(dto.BizAppId) == true)

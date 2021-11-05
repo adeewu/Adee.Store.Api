@@ -1,4 +1,4 @@
-﻿using Adee.Store.Domain.Pays.TianQue;
+using Adee.Store.Domain.Pays.TianQue;
 using Adee.Store.Domain.Pays.TianQue.Models;
 using Adee.Store.Domain.Tenants;
 using Adee.Store.MultiTenancy;
@@ -12,6 +12,7 @@ using System.Net;
 using System.Net.Http;
 using Volo.Abp.AuditLogging;
 using Volo.Abp.BackgroundJobs;
+using Volo.Abp.BackgroundJobs.RabbitMQ;
 using Volo.Abp.Emailing;
 using Volo.Abp.FeatureManagement;
 using Volo.Abp.Identity;
@@ -36,7 +37,8 @@ namespace Adee.Store
         typeof(AbpPermissionManagementDomainIdentityServerModule),
         typeof(AbpSettingManagementDomainModule),
         typeof(AbpTenantManagementDomainModule),
-        typeof(AbpEmailingModule)
+        typeof(AbpEmailingModule),
+        typeof(AbpBackgroundJobsRabbitMqModule)
     )]
     public class StoreDomainModule : AbpModule
     {

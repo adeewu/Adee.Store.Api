@@ -89,7 +89,7 @@ namespace Adee.Store.Wechats.Components
         /// </summary>
         /// <param name="dto"></param>
         /// <returns></returns>
-        public async Task<string> AuthSuccess(AuthSuccessDto dto)
+        public async Task<string> GetAuthSuccess(AuthSuccessDto dto)
         {
             var query = await _wechatComponentManager.QueryAuth(dto.ComponentAppId, dto.auth_code);
             CheckHelper.IsNotNull(query, name: nameof(query));
@@ -106,6 +106,8 @@ namespace Adee.Store.Wechats.Components
             authInfo.AuthorizationCode = dto.auth_code;
             authInfo.AuthorizerRefreshToken = query.Authorization.AuthorizerRefreshToken;
             authInfo.FuncInfo = query.Authorization.FunctionList.ToJsonString();
+            authInfo.AuthAppId = query.Authorization.AuthorizerAppId;
+            authInfo.ComponentAppId = dto.ComponentAppId;
 
             if (isUpdate)
             {
@@ -122,8 +124,9 @@ namespace Adee.Store.Wechats.Components
                 ComponentAppId = dto.ComponentAppId,
                 UpdateTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             };
+            args.LastDelay = query.Authorization.ExpiresIn * 90 / 100;
             await _updateAccessTokenCache.SetAsync(query.Authorization.AuthorizerAppId, args);
-            await _backgroundJobManager.EnqueueAsync(args, delay: TimeSpan.FromSeconds(query.Authorization.ExpiresIn * 0.9));
+            await _backgroundJobManager.EnqueueAsync(args, delay: TimeSpan.FromSeconds(args.LastDelay));
 
             return "授权完成";
         }

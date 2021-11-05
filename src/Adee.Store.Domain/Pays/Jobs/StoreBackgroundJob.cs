@@ -10,25 +10,27 @@ namespace Adee.Store.Pays.Jobs
     /// 后台任务
     /// </summary>
     /// <typeparam name="TArgs"></typeparam>
-    public abstract class StoreBackgroundJob<TArgs> : BackgroundJob<TArgs>
+    public abstract class StoreBackgroundJob<TArgs> : AsyncBackgroundJob<TArgs>
     {
-        public sealed override void Execute(TArgs args)
+        public sealed override async Task ExecuteAsync(TArgs args)
         {
+            Logger.LogDebug($"开始执行{typeof(TArgs).Name}任务");
+
             try
             {
-                var task = ExecuteAsync(args);
-                task.Wait();
+                await ToExecuteAsync(args);
             }
             catch (Exception ex)
             {
-                var task = ExceptionAsync(ex);
-                task.Wait();
+                await ExceptionAsync(args, ex);
             }
+
+            Logger.LogDebug($"结束执行{typeof(TArgs).Name}任务");
         }
 
-        public abstract Task ExecuteAsync(TArgs args);
+        public abstract Task ToExecuteAsync(TArgs args);
 
-        public virtual async Task ExceptionAsync(Exception exception)
+        public virtual async Task ExceptionAsync(TArgs args, Exception exception)
         {
             Logger.LogError(exception, exception.Message);
 

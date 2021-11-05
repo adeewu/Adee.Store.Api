@@ -6,7 +6,9 @@ using System;
 using System.Threading.Tasks;
 using Volo.Abp.BackgroundJobs;
 using Volo.Abp.Caching;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.MultiTenancy;
+using Volo.Abp.Uow;
 
 namespace Adee.Store.Wechats.Components.Jobs.UpdateAccessToken
 {
@@ -14,7 +16,7 @@ namespace Adee.Store.Wechats.Components.Jobs.UpdateAccessToken
     /// 更新第三方平台令牌
     /// </summary>
     /// <typeparam name="TArgs"></typeparam>
-    public abstract class UpdateComponentAccessTokenBackgroundJob : StoreBackgroundJob<UpdateComponentAccessTokenArgs>
+    public class UpdateComponentAccessTokenBackgroundJob : StoreBackgroundJob<UpdateComponentAccessTokenArgs>, ITransientDependency
     {
         private readonly WechatComponentManager _wechatComponentManager;
         private readonly IDistributedCache<UpdateComponentAccessTokenArgs> _cache;
@@ -30,7 +32,8 @@ namespace Adee.Store.Wechats.Components.Jobs.UpdateAccessToken
             _backgroundJobManager = backgroundJobManager;
         }
 
-        public override async Task ExecuteAsync(UpdateComponentAccessTokenArgs args)
+        [UnitOfWork(isTransactional: false)]
+        public override async Task ToExecuteAsync(UpdateComponentAccessTokenArgs args)
         {
             var argsOfCache = await _cache.GetAsync(args.ComponentAppId);
             if (argsOfCache.IsNotNull())
@@ -41,10 +44,15 @@ namespace Adee.Store.Wechats.Components.Jobs.UpdateAccessToken
             var componentAccessTokenCacheItem = await _wechatComponentManager.UpdateComponentAccessToken(args.ComponentAppId);
             CheckHelper.IsNotNull(componentAccessTokenCacheItem, name: nameof(componentAccessTokenCacheItem));
 
-            await _backgroundJobManager.EnqueueAsync(new UpdateComponentAccessTokenArgs
-            {
-                ComponentAppId = args.ComponentAppId
-            }, delay: TimeSpan.FromSeconds(componentAccessTokenCacheItem.ExpiresIn - 60 * 10));
+            args.LastDelay = componentAccessTokenCacheItem.ExpiresIn - 60 * 10;
+            await _backgroundJobManager.EnqueueAsync(args, delay: TimeSpan.FromSeconds(args.LastDelay));
+        }
+
+        public override async Task ExceptionAsync(UpdateComponentAccessTokenArgs args, Exception exception)
+        {
+            await base.ExceptionAsync(args, exception);
+
+            await _backgroundJobManager.EnqueueAsync(args, delay: TimeSpan.FromSeconds(args.LastDelay));
         }
     }
 }

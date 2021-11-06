@@ -1,13 +1,11 @@
 
 using Adee.Store.Pays.Jobs;
 using Adee.Store.Wechats.Components.Models;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 using Volo.Abp.BackgroundJobs;
 using Volo.Abp.Caching;
 using Volo.Abp.DependencyInjection;
-using Volo.Abp.MultiTenancy;
 using Volo.Abp.Uow;
 
 namespace Adee.Store.Wechats.Components.Jobs.UpdateAccessToken
@@ -18,12 +16,12 @@ namespace Adee.Store.Wechats.Components.Jobs.UpdateAccessToken
     /// <typeparam name="TArgs"></typeparam>
     public class UpdateAccessTokenBackgroundJob : StoreBackgroundJob<UpdateAccessTokenArgs>, ITransientDependency
     {
-        private readonly WechatComponentManager _wechatComponentManager;
+        private readonly IWechatComponentManager _wechatComponentManager;
         private readonly IDistributedCache<UpdateAccessTokenArgs> _cache;
         private readonly IBackgroundJobManager _backgroundJobManager;
 
         public UpdateAccessTokenBackgroundJob(
-            WechatComponentManager wechatComponentManager,
+            IWechatComponentManager wechatComponentManager,
             IDistributedCache<UpdateAccessTokenArgs> cache,
             IBackgroundJobManager backgroundJobManager)
         {
@@ -41,10 +39,10 @@ namespace Adee.Store.Wechats.Components.Jobs.UpdateAccessToken
                 CheckHelper.IsTrue(args.UpdateTime >= argsOfCache.UpdateTime, $"已产生新任务，旧任务放弃，{nameof(args.AppId)}:{args.AppId}");
             }
 
-            var componentAccessTokenCacheItem = await _wechatComponentManager.UpdateComponentAccessToken(args.ComponentAppId);
+            var componentAccessTokenCacheItem = await _wechatComponentManager.UpdateAccessToken(args.AppId, args.ComponentAppId);
             CheckHelper.IsNotNull(componentAccessTokenCacheItem, name: nameof(componentAccessTokenCacheItem));
 
-            args.LastDelay = componentAccessTokenCacheItem.ExpiresIn - 60;
+            args.LastDelay = componentAccessTokenCacheItem.ExpiresIn - WechatComponentConsts.ForwardUpdateAccessToken;
             await _backgroundJobManager.EnqueueAsync(args, delay: TimeSpan.FromSeconds(args.LastDelay));
         }
 

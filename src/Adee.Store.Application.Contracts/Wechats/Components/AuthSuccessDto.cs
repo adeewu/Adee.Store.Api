@@ -1,6 +1,4 @@
-﻿using Adee.Store.Wechats.Components.Models;
-using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Adee.Store.Wechats.Components
 {
@@ -22,9 +20,8 @@ namespace Adee.Store.Wechats.Components
         public int expires_in { get; set; }
 
         /// <summary>
-        /// 第三方平台Id
+        /// 数据
         /// </summary>
-        [Required]
-        public string ComponentAppId { get; set; }
+        public string Data { get; set; }
     }
 }

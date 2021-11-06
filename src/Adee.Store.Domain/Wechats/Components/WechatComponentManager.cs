@@ -1,14 +1,17 @@
 ﻿using Adee.Store.Wechats.Components.Models;
+using Adee.Store.Wechats.Components.Repositorys;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using SKIT.FlurlHttpClient.Wechat.Api;
 using SKIT.FlurlHttpClient.Wechat.Api.Events;
 using SKIT.FlurlHttpClient.Wechat.Api.Models;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using Volo.Abp.Caching;
 using Volo.Abp.DependencyInjection;
+using Volo.Abp.Domain.Repositories;
 using Volo.Abp.MultiTenancy;
 using Volo.Abp.ObjectMapping;
 
@@ -17,17 +20,19 @@ namespace Adee.Store.Wechats.Components
     public class WechatComponentManager : IWechatComponentManager, ITransientDependency
     {
         private readonly ILogger<WechatComponentManager> _logger;
-        private readonly IDistributedCache<ConfigCacheItem> _configCache;
+        private readonly IDistributedCache<ComponentConfigCacheItem> _configCache;
         private readonly IDistributedCache<AccessTokenCacheItem> _accessTokenCache;
         private readonly IDistributedCache<ComponentVerifyTicketCacheItem> _verifyTicketCache;
+        private readonly IRepository<WechatComponentConfig> _wechatComponentConfigRespository;
         private readonly ICurrentTenant _currentTenant;
         private readonly IObjectMapper _objectMapper;
 
         public WechatComponentManager(
             ILogger<WechatComponentManager> logger,
-            IDistributedCache<ConfigCacheItem> configCache,
+            IDistributedCache<ComponentConfigCacheItem> configCache,
             IDistributedCache<AccessTokenCacheItem> accessTokenCache,
             IDistributedCache<ComponentVerifyTicketCacheItem> verifyTicketCache,
+            IRepository<WechatComponentConfig> wechatComponentConfigRespository,
             ICurrentTenant currentTenant,
             IObjectMapper objectMapper)
         {
@@ -35,6 +40,7 @@ namespace Adee.Store.Wechats.Components
             _configCache = configCache;
             _accessTokenCache = accessTokenCache;
             _verifyTicketCache = verifyTicketCache;
+            _wechatComponentConfigRespository = wechatComponentConfigRespository;
             _currentTenant = currentTenant;
             _objectMapper = objectMapper;
         }
@@ -52,6 +58,8 @@ namespace Adee.Store.Wechats.Components
                 ComponentSecret = client.Credentials.AppSecret,
                 ComponentVerifyTicket = ticket.ComponentVerifyTicket,
             });
+            ProcessResult(acceccTokenResult);
+
             CheckHelper.IsNotNull(acceccTokenResult, name: nameof(acceccTokenResult));
             CheckHelper.IsNotNull(acceccTokenResult.ComponentAccessToken, name: nameof(acceccTokenResult.ComponentAccessToken));
             CheckHelper.IsTrue(acceccTokenResult.ExpiresIn > 0, "第三方平台令牌有效期不能小于0秒");
@@ -81,6 +89,10 @@ namespace Adee.Store.Wechats.Components
         public async Task<AccessTokenCacheItem> UpdateAccessToken(string appId, string componentAppId)
         {
             var componentAccessToken = await GetAccessToken(componentAppId);
+            CheckHelper.IsNotNull(componentAccessToken, name: nameof(componentAccessToken));
+
+            var accessToken = await GetAccessToken(appId);
+            CheckHelper.IsNotNull(accessToken, name: nameof(accessToken));
 
             var client = await GetClient(componentAppId);
             var appAccessToken = await client.ExecuteCgibinComponentApiAuthorizerTokenAsync(new CgibinComponentApiAuthorizerTokenRequest
@@ -88,7 +100,7 @@ namespace Adee.Store.Wechats.Components
                 AuthorizerAppId = appId,
                 ComponentAppId = componentAppId,
                 ComponentAccessToken = componentAccessToken.AccessToken,
-                AuthorizerRefreshToken = "???",
+                AuthorizerRefreshToken = accessToken.RefreshToken,
             });
 
             var accessTokenItem = new AccessTokenCacheItem
@@ -100,13 +112,13 @@ namespace Adee.Store.Wechats.Components
 
             await _accessTokenCache.SetAsync(appId, accessTokenItem, options: new DistributedCacheEntryOptions
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(appAccessToken.ExpiresIn)
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(appAccessToken.ExpiresIn - 5 * 60)
             });
 
             return accessTokenItem;
         }
 
-        public async Task<string> GetAuthUrl(AuthUrl dto)
+        public async Task<string> GetAuthUrl(AuthUrl dto, string domain)
         {
             var accessTokenItem = await GetAccessToken(dto.ComponentAppId);
 
@@ -118,24 +130,24 @@ namespace Adee.Store.Wechats.Components
             });
             CheckHelper.IsNotNull(preAuthCode, name: nameof(preAuthCode));
 
-            dto.RedirectUrl += dto.RedirectUrl.Contains('?') ? "&" : "?";
-            if (_currentTenant.Id.HasValue)
+            var data = new
             {
-                dto.RedirectUrl += $"__tenantId={_currentTenant.Id}&";
-            }
-            dto.RedirectUrl += $"ComponentAppId={dto.ComponentAppId}&";
-            dto.RedirectUrl = dto.RedirectUrl.Substring(0, dto.RedirectUrl.Length - 1);
-            dto.RedirectUrl = HttpUtility.UrlEncode(dto.RedirectUrl);
+                dto.RedirectUrl,
+                dto.ComponentAppId,
+                TenantId = _currentTenant.Id
+            }.ToJsonString();
+            var url = $"{domain}/api/store/wechat-component/auth-success?Data={HttpUtility.UrlEncode(data)}";
+            url = HttpUtility.UrlEncode(url);
 
             if (dto.IsMobile && string.IsNullOrWhiteSpace(dto.BizAppId) == true)
             {
-                return $"https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&component_appid={dto.ComponentAppId}&pre_auth_code={preAuthCode.PreAuthCode}&redirect_uri={dto.RedirectUrl}&auth_type={(int)dto.AuthType}#wechat_redirect";
+                return $"https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&component_appid={dto.ComponentAppId}&pre_auth_code={preAuthCode.PreAuthCode}&redirect_uri={url}&auth_type={(int)dto.AuthType}#wechat_redirect";
             }
             if (dto.IsMobile && string.IsNullOrWhiteSpace(dto.BizAppId) == false)
             {
-                return $"https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&component_appid={dto.ComponentAppId}&pre_auth_code={preAuthCode.PreAuthCode}&redirect_uri={dto.RedirectUrl}&biz_appid={dto.BizAppId}#wechat_redirect";
+                return $"https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&component_appid={dto.ComponentAppId}&pre_auth_code={preAuthCode.PreAuthCode}&redirect_uri={url}&biz_appid={dto.BizAppId}#wechat_redirect";
             }
-            return $"https://mp.weixin.qq.com/cgi-bin/componentloginpage?component_appid={dto.ComponentAppId}&pre_auth_code={preAuthCode.PreAuthCode}&redirect_uri={dto.RedirectUrl}&auth_type={(int)dto.AuthType}";
+            return $"https://mp.weixin.qq.com/cgi-bin/componentloginpage?component_appid={dto.ComponentAppId}&pre_auth_code={preAuthCode.PreAuthCode}&redirect_uri={url}&auth_type={(int)dto.AuthType}";
         }
 
         public async Task StartPushTicket(string componentAppId)
@@ -166,13 +178,20 @@ namespace Adee.Store.Wechats.Components
             var isValid = client.VerifyEventSignatureFromXml(auth.timestamp, auth.nonce, body, auth.msg_signature);
             CheckHelper.IsTrue(isValid, "回调数据验证失败");
 
-            var authNotifyDto = client.DeserializeEventFromXml(body, true);
-            CheckHelper.IsNotNull(authNotifyDto, $"解密失败，内容：{body}");
+            baseEvent = client.DeserializeEventFromXml(body, true);
+            CheckHelper.IsNotNull(baseEvent, $"解密失败，内容：{body}");
+            _logger.LogDebug($"解密报文：{baseEvent.ToJsonString()}");
 
-            if (authNotifyDto.InfoType == "component_verify_ticket")
+            if (baseEvent.InfoType == "component_verify_ticket")
             {
                 var eventDto = client.DeserializeEventFromXml<ComponentVerifyTicketEvent>(body, true);
                 var ticket = _objectMapper.Map<ComponentVerifyTicketEvent, ComponentVerifyTicketCacheItem>(eventDto);
+
+                var oldTicket = await _verifyTicketCache.GetAsync(ticket.ComponentAppId);
+                if (oldTicket.IsNotNull())
+                {
+                    ticket.LastComponentVerifyTicket = oldTicket.ComponentVerifyTicket;
+                }
 
                 await _verifyTicketCache.SetAsync(ticket.ComponentAppId, ticket, new DistributedCacheEntryOptions
                 {
@@ -181,22 +200,22 @@ namespace Adee.Store.Wechats.Components
                 return;
             }
 
-            if (authNotifyDto.InfoType == "unauthorized")
+            if (baseEvent.InfoType == "unauthorized")
             {
 
             }
 
-            if (authNotifyDto.InfoType == "updateauthorized")
+            if (baseEvent.InfoType == "updateauthorized")
             {
 
             }
 
-            if (authNotifyDto.InfoType == "authorized")
+            if (baseEvent.InfoType == "authorized")
             {
 
             }
 
-            _logger.LogCritical($"未知的通知类型：{authNotifyDto.InfoType}，通知内容：{body}");
+            _logger.LogCritical($"未知的通知类型：{baseEvent.InfoType}，通知内容：{body}");
         }
 
         public async Task<CgibinComponentApiQueryAuthResponse> QueryAuth(string componentAppId, string authorizationCode)
@@ -222,18 +241,14 @@ namespace Adee.Store.Wechats.Components
             return result;
         }
 
-        private async Task<ConfigCacheItem> GetComponentConfig(string componentAppId)
+        private async Task<ComponentConfigCacheItem> GetComponentConfig(string componentAppId)
         {
             var dto = await _configCache.GetAsync(componentAppId);
             if (dto.IsNotNull()) return dto;
 
-            dto = new ConfigCacheItem
-            {
-                AppId = componentAppId,
-                Token = "adee",
-                EncodingAESKey = "adee123456adee123456adee123456adee123456789",
-                Secret = "8cb872325aac675becd1e308324271f0",
-            };
+            var config = await _wechatComponentConfigRespository.GetAsync(p => p.ComponentAppId == componentAppId);
+
+            dto = _objectMapper.Map<WechatComponentConfig, ComponentConfigCacheItem>(config);
             await _configCache.SetAsync(componentAppId, dto);
 
             return dto;

@@ -6,13 +6,17 @@ using Adee.Store.Pays;
 using Adee.Store.Pays.Utils.Helpers;
 using Adee.Store.Wechats.Components;
 using Flurl.Http;
+using Hangfire;
+using Hangfire.MySql;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using System;
 using System.Net;
 using System.Net.Http;
+using System.Transactions;
 using Volo.Abp.AuditLogging;
 using Volo.Abp.BackgroundJobs;
-using Volo.Abp.BackgroundJobs.RabbitMQ;
+using Volo.Abp.BackgroundJobs.Hangfire;
 using Volo.Abp.Emailing;
 using Volo.Abp.FeatureManagement;
 using Volo.Abp.Identity;
@@ -38,7 +42,7 @@ namespace Adee.Store
         typeof(AbpSettingManagementDomainModule),
         typeof(AbpTenantManagementDomainModule),
         typeof(AbpEmailingModule),
-        typeof(AbpBackgroundJobsRabbitMqModule)
+        typeof(AbpBackgroundJobsHangfireModule)
     )]
     public class StoreDomainModule : AbpModule
     {
@@ -54,7 +58,8 @@ namespace Adee.Store
 #endif
 
 #if DEBUG
-            FlurlHttp.Configure(settings => {
+            FlurlHttp.Configure(settings =>
+            {
                 settings.HttpClientFactory = new ProxyHttpClientFactory("proxy.adee.huobsj.com", 8892);
             });
 #endif
@@ -83,6 +88,29 @@ namespace Adee.Store
                 })
 #endif
                 ;
+
+            context.Services.AddHangfire(globalConfig =>
+            {
+                var connectionString = config["ConnectionStrings:Default"];
+                if (connectionString.ToLower().Contains("Allow User Variables".ToLower()) == false)
+                {
+                    connectionString += connectionString.EnsureEndsWith(';') + "Allow User Variables=True;";
+                }
+
+                globalConfig.UseStorage(new MySqlStorage(
+                    connectionString,
+                    new MySqlStorageOptions
+                    {
+                        TransactionIsolationLevel = IsolationLevel.ReadCommitted,
+                        QueuePollInterval = TimeSpan.FromSeconds(15),
+                        JobExpirationCheckInterval = TimeSpan.FromHours(1),
+                        CountersAggregateInterval = TimeSpan.FromMinutes(5),
+                        PrepareSchemaIfNecessary = true,
+                        DashboardJobListLimit = 50000,
+                        TransactionTimeout = TimeSpan.FromMinutes(1),
+                        TablesPrefix = "Hangfire"
+                    }));
+            });
         }
     }
 }

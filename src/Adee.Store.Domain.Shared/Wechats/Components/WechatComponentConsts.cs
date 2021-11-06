@@ -2,6 +2,9 @@
 {
     public static class WechatComponentConsts
     {
-        public static string WechatComponentAppId = "";
+        /// <summary>
+        /// 提前更新令牌时间
+        /// </summary>
+        public static int ForwardUpdateAccessToken = 1 * 60;
     }
 }

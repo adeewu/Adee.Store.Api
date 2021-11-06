@@ -3,6 +3,7 @@ using Adee.Store.Pays;
 using Adee.Store.Products;
 using Adee.Store.Wechats.Components;
 using Adee.Store.Wechats.Components.Models;
+using Adee.Store.Wechats.Components.Repositorys;
 using AutoMapper;
 using SKIT.FlurlHttpClient.Wechat.Api.Events;
 using System.Collections.Generic;
@@ -61,6 +62,9 @@ namespace Adee.Store
             CreateMap<Request, CallbackRequest>();
 
             CreateMap<ComponentVerifyTicketEvent, ComponentVerifyTicketCacheItem>();
+
+            CreateMap<WechatComponentConfig, ComponentConfigCacheItem>()
+                .ForMember(p => p.AppId, config => config.MapFrom(src => src.ComponentAppId));
         }
     }
 }

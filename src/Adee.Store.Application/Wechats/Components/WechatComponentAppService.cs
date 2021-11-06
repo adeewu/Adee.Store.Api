@@ -21,7 +21,7 @@ namespace Adee.Store.Wechats.Components
     [ApiGroup(ApiGroupType.WechatComponent)]
     public class WechatComponentAppService : StoreWithRequestAppService
     {
-        private readonly WechatComponentManager _wechatComponentManager;
+        private readonly IWechatComponentManager _wechatComponentManager;
         private readonly IRepository<CallbackRequest> _callbackRequestRepository;
         private readonly IRepository<WechatComponentAuth> _wechatComponentAuthRepository;
         private readonly SignHelper _signHelper;
@@ -30,7 +30,7 @@ namespace Adee.Store.Wechats.Components
         private readonly IDistributedCache<UpdateComponentAccessTokenArgs> _updateComponentAccessTokenCache;
 
         public WechatComponentAppService(
-            WechatComponentManager wechatComponentManager,
+            IWechatComponentManager wechatComponentManager,
             IRepository<CallbackRequest> callbackRequestRepository,
             IRepository<WechatComponentAuth> wechatComponentRepository,
             SignHelper signHelper,
@@ -81,7 +81,7 @@ namespace Adee.Store.Wechats.Components
         {
             var model = ObjectMapper.Map<AuthUrlDto, AuthUrl>(dto);
 
-            return await _wechatComponentManager.GetAuthUrl(model);
+            return await _wechatComponentManager.GetAuthUrl(model, HttpContext.Request.GetDomain());
         }
 
         /// <summary>
@@ -89,46 +89,75 @@ namespace Adee.Store.Wechats.Components
         /// </summary>
         /// <param name="dto"></param>
         /// <returns></returns>
-        public async Task<string> GetAuthSuccess(AuthSuccessDto dto)
+        public async Task<ActionResult> GetAuthSuccess()
         {
-            var query = await _wechatComponentManager.QueryAuth(dto.ComponentAppId, dto.auth_code);
-            CheckHelper.IsNotNull(query, name: nameof(query));
-
-            var authInfo = await _wechatComponentAuthRepository.FindAsync(p => p.AuthAppId == query.Authorization.AuthorizerAppId && p.ComponentAppId == dto.ComponentAppId);
-            var isUpdate = true;
-            if (authInfo.IsNull())
+            var dto = new AuthSuccessDto
             {
-                authInfo = new WechatComponentAuth(GuidGenerator.Create());
-                authInfo.TenantId = CurrentTenant.Id;
-                isUpdate = false;
-            }
-
-            authInfo.AuthorizationCode = dto.auth_code;
-            authInfo.AuthorizerRefreshToken = query.Authorization.AuthorizerRefreshToken;
-            authInfo.FuncInfo = query.Authorization.FunctionList.ToJsonString();
-            authInfo.AuthAppId = query.Authorization.AuthorizerAppId;
-            authInfo.ComponentAppId = dto.ComponentAppId;
-
-            if (isUpdate)
-            {
-                await _wechatComponentAuthRepository.UpdateAsync(authInfo);
-            }
-            else
-            {
-                await _wechatComponentAuthRepository.InsertAsync(authInfo);
-            }
-
-            var args = new UpdateAccessTokenArgs
-            {
-                AppId = query.Authorization.AuthorizerAppId,
-                ComponentAppId = dto.ComponentAppId,
-                UpdateTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                auth_code = HttpContext.Request.Query.Where(p => p.Key.ToLower() == "auth_code").Select(p => p.Value).FirstOrDefault(),
+                expires_in = HttpContext.Request.Query.Where(p => p.Key.ToLower() == "expires_in").Select(p => Convert.ToInt32(p.Value)).FirstOrDefault(),
+                Data = HttpContext.Request.Query.Where(p => p.Key.ToLower() == "data").Select(p => p.Value).FirstOrDefault()
             };
-            args.LastDelay = query.Authorization.ExpiresIn * 90 / 100;
-            await _updateAccessTokenCache.SetAsync(query.Authorization.AuthorizerAppId, args);
-            await _backgroundJobManager.EnqueueAsync(args, delay: TimeSpan.FromSeconds(args.LastDelay));
 
-            return "授权完成";
+            var data = dto.Data.AsAnonymousObject(new { ComponentAppId = string.Empty, RedirectUrl = string.Empty, TenantId = string.Empty });
+
+            Guid? tenantId = null;
+            if (data.TenantId.IsNullOrWhiteSpace() == false)
+            {
+                tenantId = Guid.Parse(data.TenantId);
+            }
+
+            using (CurrentTenant.Change(tenantId))
+            {
+                var query = await _wechatComponentManager.QueryAuth(data.ComponentAppId, dto.auth_code);
+                CheckHelper.IsNotNull(query, name: nameof(query));
+
+                var authInfo = await _wechatComponentAuthRepository.FindAsync(p => p.AuthAppId == query.Authorization.AuthorizerAppId && p.ComponentAppId == data.ComponentAppId);
+                var isUpdate = true;
+                if (authInfo.IsNull())
+                {
+                    authInfo = new WechatComponentAuth(GuidGenerator.Create());
+                    authInfo.TenantId = CurrentTenant.Id;
+                    isUpdate = false;
+                }
+
+                authInfo.AuthorizationCode = dto.auth_code;
+                authInfo.AuthorizerRefreshToken = query.Authorization.AuthorizerRefreshToken;
+                authInfo.FuncInfo = query.Authorization.FunctionList.ToJsonString();
+                authInfo.AuthAppId = query.Authorization.AuthorizerAppId;
+                authInfo.ComponentAppId = data.ComponentAppId;
+
+                if (isUpdate)
+                {
+                    await _wechatComponentAuthRepository.UpdateAsync(authInfo);
+                }
+                else
+                {
+                    await _wechatComponentAuthRepository.InsertAsync(authInfo);
+                }
+
+                var args = new UpdateAccessTokenArgs
+                {
+                    AppId = query.Authorization.AuthorizerAppId,
+                    ComponentAppId = data.ComponentAppId,
+                    UpdateTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    LastDelay = query.Authorization.ExpiresIn - WechatComponentConsts.ForwardUpdateAccessToken
+                };
+                await _updateAccessTokenCache.SetAsync(query.Authorization.AuthorizerAppId, args);
+                await _backgroundJobManager.EnqueueAsync(args, delay: TimeSpan.FromSeconds(args.LastDelay));
+
+                if (data.RedirectUrl.IsNullOrWhiteSpace())
+                {
+                    var result = new ContentResult();
+                    result.Content = "授权完成";
+
+                    return result;
+                }
+                else
+                {
+                    return new RedirectResult(data.RedirectUrl);
+                }
+
+            }
         }
 
         /// <summary>
@@ -139,13 +168,42 @@ namespace Adee.Store.Wechats.Components
         public async Task Open(string componentAppId)
         {
             await _wechatComponentManager.StartPushTicket(componentAppId);
+        }
 
+        /// <summary>
+        /// 重设第三方平台令牌
+        /// </summary>
+        /// <param name="componentAppId"></param>
+        /// <returns></returns>
+        public async Task ResetComponentAccessToken(string componentAppId)
+        {
             var args = new UpdateComponentAccessTokenArgs
             {
                 ComponentAppId = componentAppId,
                 UpdateTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             };
             await _updateComponentAccessTokenCache.SetAsync(componentAppId, args);
+            await _backgroundJobManager.EnqueueAsync(args);
+        }
+
+        /// <summary>
+        /// 重设令牌
+        /// </summary>
+        /// <param name="appId"></param>
+        /// <returns></returns>
+        public async Task ResetAccessToken(string appId)
+        {
+            var auth = await _wechatComponentAuthRepository.GetAsync(p => p.AuthAppId == appId);
+            CheckHelper.IsNotNull(auth, $"AppId：{appId}授权信息不存在");
+            CheckHelper.IsNotNull(auth.ComponentAppId, $"AppId：{appId}的授权第三方平台信息错误");
+
+            var args = new UpdateAccessTokenArgs
+            {
+                ComponentAppId = auth.ComponentAppId,
+                AppId = appId,
+                UpdateTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            };
+            await _updateAccessTokenCache.SetAsync(auth.ComponentAppId, args);
             await _backgroundJobManager.EnqueueAsync(args);
         }
 

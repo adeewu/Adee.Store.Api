@@ -24,13 +24,22 @@
         public string InfoType { get; set; }
     }
 
+    /// <summary>
+    /// 票据缓存
+    /// </summary>
     public class ComponentVerifyTicketCacheItem : NotifyCacheItem
     {
         /// <summary>
-        /// 
+        /// 票据
         /// </summary>
         /// <value></value>
         public string ComponentVerifyTicket { get; set; }
+
+        /// <summary>
+        /// 上一次票据
+        /// </summary>
+        /// <value></value>
+        public string LastComponentVerifyTicket { get; set; }
     }
 
     public class AuthorizedCacheItem : NotifyCacheItem

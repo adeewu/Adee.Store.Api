@@ -1,6 +1,6 @@
 ﻿namespace Adee.Store.Wechats.Components.Models
 {
-    public class ConfigCacheItem
+    public class ComponentConfigCacheItem
     {
         /// <summary>
         /// AppId

@@ -39,7 +39,7 @@ namespace Adee.Store.Wechats.Components.Jobs.UpdateAccessToken
                 CheckHelper.IsTrue(args.UpdateTime >= argsOfCache.UpdateTime, $"已产生新任务，旧任务放弃，{nameof(args.AppId)}:{args.AppId}");
             }
 
-            var componentAccessTokenCacheItem = await _wechatComponentManager.UpdateAccessToken(args.AppId, args.ComponentAppId);
+            var componentAccessTokenCacheItem = await _wechatComponentManager.UpdateAccessToken(args.AppId);
             CheckHelper.IsNotNull(componentAccessTokenCacheItem, name: nameof(componentAccessTokenCacheItem));
 
             args.LastDelay = componentAccessTokenCacheItem.ExpiresIn - WechatComponentConsts.ForwardUpdateAccessToken;

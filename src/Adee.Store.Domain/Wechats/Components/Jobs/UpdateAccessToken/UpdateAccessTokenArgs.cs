@@ -11,11 +11,6 @@
         public string AppId { get; set; }
 
         /// <summary>
-        /// 第三方平台AppId
-        /// </summary>
-        public string ComponentAppId { get; set; }
-
-        /// <summary>
         /// 更新时间
         /// </summary>
         public long UpdateTime { get; set; }

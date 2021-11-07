@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Volo.Abp;
 using Volo.Abp.BackgroundJobs;
 using Volo.Abp.Caching;
 using Volo.Abp.Domain.Repositories;
@@ -24,6 +25,7 @@ namespace Adee.Store.Wechats.Components
         private readonly IWechatComponentManager _wechatComponentManager;
         private readonly IRepository<CallbackRequest> _callbackRequestRepository;
         private readonly IRepository<WechatComponentAuth> _wechatComponentAuthRepository;
+        private readonly IRepository<WechatComponentConfig> _wechatComponentConfigRepository;
         private readonly SignHelper _signHelper;
         private readonly IBackgroundJobManager _backgroundJobManager;
         private readonly IDistributedCache<UpdateAccessTokenArgs> _updateAccessTokenCache;
@@ -33,6 +35,7 @@ namespace Adee.Store.Wechats.Components
             IWechatComponentManager wechatComponentManager,
             IRepository<CallbackRequest> callbackRequestRepository,
             IRepository<WechatComponentAuth> wechatComponentRepository,
+            IRepository<WechatComponentConfig> wechatComponentConfigRepository,
             SignHelper signHelper,
             IBackgroundJobManager backgroundJobManager,
             IDistributedCache<UpdateAccessTokenArgs> updateAccessTokenCache,
@@ -42,6 +45,7 @@ namespace Adee.Store.Wechats.Components
             _wechatComponentManager = wechatComponentManager;
             _callbackRequestRepository = callbackRequestRepository;
             _wechatComponentAuthRepository = wechatComponentRepository;
+            _wechatComponentConfigRepository = wechatComponentConfigRepository;
             _signHelper = signHelper;
             _backgroundJobManager = backgroundJobManager;
             _updateAccessTokenCache = updateAccessTokenCache;
@@ -73,7 +77,7 @@ namespace Adee.Store.Wechats.Components
         }
 
         /// <summary>
-        /// 获取授权地址（传递__tenantId）
+        /// 获取授权地址
         /// </summary>
         /// <param name="dto"></param>
         /// <returns>返回授权地址</returns>
@@ -85,9 +89,8 @@ namespace Adee.Store.Wechats.Components
         }
 
         /// <summary>
-        /// 授权成功(AuthUrl接口已传递__tenantId)
+        /// 授权成功
         /// </summary>
-        /// <param name="dto"></param>
         /// <returns></returns>
         public async Task<ActionResult> GetAuthSuccess()
         {
@@ -138,7 +141,6 @@ namespace Adee.Store.Wechats.Components
                 var args = new UpdateAccessTokenArgs
                 {
                     AppId = query.Authorization.AuthorizerAppId,
-                    ComponentAppId = data.ComponentAppId,
                     UpdateTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
                     LastDelay = query.Authorization.ExpiresIn - WechatComponentConsts.ForwardUpdateAccessToken
                 };
@@ -171,40 +173,43 @@ namespace Adee.Store.Wechats.Components
         }
 
         /// <summary>
-        /// 重设第三方平台令牌
-        /// </summary>
-        /// <param name="componentAppId"></param>
-        /// <returns></returns>
-        public async Task ResetComponentAccessToken(string componentAppId)
-        {
-            var args = new UpdateComponentAccessTokenArgs
-            {
-                ComponentAppId = componentAppId,
-                UpdateTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-            };
-            await _updateComponentAccessTokenCache.SetAsync(componentAppId, args);
-            await _backgroundJobManager.EnqueueAsync(args);
-        }
-
-        /// <summary>
-        /// 重设令牌
+        /// 重设令牌，适用第三方平台、授权App
         /// </summary>
         /// <param name="appId"></param>
         /// <returns></returns>
         public async Task ResetAccessToken(string appId)
         {
-            var auth = await _wechatComponentAuthRepository.GetAsync(p => p.AuthAppId == appId);
-            CheckHelper.IsNotNull(auth, $"AppId：{appId}授权信息不存在");
-            CheckHelper.IsNotNull(auth.ComponentAppId, $"AppId：{appId}的授权第三方平台信息错误");
-
-            var args = new UpdateAccessTokenArgs
+            var isComponent = await _wechatComponentConfigRepository.AnyAsync(p => p.ComponentAppId == appId);
+            if (isComponent)
             {
-                ComponentAppId = auth.ComponentAppId,
-                AppId = appId,
-                UpdateTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-            };
-            await _updateAccessTokenCache.SetAsync(auth.ComponentAppId, args);
-            await _backgroundJobManager.EnqueueAsync(args);
+                var accessToken = await _wechatComponentManager.UpdateComponentAccessToken(appId);
+
+                var args = new UpdateComponentAccessTokenArgs
+                {
+                    ComponentAppId = appId,
+                    LastDelay = accessToken.ExpiresIn - WechatComponentConsts.ForwardUpdateAccessToken,
+                    UpdateTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                };
+                await _updateComponentAccessTokenCache.SetAsync(appId, args);
+                await _backgroundJobManager.EnqueueAsync(args);
+            }
+
+            var isAuthApp = await _wechatComponentAuthRepository.AnyAsync(p => p.AuthAppId == appId);
+            if (isAuthApp)
+            {
+                var accessToken = await _wechatComponentManager.UpdateAccessToken(appId);
+
+                var args = new UpdateAccessTokenArgs
+                {
+                    AppId = appId,
+                    LastDelay = accessToken.ExpiresIn - WechatComponentConsts.ForwardUpdateAccessToken,
+                    UpdateTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                };
+                await _updateAccessTokenCache.SetAsync(appId, args);
+                await _backgroundJobManager.EnqueueAsync(args, delay: TimeSpan.FromSeconds(accessToken.ExpiresIn - WechatComponentConsts.ForwardUpdateAccessToken));
+            }
+
+            throw new UserFriendlyException($"appId：{appId}无效");
         }
 
         /// <summary>

@@ -27,9 +27,8 @@ namespace Adee.Store.Wechats.Components
         /// 更新令牌
         /// </summary>
         /// <param name="appId"></param>
-        /// <param name="componentAppId"></param>
         /// <returns></returns>
-        Task<AccessTokenCacheItem> UpdateAccessToken(string appId, string componentAppId);
+        Task<AccessTokenCacheItem> UpdateAccessToken(string appId);
 
         /// <summary>
         /// 使用授权码获取授权信息

@@ -24,6 +24,7 @@ namespace Adee.Store.Wechats.Components
         private readonly IDistributedCache<AccessTokenCacheItem> _accessTokenCache;
         private readonly IDistributedCache<ComponentVerifyTicketCacheItem> _verifyTicketCache;
         private readonly IRepository<WechatComponentConfig> _wechatComponentConfigRespository;
+        private readonly IRepository<WechatComponentAuth> _wechatComponentAuthRespository;
         private readonly ICurrentTenant _currentTenant;
         private readonly IObjectMapper _objectMapper;
 
@@ -33,6 +34,7 @@ namespace Adee.Store.Wechats.Components
             IDistributedCache<AccessTokenCacheItem> accessTokenCache,
             IDistributedCache<ComponentVerifyTicketCacheItem> verifyTicketCache,
             IRepository<WechatComponentConfig> wechatComponentConfigRespository,
+            IRepository<WechatComponentAuth> wechatComponentAuthRespository,
             ICurrentTenant currentTenant,
             IObjectMapper objectMapper)
         {
@@ -41,6 +43,7 @@ namespace Adee.Store.Wechats.Components
             _accessTokenCache = accessTokenCache;
             _verifyTicketCache = verifyTicketCache;
             _wechatComponentConfigRespository = wechatComponentConfigRespository;
+            _wechatComponentAuthRespository = wechatComponentAuthRespository;
             _currentTenant = currentTenant;
             _objectMapper = objectMapper;
         }
@@ -81,26 +84,47 @@ namespace Adee.Store.Wechats.Components
         public async Task<AccessTokenCacheItem> GetAccessToken(string appId)
         {
             var accessTokenItem = await _accessTokenCache.GetAsync(appId);
-            CheckHelper.IsTrue(accessTokenItem.IsNotNull() && accessTokenItem.AccessToken.IsNotNull(), $"获取AppId：{appId}的令牌失败");
+            if(accessTokenItem.IsNotNull() && accessTokenItem.AccessToken.IsNotNull())
+            {
+                return accessTokenItem;
+            }
+
+            var auth = await _wechatComponentAuthRespository.GetAsync(p => p.AuthAppId == appId);
+            CheckHelper.IsNotNull(auth, name: nameof(auth));
+
+            var response = await QueryAuth(auth.ComponentAppId, auth.AuthorizationCode);
+            CheckHelper.IsNotNull(response, name: nameof(response));
+
+            auth.AuthorizerRefreshToken = response.Authorization.AuthorizerRefreshToken;
+            await _wechatComponentAuthRespository.UpdateAsync(auth, autoSave: true);
+
+            accessTokenItem = new AccessTokenCacheItem
+            {
+                AccessToken = response.Authorization.AuthorizerAccessToken,
+                ExpiresIn = response.Authorization.ExpiresIn,
+                RefreshToken = response.Authorization.AuthorizerRefreshToken,
+            };
+
 
             return accessTokenItem;
         }
 
-        public async Task<AccessTokenCacheItem> UpdateAccessToken(string appId, string componentAppId)
+        public async Task<AccessTokenCacheItem> UpdateAccessToken(string appId)
         {
-            var componentAccessToken = await GetAccessToken(componentAppId);
+            var auth = await _wechatComponentAuthRespository.GetAsync(p => p.AuthAppId == appId);
+            CheckHelper.IsNotNull(auth, $"AppId：{appId}授权信息不存在");
+            CheckHelper.IsNotNull(auth.ComponentAppId, $"AppId：{appId}的授权第三方平台信息错误");
+
+            var componentAccessToken = await GetAccessToken(auth.ComponentAppId);
             CheckHelper.IsNotNull(componentAccessToken, name: nameof(componentAccessToken));
 
-            var accessToken = await GetAccessToken(appId);
-            CheckHelper.IsNotNull(accessToken, name: nameof(accessToken));
-
-            var client = await GetClient(componentAppId);
+            var client = await GetClient(auth.ComponentAppId);
             var appAccessToken = await client.ExecuteCgibinComponentApiAuthorizerTokenAsync(new CgibinComponentApiAuthorizerTokenRequest
             {
                 AuthorizerAppId = appId,
-                ComponentAppId = componentAppId,
+                ComponentAppId = auth.ComponentAppId,
                 ComponentAccessToken = componentAccessToken.AccessToken,
-                AuthorizerRefreshToken = accessToken.RefreshToken,
+                AuthorizerRefreshToken = auth.AuthorizerRefreshToken,
             });
 
             var accessTokenItem = new AccessTokenCacheItem
@@ -112,7 +136,7 @@ namespace Adee.Store.Wechats.Components
 
             await _accessTokenCache.SetAsync(appId, accessTokenItem, options: new DistributedCacheEntryOptions
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(appAccessToken.ExpiresIn - 5 * 60)
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(appAccessToken.ExpiresIn)
             });
 
             return accessTokenItem;

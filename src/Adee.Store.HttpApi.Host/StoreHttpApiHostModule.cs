@@ -2,6 +2,7 @@ using Adee.Store.Attributes;
 using Adee.Store.EntityFrameworkCore;
 using Adee.Store.MultiTenancy;
 using Adee.Store.Utils.Filtes;
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
@@ -254,6 +255,8 @@ namespace Adee.Store
             {
                 app.UseMultiTenancy();
             }
+
+            app.UseHangfireDashboard();
 
             app.UseAuthorization();
 

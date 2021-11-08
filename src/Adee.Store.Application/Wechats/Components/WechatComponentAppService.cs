@@ -128,6 +128,7 @@ namespace Adee.Store.Wechats.Components
                 authInfo.FuncInfo = query.Authorization.FunctionList.ToJsonString();
                 authInfo.AuthAppId = query.Authorization.AuthorizerAppId;
                 authInfo.ComponentAppId = data.ComponentAppId;
+                authInfo.UnAuthorized = false;
 
                 if (isUpdate)
                 {

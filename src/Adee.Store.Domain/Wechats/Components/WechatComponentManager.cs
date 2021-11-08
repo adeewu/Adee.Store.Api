@@ -243,15 +243,9 @@ namespace Adee.Store.Wechats.Components
                 return;
             }
 
-            if (baseEvent.InfoType == "updateauthorized")
+            if (baseEvent.InfoType == "updateauthorized" || baseEvent.InfoType == "authorized")
             {
-                var eventDto = client.DeserializeEventFromXml<ComponentUpdateAuthorizedEvent>(body, true);
-                return;
-            }
-
-            if (baseEvent.InfoType == "authorized")
-            {
-                var eventDto = client.DeserializeEventFromXml<ComponentAuthorizedEvent>(body, true);
+                //已在AuthSuccess处理
                 return;
             }
 

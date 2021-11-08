@@ -40,6 +40,9 @@ namespace Adee.Store.EntityFrameworkCore
 
                 entity.Property(e => e.FuncInfo)
                     .HasComment("授权权限集");
+
+                entity.Property(e => e.UnAuthorized)
+                    .HasComment("取消授权");
             });
 
             builder.Entity<WechatComponentConfig>(entity =>

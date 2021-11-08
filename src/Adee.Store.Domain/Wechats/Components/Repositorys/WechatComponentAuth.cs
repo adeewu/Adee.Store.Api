@@ -43,5 +43,10 @@ namespace Adee.Store.Wechats.Components.Repositorys
         /// 授权权限集
         /// </summary>
         public string FuncInfo { get; set; }
+
+        /// <summary>
+        /// 取消授权
+        /// </summary>
+        public bool UnAuthorized { get; set; }
     }
 }

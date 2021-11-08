@@ -1,4 +1,5 @@
-﻿using Adee.Store.Wechats.Components.Models;
+﻿using Adee.Store.Wechats.Components.Jobs.UpdateAccessToken;
+using Adee.Store.Wechats.Components.Models;
 using Adee.Store.Wechats.Components.Repositorys;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
@@ -23,6 +24,7 @@ namespace Adee.Store.Wechats.Components
         private readonly IDistributedCache<ComponentConfigCacheItem> _configCache;
         private readonly IDistributedCache<AccessTokenCacheItem> _accessTokenCache;
         private readonly IDistributedCache<ComponentVerifyTicketCacheItem> _verifyTicketCache;
+        private readonly IDistributedCache<UpdateAccessTokenArgs> _updateAccessTokenCache;
         private readonly IRepository<WechatComponentConfig> _wechatComponentConfigRespository;
         private readonly IRepository<WechatComponentAuth> _wechatComponentAuthRespository;
         private readonly ICurrentTenant _currentTenant;
@@ -33,6 +35,7 @@ namespace Adee.Store.Wechats.Components
             IDistributedCache<ComponentConfigCacheItem> configCache,
             IDistributedCache<AccessTokenCacheItem> accessTokenCache,
             IDistributedCache<ComponentVerifyTicketCacheItem> verifyTicketCache,
+            IDistributedCache<UpdateAccessTokenArgs> updateAccessTokenCache,
             IRepository<WechatComponentConfig> wechatComponentConfigRespository,
             IRepository<WechatComponentAuth> wechatComponentAuthRespository,
             ICurrentTenant currentTenant,
@@ -42,6 +45,7 @@ namespace Adee.Store.Wechats.Components
             _configCache = configCache;
             _accessTokenCache = accessTokenCache;
             _verifyTicketCache = verifyTicketCache;
+            _updateAccessTokenCache = updateAccessTokenCache;
             _wechatComponentConfigRespository = wechatComponentConfigRespository;
             _wechatComponentAuthRespository = wechatComponentAuthRespository;
             _currentTenant = currentTenant;
@@ -226,17 +230,29 @@ namespace Adee.Store.Wechats.Components
 
             if (baseEvent.InfoType == "unauthorized")
             {
+                var eventDto = client.DeserializeEventFromXml<ComponentUnauthorizedEvent>(body, true);
+                var appAuth = await _wechatComponentAuthRespository.GetAsync(p => p.AuthAppId == eventDto.AuthorizerAppId);
+                appAuth.UnAuthorized = true;
 
+                await _updateAccessTokenCache.SetAsync(eventDto.AuthorizerAppId, new UpdateAccessTokenArgs
+                {
+                    AppId = eventDto.AuthorizerAppId,
+                    UpdateTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                }, options: new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1) });
+
+                return;
             }
 
             if (baseEvent.InfoType == "updateauthorized")
             {
-
+                var eventDto = client.DeserializeEventFromXml<ComponentUpdateAuthorizedEvent>(body, true);
+                return;
             }
 
             if (baseEvent.InfoType == "authorized")
             {
-
+                var eventDto = client.DeserializeEventFromXml<ComponentAuthorizedEvent>(body, true);
+                return;
             }
 
             _logger.LogCritical($"未知的通知类型：{baseEvent.InfoType}，通知内容：{body}");

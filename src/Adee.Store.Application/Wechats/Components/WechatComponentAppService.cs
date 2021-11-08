@@ -179,9 +179,11 @@ namespace Adee.Store.Wechats.Components
         /// <returns></returns>
         public async Task ResetAccessToken(string appId)
         {
-            var isComponent = await _wechatComponentConfigRepository.AnyAsync(p => p.ComponentAppId == appId);
-            if (isComponent)
+            var component = await _wechatComponentConfigRepository.SingleOrDefaultAsync(p => p.ComponentAppId == appId);
+            if (component.IsNotNull())
             {
+                CheckHelper.IsFalse(component.IsDisabled, $"第三方平台：{appId}已禁用");
+
                 var accessToken = await _wechatComponentManager.UpdateComponentAccessToken(appId);
 
                 var args = new UpdateComponentAccessTokenArgs
@@ -194,9 +196,11 @@ namespace Adee.Store.Wechats.Components
                 await _backgroundJobManager.EnqueueAsync(args);
             }
 
-            var isAuthApp = await _wechatComponentAuthRepository.AnyAsync(p => p.AuthAppId == appId);
-            if (isAuthApp)
+            var authApp = await _wechatComponentAuthRepository.SingleOrDefaultAsync(p => p.AuthAppId == appId);
+            if (authApp.IsNotNull())
             {
+                CheckHelper.IsFalse(authApp.UnAuthorized, $"AppId：{appId}已取消授权");
+
                 var accessToken = await _wechatComponentManager.UpdateAccessToken(appId);
 
                 var args = new UpdateAccessTokenArgs
@@ -209,7 +213,7 @@ namespace Adee.Store.Wechats.Components
                 await _backgroundJobManager.EnqueueAsync(args, delay: TimeSpan.FromSeconds(accessToken.ExpiresIn - WechatComponentConsts.ForwardUpdateAccessToken));
             }
 
-            throw new UserFriendlyException($"appId：{appId}无效");
+            throw new UserFriendlyException($"AppId：{appId}无效");
         }
 
         /// <summary>

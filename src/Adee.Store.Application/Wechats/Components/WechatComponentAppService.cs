@@ -255,7 +255,6 @@ namespace Adee.Store.Wechats.Components
             {
                 callbackRequest.Url,
                 callbackRequest.Method,
-                callbackRequest.Query,
                 callbackRequest.Body,
                 callbackRequest.Header
             }, nameof(CallbackRequest), separator: "&", containKey: true);

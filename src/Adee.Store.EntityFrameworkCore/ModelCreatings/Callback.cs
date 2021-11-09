@@ -30,9 +30,6 @@ namespace Adee.Store.EntityFrameworkCore
                     .HasMaxLength(10)
                     .HasComment("请求方式");
 
-                entity.Property(e => e.Query)
-                    .HasComment("请求参数");
-
                 entity.Property(e => e.Header)
                     .HasComment("请求头部");
 

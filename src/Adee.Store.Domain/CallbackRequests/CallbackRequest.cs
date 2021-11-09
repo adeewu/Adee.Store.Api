@@ -30,11 +30,6 @@ namespace Adee.Store.CallbackRequests
         public string Url { get; set; }
 
         /// <summary>
-        /// 请求参数
-        /// </summary>
-        public string Query { get; set; }
-
-        /// <summary>
         /// 请求正文
         /// </summary>
         public string Body { get; set; }

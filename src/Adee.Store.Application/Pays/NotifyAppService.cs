@@ -83,7 +83,6 @@ namespace Adee.Store.Pays
                 {
                     callbackRequest.Url,
                     callbackRequest.Method,
-                    callbackRequest.Query,
                     callbackRequest.Body,
                     callbackRequest.Header
                 }, nameof(CallbackRequest), separator: "&", containKey: true);
@@ -97,7 +96,6 @@ namespace Adee.Store.Pays
                     HashCode = callbackRequest.HashCode,
                     Headers = request.Headers,
                     Method = callbackRequest.Method,
-                    Query = callbackRequest.Query,
                     Url = callbackRequest.Url,
                     PayTaskType = PayTaskType.AssertNotify,
                 });

@@ -58,7 +58,7 @@ namespace Adee.Store.Wechats.Components
             CheckHelper.IsNotNull(ticket, $"未找到ComponentVerifyTicket：{componentAppId}的缓存");
             CheckHelper.IsNotNull(ticket.ComponentVerifyTicket, $"缓存出错，令牌不能为空");
 
-            var client = await GetClient(componentAppId);
+            var client = await GetComponentClient(componentAppId);
             var acceccTokenResult = await client.ExecuteCgibinComponentApiComponentTokenAsync(new CgibinComponentApiComponentTokenRequest
             {
                 ComponentAppId = client.Credentials.AppId,
@@ -122,7 +122,7 @@ namespace Adee.Store.Wechats.Components
             var componentAccessToken = await GetAccessToken(auth.ComponentAppId);
             CheckHelper.IsNotNull(componentAccessToken, name: nameof(componentAccessToken));
 
-            var client = await GetClient(auth.ComponentAppId);
+            var client = await GetComponentClient(auth.ComponentAppId);
             var appAccessToken = await client.ExecuteCgibinComponentApiAuthorizerTokenAsync(new CgibinComponentApiAuthorizerTokenRequest
             {
                 AuthorizerAppId = appId,
@@ -150,7 +150,7 @@ namespace Adee.Store.Wechats.Components
         {
             var accessTokenItem = await GetAccessToken(dto.ComponentAppId);
 
-            var client = await GetClient(dto.ComponentAppId);
+            var client = await GetComponentClient(dto.ComponentAppId);
             var preAuthCode = await client.ExecuteCgibinComponentApiCreatePreAuthCodeAsync(new CgibinComponentApiCreatePreAuthCodeRequest
             {
                 ComponentAccessToken = accessTokenItem.AccessToken,
@@ -183,7 +183,7 @@ namespace Adee.Store.Wechats.Components
             var configItem = await GetComponentConfig(componentAppId);
             CheckHelper.IsNotNull(configItem.Secret, $"第三方平台：{componentAppId}的密钥不能为空");
 
-            var client = await GetClient(componentAppId);
+            var client = await GetComponentClient(componentAppId);
             var result = await client.ExecuteCgibinComponentApiStartPushTicketAsync(new CgibinComponentApiStartPushTicketRequest
             {
                 ComponentAppId = componentAppId,
@@ -201,7 +201,7 @@ namespace Adee.Store.Wechats.Components
             CheckHelper.IsNotNull(baseEvent, $"报文格式不正确，内容：{body}");
             CheckHelper.IsNotNull(baseEvent.ComponentAppId, $"无法获取{nameof(baseEvent.ComponentAppId)}");
 
-            client = await GetClient(baseEvent.ComponentAppId);
+            client = await GetComponentClient(baseEvent.ComponentAppId);
 
             var isValid = client.VerifyEventSignatureFromXml(auth.timestamp, auth.nonce, body, auth.msg_signature);
             CheckHelper.IsTrue(isValid, "回调数据验证失败");
@@ -249,14 +249,71 @@ namespace Adee.Store.Wechats.Components
                 return;
             }
 
-            _logger.LogCritical($"未知的通知类型：{baseEvent.InfoType}，通知内容：{body}");
+            _logger.LogCritical($"未知的授权类型：{baseEvent.InfoType}，授权内容：{body}");
+        }
+
+        public async Task<string> MessageNotify(string appId, Auth auth, string body)
+        {
+            CheckHelper.IsNotNull(body, name: nameof(body));
+
+            var authInfo = await _wechatComponentAuthRespository.FindAsync(p => p.AuthAppId == appId);
+            CheckHelper.IsNotNull(authInfo, name: nameof(authInfo));
+
+            var client = await GetComponentClient(authInfo.ComponentAppId);
+            
+            var isValid = client.VerifyEventSignatureFromXml(auth.timestamp, auth.nonce, body, auth.msg_signature);
+            CheckHelper.IsTrue(isValid, "回调数据验证失败");
+            
+            var baseEvent = client.DeserializeEventFromXml(body, true);
+            CheckHelper.IsNotNull(baseEvent, $"解密失败，内容：{body}");
+            _logger.LogDebug($"解密报文：{baseEvent.ToJsonString()}");
+
+            if (baseEvent.MessageType == "text")
+            {
+                var eventDto = client.DeserializeEventFromXml<TextMessageEvent>(body, true);
+                _logger.LogDebug($"{eventDto.FromUserName}发送消息，内容：{eventDto.Content}");
+
+                if(eventDto.Content == "TESTCOMPONENT_MSG_TYPE_TEXT")
+                {
+                    return client.SerializeEventToXml(new TextMessageEvent
+                    {
+                        ToUserName = eventDto.FromUserName,
+                        FromUserName = eventDto.ToUserName,
+                        CreateTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                        MessageType = "text",
+                        Content = "TESTCOMPONENT_MSG_TYPE_TEXT_callback",
+                    });
+                }
+                if (eventDto.Content == $"QUERY_AUTH_CODE:{authInfo.AuthorizationCode}")
+                {
+                    await client.ExecuteCgibinMessageCustomSendAsync(new CgibinMessageCustomSendRequest
+                    {
+                        ToUserOpenId = eventDto.FromUserName,
+                        MessageType = "text",
+                        MessageContentForText = new CgibinMessageCustomSendRequest.Types.TextMessage
+                        {
+                            Content = $"{authInfo.AuthorizationCode}_from_api"
+                        }
+                    });
+
+                    return string.Empty;
+                }
+            }
+
+            if(baseEvent.MessageType == "transfer_customer_service")
+            {
+
+            }
+
+            _logger.LogCritical($"未知的通知类型：{baseEvent.MessageType}，通知内容：{body}");
+            return string.Empty;
         }
 
         public async Task<CgibinComponentApiQueryAuthResponse> QueryAuth(string componentAppId, string authorizationCode)
         {
             var accessTokenItem = await GetAccessToken(componentAppId);
 
-            var client = await GetClient(componentAppId);
+            var client = await GetComponentClient(componentAppId);
             var result = await client.ExecuteCgibinComponentApiQueryAuthAsync(new CgibinComponentApiQueryAuthRequest
             {
                 ComponentAppId = componentAppId,
@@ -288,7 +345,7 @@ namespace Adee.Store.Wechats.Components
             return dto;
         }
 
-        private async Task<WechatApiClient> GetClient(string componentAppId)
+        private async Task<WechatApiClient> GetComponentClient(string componentAppId)
         {
             var componentConfigDto = await GetComponentConfig(componentAppId);
             CheckHelper.IsNotNull(componentConfigDto.Secret, $"第三方平台：{componentAppId}的密钥不能为空");

@@ -47,6 +47,15 @@ namespace Adee.Store.Wechats.Components
         Task AuthNotify(Auth auth, string body);
 
         /// <summary>
+        /// 消息通知
+        /// </summary>
+        /// <param name="appId">appId</param>
+        /// <param name="auth"></param>
+        /// <param name="body"></param>
+        /// <returns></returns>
+        Task<string> MessageNotify(string appId, Auth auth, string body);
+
+        /// <summary>
         /// 启动票据推送服务
         /// </summary>
         /// <param name="componentAppId"></param>

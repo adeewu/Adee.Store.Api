@@ -70,7 +70,7 @@ namespace Adee.Store.Wechats.Components
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, $"微信第三方平台事件通知处理失败，原因：{ex.Message}");
+                Logger.LogError(ex, $"微信第三方平台授权通知处理失败，原因：{ex.Message}");
 
                 return "fail";
             }
@@ -221,24 +221,24 @@ namespace Adee.Store.Wechats.Components
         /// 第三方平台消息通知
         /// </summary>
         /// <param name="appId"></param>
+        /// <param name="dto"></param>
         /// <returns></returns>
-        public async Task<string> GetNotify(string appId)
+        public async Task<string> PostNotify(string appId, [FromQuery]AuthNotifyDto dto)
         {
-            await Log(CallbackType.WechatComponentNotify, appId);
+            var request = await Log(CallbackType.WechatComponentNotify, appId);
 
-            return "success";
-        }
+            try
+            {
+                var model = ObjectMapper.Map<AuthNotifyDto, Auth>(dto);
 
-        /// <summary>
-        /// 第三方平台消息通知
-        /// </summary>
-        /// <param name="appId"></param>
-        /// <returns></returns>
-        public async Task<string> PostNotify(string appId)
-        {
-            await Log(CallbackType.WechatComponentNotify, appId);
+                return await _wechatComponentManager.MessageNotify(appId, model, request.Body);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, $"微信第三方平台消息通知处理失败，原因：{ex.Message}");
 
-            return "success";
+                return "fail";
+            }
         }
 
         private async Task<Request> Log(CallbackType callbackType, string appId = default)

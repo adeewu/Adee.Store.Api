@@ -3,15 +3,17 @@ using System;
 using Adee.Store.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Volo.Abp.EntityFrameworkCore;
 
 namespace Adee.Store.Migrations
 {
     [DbContext(typeof(StoreDbContext))]
-    partial class StoreDbContextModelSnapshot : ModelSnapshot
+    [Migration("20211111040026_CallbackRequest_Add_EnumDescription")]
+    partial class CallbackRequest_Add_EnumDescription
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,7 +32,7 @@ namespace Adee.Store.Migrations
 
                     b.Property<int>("CallbackType")
                         .HasColumnType("int")
-                        .HasComment("回调类型；WechatComponentAuthNoity：1[微信第三方平台授权事件]；WechatComponentNotify：2[微信第三方平台授权事件]；PayNotify：3[支付回调通知]");
+                        .HasComment("回调类型；WechatComponentAuthNoity：WechatComponentAuthNoity,微信第三方平台授权事件；WechatComponentNotify：WechatComponentNotify,微信第三方平台授权事件；PayNotify：PayNotify,支付回调通知");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()

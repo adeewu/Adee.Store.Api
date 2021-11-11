@@ -36,6 +36,9 @@ namespace Adee.Store.EntityFrameworkCore
                 entity.Property(e => e.Url)
                     .IsRequired()
                     .HasComment("通知地址");
+
+                entity.Property(e => e.CallbackType)
+                    .HasCommentForEnum("回调类型");
             });
         }
     }

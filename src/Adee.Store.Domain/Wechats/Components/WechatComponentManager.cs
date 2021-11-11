@@ -192,7 +192,7 @@ namespace Adee.Store.Wechats.Components
             ProcessResult(result);
         }
 
-        public async Task AuthNotify(Auth auth, string body)
+        public async Task AuthNotify(EncryptNotify notify, string body)
         {
             CheckHelper.IsNotNull(body, name: nameof(body));
 
@@ -203,7 +203,7 @@ namespace Adee.Store.Wechats.Components
 
             client = await GetComponentClient(baseEvent.ComponentAppId);
 
-            var isValid = client.VerifyEventSignatureFromXml(auth.timestamp, auth.nonce, body, auth.msg_signature);
+            var isValid = client.VerifyEventSignatureFromXml(notify.timestamp, notify.nonce, body, notify.msg_signature);
             CheckHelper.IsTrue(isValid, "回调数据验证失败");
 
             baseEvent = client.DeserializeEventFromXml(body, true);
@@ -252,7 +252,7 @@ namespace Adee.Store.Wechats.Components
             _logger.LogCritical($"未知的授权类型：{baseEvent.InfoType}，授权内容：{body}");
         }
 
-        public async Task<string> MessageNotify(string appId, Auth auth, string body)
+        public async Task<string> MessageNotify(string appId, EncryptNotify notify, string body)
         {
             CheckHelper.IsNotNull(body, name: nameof(body));
 
@@ -261,7 +261,7 @@ namespace Adee.Store.Wechats.Components
 
             var client = await GetComponentClient(authInfo.ComponentAppId);
 
-            var isValid = client.VerifyEventSignatureFromXml(auth.timestamp, auth.nonce, body, auth.msg_signature);
+            var isValid = client.VerifyEventSignatureFromXml(notify.timestamp, notify.nonce, body, notify.msg_signature);
             CheckHelper.IsTrue(isValid, "回调数据验证失败");
 
             var baseEvent = client.DeserializeEventFromXml(body, true);

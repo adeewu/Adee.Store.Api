@@ -55,7 +55,6 @@ namespace Adee.Store
             CreateMap<CreateUpdateProductStockOrderDto, ProductStockOrder>();
 
             CreateMap<AuthUrlDto, AuthUrl>();
-            CreateMap<AuthNotifyDto, Auth>();
 
             CreateMap<AssertNotifyRequest, CallbackRequest>()
                 .ForMember(p => p.Header, config => config.MapFrom(src => src.Headers.ToJsonString(null)));

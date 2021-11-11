@@ -57,15 +57,13 @@ namespace Adee.Store.Wechats.Components
         /// </summary>
         /// <param name="dto"></param>
         /// <returns></returns>
-        public async Task<string> AuthNotify([FromQuery] AuthNotifyDto dto)
+        public async Task<string> AuthNotify([FromQuery] EncryptNotify dto)
         {
             var request = await Log(CallbackType.WechatComponentAuthNoity);
 
             try
             {
-                var model = ObjectMapper.Map<AuthNotifyDto, Auth>(dto);
-
-                await _wechatComponentManager.AuthNotify(model, request.Body);
+                await _wechatComponentManager.AuthNotify(dto, request.Body);
                 return "success";
             }
             catch (Exception ex)
@@ -92,15 +90,8 @@ namespace Adee.Store.Wechats.Components
         /// 授权成功
         /// </summary>
         /// <returns></returns>
-        public async Task<ActionResult> GetAuthSuccess()
+        public async Task<ActionResult> GetAuthSuccess([FromQuery]AuthSuccessDto dto)
         {
-            var dto = new AuthSuccessDto
-            {
-                auth_code = HttpContext.Request.Query.Where(p => p.Key.ToLower() == "auth_code").Select(p => p.Value).FirstOrDefault(),
-                expires_in = HttpContext.Request.Query.Where(p => p.Key.ToLower() == "expires_in").Select(p => Convert.ToInt32(p.Value)).FirstOrDefault(),
-                Data = HttpContext.Request.Query.Where(p => p.Key.ToLower() == "data").Select(p => p.Value).FirstOrDefault()
-            };
-
             var data = dto.Data.AsAnonymousObject(new { ComponentAppId = string.Empty, RedirectUrl = string.Empty, TenantId = string.Empty });
 
             Guid? tenantId = null;
@@ -159,7 +150,6 @@ namespace Adee.Store.Wechats.Components
                 {
                     return new RedirectResult(data.RedirectUrl);
                 }
-
             }
         }
 
@@ -223,15 +213,13 @@ namespace Adee.Store.Wechats.Components
         /// <param name="appId"></param>
         /// <param name="dto"></param>
         /// <returns></returns>
-        public async Task<string> PostNotify(string appId, [FromQuery]AuthNotifyDto dto)
+        public async Task<string> PostNotify(string appId, [FromQuery] EncryptNotify dto)
         {
             var request = await Log(CallbackType.WechatComponentNotify, appId);
 
             try
             {
-                var model = ObjectMapper.Map<AuthNotifyDto, Auth>(dto);
-
-                return await _wechatComponentManager.MessageNotify(appId, model, request.Body);
+                return await _wechatComponentManager.MessageNotify(appId, dto, request.Body);
             }
             catch (Exception ex)
             {

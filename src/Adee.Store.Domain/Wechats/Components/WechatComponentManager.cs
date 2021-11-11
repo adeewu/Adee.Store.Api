@@ -88,7 +88,7 @@ namespace Adee.Store.Wechats.Components
         public async Task<AccessTokenCacheItem> GetAccessToken(string appId)
         {
             var accessTokenItem = await _accessTokenCache.GetAsync(appId);
-            if(accessTokenItem.IsNotNull() && accessTokenItem.AccessToken.IsNotNull())
+            if (accessTokenItem.IsNotNull() && accessTokenItem.AccessToken.IsNotNull())
             {
                 return accessTokenItem;
             }
@@ -260,47 +260,24 @@ namespace Adee.Store.Wechats.Components
             CheckHelper.IsNotNull(authInfo, name: nameof(authInfo));
 
             var client = await GetComponentClient(authInfo.ComponentAppId);
-            
+
             var isValid = client.VerifyEventSignatureFromXml(auth.timestamp, auth.nonce, body, auth.msg_signature);
             CheckHelper.IsTrue(isValid, "回调数据验证失败");
-            
+
             var baseEvent = client.DeserializeEventFromXml(body, true);
             CheckHelper.IsNotNull(baseEvent, $"解密失败，内容：{body}");
             _logger.LogDebug($"解密报文：{baseEvent.ToJsonString()}");
 
-            if (baseEvent.MessageType == "text")
+            if (baseEvent.MessageType == NotifyMessageType.Text)
             {
                 var eventDto = client.DeserializeEventFromXml<TextMessageEvent>(body, true);
-                _logger.LogDebug($"{eventDto.FromUserName}发送消息，内容：{eventDto.Content}");
+                _logger.LogInformation($"{eventDto.FromUserName}发送消息，内容：{eventDto.Content}");
 
-                if(eventDto.Content == "TESTCOMPONENT_MSG_TYPE_TEXT")
-                {
-                    return client.SerializeEventToXml(new TextMessageEvent
-                    {
-                        ToUserName = eventDto.FromUserName,
-                        FromUserName = eventDto.ToUserName,
-                        CreateTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                        MessageType = "text",
-                        Content = "TESTCOMPONENT_MSG_TYPE_TEXT_callback",
-                    });
-                }
-                if (eventDto.Content == $"QUERY_AUTH_CODE:{authInfo.AuthorizationCode}")
-                {
-                    await client.ExecuteCgibinMessageCustomSendAsync(new CgibinMessageCustomSendRequest
-                    {
-                        ToUserOpenId = eventDto.FromUserName,
-                        MessageType = "text",
-                        MessageContentForText = new CgibinMessageCustomSendRequest.Types.TextMessage
-                        {
-                            Content = $"{authInfo.AuthorizationCode}_from_api"
-                        }
-                    });
-
-                    return string.Empty;
-                }
+                var result = await ComponentPublicTest(appId, eventDto, client, authInfo.AuthorizationCode);
+                if (result != null) return result;
             }
 
-            if(baseEvent.MessageType == "transfer_customer_service")
+            if (baseEvent.MessageType == "transfer_customer_service")
             {
 
             }
@@ -364,6 +341,41 @@ namespace Adee.Store.Wechats.Components
         private void ProcessResult(WechatApiResponse response)
         {
             CheckHelper.IsTrue(response.IsSuccessful(), $"请求发生错误，原因：[{response.ErrorCode}]{response.ErrorMessage}");
+        }
+
+        private async Task<string> ComponentPublicTest(string appId, TextMessageEvent eventDto, WechatApiClient client, string authCode)
+        {
+            if (WechatComponentConsts.ValidPublicAccount.Any(p => p.Key == appId) == false) return null;
+
+            if (eventDto.Content == "TESTCOMPONENT_MSG_TYPE_TEXT")
+            {
+                return client.SerializeEventToXml(new TextMessageEvent
+                {
+                    ToUserName = eventDto.FromUserName,
+                    FromUserName = eventDto.ToUserName,
+                    CreateTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    MessageType = NotifyMessageType.Text,
+                    Content = "TESTCOMPONENT_MSG_TYPE_TEXT_callback",
+                });
+            }
+
+            if (eventDto.Content == $"QUERY_AUTH_CODE:{authCode}")
+            {
+                await client.ExecuteCgibinMessageCustomSendAsync(new CgibinMessageCustomSendRequest
+                {
+                    ToUserOpenId = eventDto.FromUserName,
+                    MessageType = NotifyMessageType.Text,
+                    MessageContentForText = new CgibinMessageCustomSendRequest.Types.TextMessage
+                    {
+                        Content = $"{authCode}_from_api"
+                    }
+                });
+
+                return string.Empty;
+            }
+
+            _logger.LogWarning($"AppId：{appId}出现未知的测试内容：{eventDto.ToJsonString()}");
+            return null;
         }
     }
 }

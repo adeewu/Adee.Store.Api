@@ -25,11 +25,5 @@
         /// </summary>
         /// <value></value>
         public AuthType AuthType { get; set; } = AuthType.ALL;
-
-        /// <summary>
-        /// 指定授权唯一的小程序或公众号，AuthType、BizAppId两个字段互斥
-        /// </summary>
-        /// <value></value>
-        public string BizAppId { get; set; }
     }
 }

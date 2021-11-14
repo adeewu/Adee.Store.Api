@@ -22,6 +22,7 @@ namespace Adee.Store.Wechats.Components
         /// <summary>
         /// 数据
         /// </summary>
+        [Required]
         public string Data { get; set; }
     }
 }

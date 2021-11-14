@@ -1,16 +1,10 @@
-﻿using Adee.Store.Orders;
-using Adee.Store.Pays;
-using Adee.Store.Wechats.Components.Repositorys;
+﻿using Adee.Store.Wechats.Components.Repositorys;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Volo.Abp;
 using Volo.Abp.Data;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Guids;
-using Volo.Abp.Identity;
-using Volo.Abp.Json;
 using Volo.Abp.Uow;
 
 namespace Adee.Store.Wechats.Components

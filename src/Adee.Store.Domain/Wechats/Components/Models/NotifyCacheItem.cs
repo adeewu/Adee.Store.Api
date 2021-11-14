@@ -42,30 +42,19 @@
         public string LastComponentVerifyTicket { get; set; }
     }
 
-    public class AuthorizedCacheItem : NotifyCacheItem
+    /// <summary>
+    /// 被动回复消息缓存
+    /// </summary>
+    public class ReplyMessageCacheItem
     {
         /// <summary>
-        /// 公众号或小程序的 appid
+        /// 回复关键字
         /// </summary>
-        /// <value></value>
-        public string AuthorizerAppid { get; set; }
+        public string Keyword { get; set; }
 
         /// <summary>
-        /// 授权码，可用于获取授权信息
+        /// 回复内容
         /// </summary>
-        /// <value></value>
-        public string AuthorizationCode { get; set; }
-
-        /// <summary>
-        /// 授权码过期时间 单位秒
-        /// </summary>
-        /// <value></value>
-        public long AuthorizationCodeExpiredTime { get; set; }
-
-        /// <summary>
-        /// 预授权码
-        /// </summary>
-        /// <value></value>
-        public string PreAuthCode { get; set; }
+        public string Content { get; set; }
     }
 }

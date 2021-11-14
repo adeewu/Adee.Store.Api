@@ -90,7 +90,7 @@ namespace Adee.Store.Wechats.Components
         /// 授权成功
         /// </summary>
         /// <returns></returns>
-        public async Task<ActionResult> GetAuthSuccess([FromQuery]AuthSuccessDto dto)
+        public async Task<ActionResult> GetAuthSuccess([FromQuery] AuthSuccessDto dto)
         {
             var data = dto.Data.AsAnonymousObject(new { ComponentAppId = string.Empty, RedirectUrl = string.Empty, TenantId = string.Empty });
 

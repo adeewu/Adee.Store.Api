@@ -1,6 +1,7 @@
 ﻿using Adee.Store.Wechats.Components.Jobs.UpdateAccessToken;
 using Adee.Store.Wechats.Components.Models;
 using Adee.Store.Wechats.Components.Repositorys;
+using Adee.Store.Wechats.OffiAccount.Messages.Repositorys;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using SKIT.FlurlHttpClient.Wechat.Api;
@@ -11,44 +12,49 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using Volo.Abp.Caching;
+using Volo.Abp.Data;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Domain.Services;
 using Volo.Abp.MultiTenancy;
 using Volo.Abp.ObjectMapping;
 
 namespace Adee.Store.Wechats.Components
 {
-    public class WechatComponentManager : IWechatComponentManager, ITransientDependency
+    public class WechatComponentManager : DomainService, IWechatComponentManager, ITransientDependency
     {
-        private readonly ILogger<WechatComponentManager> _logger;
         private readonly IDistributedCache<ComponentConfigCacheItem> _configCache;
         private readonly IDistributedCache<AccessTokenCacheItem> _accessTokenCache;
         private readonly IDistributedCache<ComponentVerifyTicketCacheItem> _verifyTicketCache;
         private readonly IDistributedCache<UpdateAccessTokenArgs> _updateAccessTokenCache;
+        private readonly IDistributedCache<ReplyMessageCacheItem> _replyMessageCache;
         private readonly IRepository<WechatComponentConfig> _wechatComponentConfigRespository;
         private readonly IRepository<WechatComponentAuth> _wechatComponentAuthRespository;
-        private readonly ICurrentTenant _currentTenant;
+        private readonly IRepository<WechatOffiAccoutReplyMessage> _wechatOffiAccountReplyMessageRespository;
+        private readonly IDataFilter _dataFilter;
         private readonly IObjectMapper _objectMapper;
 
         public WechatComponentManager(
-            ILogger<WechatComponentManager> logger,
             IDistributedCache<ComponentConfigCacheItem> configCache,
             IDistributedCache<AccessTokenCacheItem> accessTokenCache,
             IDistributedCache<ComponentVerifyTicketCacheItem> verifyTicketCache,
             IDistributedCache<UpdateAccessTokenArgs> updateAccessTokenCache,
+            IDistributedCache<ReplyMessageCacheItem> replyMessageCache,
             IRepository<WechatComponentConfig> wechatComponentConfigRespository,
             IRepository<WechatComponentAuth> wechatComponentAuthRespository,
-            ICurrentTenant currentTenant,
+            IRepository<WechatOffiAccoutReplyMessage> wechatOffiAccountReplyMessageRespository,
+            IDataFilter dataFilter,
             IObjectMapper objectMapper)
         {
-            _logger = logger;
             _configCache = configCache;
             _accessTokenCache = accessTokenCache;
             _verifyTicketCache = verifyTicketCache;
             _updateAccessTokenCache = updateAccessTokenCache;
+            _replyMessageCache = replyMessageCache;
             _wechatComponentConfigRespository = wechatComponentConfigRespository;
             _wechatComponentAuthRespository = wechatComponentAuthRespository;
-            _currentTenant = currentTenant;
+            _wechatOffiAccountReplyMessageRespository = wechatOffiAccountReplyMessageRespository;
+            _dataFilter = dataFilter;
             _objectMapper = objectMapper;
         }
 
@@ -93,7 +99,11 @@ namespace Adee.Store.Wechats.Components
                 return accessTokenItem;
             }
 
-            var auth = await _wechatComponentAuthRespository.GetAsync(p => p.AuthAppId == appId);
+            WechatComponentAuth auth = null;
+            using (_dataFilter.Disable<IMultiTenant>())
+            {
+                auth = await _wechatComponentAuthRespository.FindAsync(p => p.AuthAppId == appId);
+            }
             CheckHelper.IsNotNull(auth, name: nameof(auth));
 
             var response = await QueryAuth(auth.ComponentAppId, auth.AuthorizationCode);
@@ -102,22 +112,23 @@ namespace Adee.Store.Wechats.Components
             auth.AuthorizerRefreshToken = response.Authorization.AuthorizerRefreshToken;
             await _wechatComponentAuthRespository.UpdateAsync(auth, autoSave: true);
 
-            accessTokenItem = new AccessTokenCacheItem
+            return new AccessTokenCacheItem
             {
                 AccessToken = response.Authorization.AuthorizerAccessToken,
                 ExpiresIn = response.Authorization.ExpiresIn,
                 RefreshToken = response.Authorization.AuthorizerRefreshToken,
+                AuthorizationCode = auth.AuthorizationCode,
             };
-
-
-            return accessTokenItem;
         }
 
         public async Task<AccessTokenCacheItem> UpdateAccessToken(string appId)
         {
-            var auth = await _wechatComponentAuthRespository.GetAsync(p => p.AuthAppId == appId);
-            CheckHelper.IsNotNull(auth, $"AppId：{appId}授权信息不存在");
-            CheckHelper.IsNotNull(auth.ComponentAppId, $"AppId：{appId}的授权第三方平台信息错误");
+            WechatComponentAuth auth = null;
+            using (_dataFilter.Disable<IMultiTenant>())
+            {
+                auth = await _wechatComponentAuthRespository.FindAsync(p => p.AuthAppId == appId);
+            }
+            CheckHelper.IsNotNull(auth, name: nameof(auth));
 
             var componentAccessToken = await GetAccessToken(auth.ComponentAppId);
             CheckHelper.IsNotNull(componentAccessToken, name: nameof(componentAccessToken));
@@ -136,6 +147,7 @@ namespace Adee.Store.Wechats.Components
                 AccessToken = appAccessToken.AuthorizerAccessToken,
                 ExpiresIn = appAccessToken.ExpiresIn,
                 RefreshToken = appAccessToken.AuthorizerRefreshToken,
+                AuthorizationCode = auth.AuthorizationCode,
             };
 
             await _accessTokenCache.SetAsync(appId, accessTokenItem, options: new DistributedCacheEntryOptions
@@ -162,20 +174,26 @@ namespace Adee.Store.Wechats.Components
             {
                 dto.RedirectUrl,
                 dto.ComponentAppId,
-                TenantId = _currentTenant.Id
+                TenantId = CurrentTenant.Id
             }.ToJsonString();
             var url = $"{domain}/api/store/wechat-component/auth-success?Data={HttpUtility.UrlEncode(data)}";
             url = HttpUtility.UrlEncode(url);
 
-            if (dto.IsMobile && string.IsNullOrWhiteSpace(dto.BizAppId) == true)
+            var authType = $"auth_type={(int)dto.AuthType}";
+            var auth = await _wechatComponentAuthRespository.FindAsync(p => p.TenantId == CurrentTenant.Id);
+            if (auth.IsNotNull())
             {
-                return $"https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&component_appid={dto.ComponentAppId}&pre_auth_code={preAuthCode.PreAuthCode}&redirect_uri={url}&auth_type={(int)dto.AuthType}#wechat_redirect";
+                authType = $"biz_appid={auth.AuthAppId}";
             }
-            if (dto.IsMobile && string.IsNullOrWhiteSpace(dto.BizAppId) == false)
+
+            if (dto.IsMobile)
             {
-                return $"https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&component_appid={dto.ComponentAppId}&pre_auth_code={preAuthCode.PreAuthCode}&redirect_uri={url}&biz_appid={dto.BizAppId}#wechat_redirect";
+                return $"https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&component_appid={dto.ComponentAppId}&pre_auth_code={preAuthCode.PreAuthCode}&redirect_uri={url}&{authType}#wechat_redirect";
             }
-            return $"https://mp.weixin.qq.com/cgi-bin/componentloginpage?component_appid={dto.ComponentAppId}&pre_auth_code={preAuthCode.PreAuthCode}&redirect_uri={url}&auth_type={(int)dto.AuthType}";
+            else
+            {
+                return $"https://mp.weixin.qq.com/cgi-bin/componentloginpage?component_appid={dto.ComponentAppId}&pre_auth_code={preAuthCode.PreAuthCode}&redirect_uri={url}&{authType}";
+            }
         }
 
         public async Task StartPushTicket(string componentAppId)
@@ -208,7 +226,7 @@ namespace Adee.Store.Wechats.Components
 
             baseEvent = client.DeserializeEventFromXml(body, true);
             CheckHelper.IsNotNull(baseEvent, $"解密失败，内容：{body}");
-            _logger.LogDebug($"解密报文：{baseEvent.ToJsonString()}");
+            Logger.LogDebug($"解密报文：{baseEvent.ToJsonString()}");
 
             if (baseEvent.InfoType == "component_verify_ticket")
             {
@@ -231,8 +249,15 @@ namespace Adee.Store.Wechats.Components
             if (baseEvent.InfoType == "unauthorized")
             {
                 var eventDto = client.DeserializeEventFromXml<ComponentUnauthorizedEvent>(body, true);
-                var appAuth = await _wechatComponentAuthRespository.GetAsync(p => p.AuthAppId == eventDto.AuthorizerAppId);
-                appAuth.UnAuthorized = true;
+
+                using (_dataFilter.Disable<IMultiTenant>())
+                {
+                    var appAuth = await _wechatComponentAuthRespository.FindAsync(p => p.AuthAppId == eventDto.AuthorizerAppId);
+                    if (appAuth.IsNotNull())
+                    {
+                        appAuth.UnAuthorized = true;
+                    }
+                }
 
                 await _updateAccessTokenCache.SetAsync(eventDto.AuthorizerAppId, new UpdateAccessTokenArgs
                 {
@@ -249,40 +274,40 @@ namespace Adee.Store.Wechats.Components
                 return;
             }
 
-            _logger.LogCritical($"未知的授权类型：{baseEvent.InfoType}，授权内容：{body}");
+            Logger.LogWarning($"未知的授权类型：{baseEvent.InfoType}，授权内容：{body}");
         }
 
         public async Task<string> MessageNotify(string appId, EncryptNotify notify, string body)
         {
             CheckHelper.IsNotNull(body, name: nameof(body));
 
-            var authInfo = await _wechatComponentAuthRespository.FindAsync(p => p.AuthAppId == appId);
-            CheckHelper.IsNotNull(authInfo, name: nameof(authInfo));
+            WechatComponentAuth auth = null;
+            using (_dataFilter.Disable<IMultiTenant>())
+            {
+                auth = await _wechatComponentAuthRespository.FindAsync(p => p.AuthAppId == appId);
+            }
+            CheckHelper.IsNotNull(auth, name: nameof(auth));
 
-            var client = await GetComponentClient(authInfo.ComponentAppId);
+            var client = await GetComponentClient(auth.ComponentAppId);
 
             var isValid = client.VerifyEventSignatureFromXml(notify.timestamp, notify.nonce, body, notify.msg_signature);
             CheckHelper.IsTrue(isValid, "回调数据验证失败");
 
             var baseEvent = client.DeserializeEventFromXml(body, true);
             CheckHelper.IsNotNull(baseEvent, $"解密失败，内容：{body}");
-            _logger.LogDebug($"解密报文：{baseEvent.ToJsonString()}");
+            Logger.LogDebug($"解密报文：{baseEvent.ToJsonString()}");
 
             if (baseEvent.MessageType == NotifyMessageType.Text)
             {
-                var eventDto = client.DeserializeEventFromXml<TextMessageEvent>(body, true);
-                _logger.LogInformation($"{eventDto.FromUserName}发送消息，内容：{eventDto.Content}");
-
-                var result = await ComponentPublicTest(appId, eventDto, client, authInfo.AuthorizationCode);
-                if (result != null) return result;
+                return await ReplyMessage4Text(appId, auth.TenantId, body, client);
             }
 
-            if (baseEvent.MessageType == "transfer_customer_service")
+            if (baseEvent.MessageType == NotifyMessageType.TransferCustomerService)
             {
 
             }
 
-            _logger.LogCritical($"未知的通知类型：{baseEvent.MessageType}，通知内容：{body}");
+            Logger.LogCritical($"未知的通知类型：{baseEvent.MessageType}，通知内容：{body}");
             return string.Empty;
         }
 
@@ -304,6 +329,7 @@ namespace Adee.Store.Wechats.Components
                 AccessToken = result.Authorization.AuthorizerAccessToken,
                 ExpiresIn = result.Authorization.ExpiresIn,
                 RefreshToken = result.Authorization.AuthorizerRefreshToken,
+                AuthorizationCode = authorizationCode,
             });
 
             return result;
@@ -343,39 +369,168 @@ namespace Adee.Store.Wechats.Components
             CheckHelper.IsTrue(response.IsSuccessful(), $"请求发生错误，原因：[{response.ErrorCode}]{response.ErrorMessage}");
         }
 
-        private async Task<string> ComponentPublicTest(string appId, TextMessageEvent eventDto, WechatApiClient client, string authCode)
+        private async Task<string> ReplyMessage4Text(string appId, Guid? tenantId, string body, WechatApiClient client)
         {
-            if (WechatComponentConsts.ValidPublicAccount.Any(p => p.Key == appId) == false) return null;
+            WechatOffiAccoutReplyMessage replyMessage = null;
 
-            if (eventDto.Content == "TESTCOMPONENT_MSG_TYPE_TEXT")
+            var eventDto = client.DeserializeEventFromXml<TextMessageEvent>(body, true);
+            Logger.LogInformation($"{eventDto.FromUserName}发送消息，内容：{eventDto.Content}");
+
+            var replyMessageKey = $"{appId}-{eventDto.Content.ToMd5()}";
+
+            var replyMessageCache = await _replyMessageCache.GetAsync(replyMessageKey);
+            if (replyMessageCache.IsNotNull()) return replyMessageCache.Content;
+
+            using (CurrentTenant.Change(tenantId))
             {
-                return client.SerializeEventToXml(new TextMessageEvent
+                var replyMessages = await _wechatOffiAccountReplyMessageRespository.GetListAsync(p => p.Keyword.Contains(eventDto.Content));
+
+                replyMessage = replyMessages.FirstOrDefault(p => p.MatchType == OffiAccount.MatchType.Full);
+                if (replyMessage.IsNull()) replyMessage = replyMessages.FirstOrDefault(p => p.MatchType == OffiAccount.MatchType.StartLike);
+                if (replyMessage.IsNull()) replyMessage = replyMessages.FirstOrDefault(p => p.MatchType == OffiAccount.MatchType.EndLike);
+                if (replyMessage.IsNull()) replyMessage = replyMessages.FirstOrDefault(p => p.MatchType == OffiAccount.MatchType.Like);
+
+                if (replyMessage.IsNull())
                 {
-                    ToUserName = eventDto.FromUserName,
-                    FromUserName = eventDto.ToUserName,
-                    CreateTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                    MessageType = NotifyMessageType.Text,
-                    Content = "TESTCOMPONENT_MSG_TYPE_TEXT_callback",
-                });
+                    replyMessage = await _wechatOffiAccountReplyMessageRespository.FindAsync(p => p.MatchType == OffiAccount.MatchType.Default);
+                }
             }
 
-            if (eventDto.Content == $"QUERY_AUTH_CODE:{authCode}")
+            if (replyMessage.IsNull()) return "success";
+
+            replyMessageCache = new ReplyMessageCacheItem
             {
-                await client.ExecuteCgibinMessageCustomSendAsync(new CgibinMessageCustomSendRequest
+                Keyword = eventDto.Content,
+            };
+            var isReply = false;
+
+            if (replyMessage.MessageType == ReplyMessageType.Text)
+            {
+                replyMessageCache.Content = client.SerializeEventToXml(new TextMessageReply
                 {
-                    ToUserOpenId = eventDto.FromUserName,
-                    MessageType = NotifyMessageType.Text,
-                    MessageContentForText = new CgibinMessageCustomSendRequest.Types.TextMessage
+                    FromUserName = eventDto.ToUserName,
+                    ToUserName = eventDto.FromUserName,
+                    CreateTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    MessageType = ReplyMessageType.Text,
+                    Content = replyMessage.MessageContent,
+                });
+
+                isReply = true;
+            }
+
+            if (replyMessage.MessageType == ReplyMessageType.Image)
+            {
+                replyMessageCache.Content = client.SerializeEventToXml(new ImageMessageReply
+                {
+                    FromUserName = eventDto.ToUserName,
+                    ToUserName = eventDto.FromUserName,
+                    CreateTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    MessageType = ReplyMessageType.Image,
+                    Image = new ImageMessageReply.Types.Image
                     {
-                        Content = $"{authCode}_from_api"
+                        MediaId = replyMessage.MessageContent,
                     }
                 });
 
-                return string.Empty;
+                isReply = true;
             }
 
-            _logger.LogWarning($"AppId：{appId}出现未知的测试内容：{eventDto.ToJsonString()}");
-            return null;
+            if (replyMessage.MessageType == ReplyMessageType.Voice)
+            {
+                replyMessageCache.Content = client.SerializeEventToXml(new VoiceMessageReply
+                {
+                    FromUserName = eventDto.ToUserName,
+                    ToUserName = eventDto.FromUserName,
+                    CreateTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    MessageType = ReplyMessageType.Voice,
+                    Voice = new VoiceMessageReply.Types.Voice
+                    {
+                        MediaId = replyMessage.MessageContent,
+                    },
+                });
+
+                isReply = true;
+            }
+
+            if (replyMessage.MessageType == ReplyMessageType.Video)
+            {
+                replyMessageCache.Content = client.SerializeEventToXml(new VideoMessageReply
+                {
+                    FromUserName = eventDto.ToUserName,
+                    ToUserName = eventDto.FromUserName,
+                    CreateTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    MessageType = ReplyMessageType.Video,
+                    Video = replyMessage.MessageContent.AsObject<VideoMessageReply.Types.Video>()
+                });
+
+                isReply = true;
+            }
+
+            if (replyMessage.MessageType == ReplyMessageType.Music)
+            {
+                replyMessageCache.Content = client.SerializeEventToXml(new MusicMessageReply
+                {
+                    FromUserName = eventDto.ToUserName,
+                    ToUserName = eventDto.FromUserName,
+                    CreateTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    MessageType = ReplyMessageType.Video,
+                    Music = replyMessage.MessageContent.AsObject<MusicMessageReply.Types.Music>()
+                });
+
+                isReply = true;
+            }
+
+            if (replyMessage.MessageType == ReplyMessageType.CustomerService)
+            {
+                var replyContent = "未知的消息内容";
+
+                if (eventDto.Content.StartsWith($"QUERY_AUTH_CODE:"))
+                {
+                    var accessToken = await _accessTokenCache.GetAsync(appId);
+
+                    var isValid = eventDto.Content.StartsWith($"QUERY_AUTH_CODE:{accessToken.AuthorizationCode}");
+                    replyContent = $"无效的AuthorizationCode，内容：{eventDto.Content}";
+
+                    await client.ExecuteCgibinMessageCustomSendAsync(new CgibinMessageCustomSendRequest
+                    {
+                        ToUserOpenId = eventDto.FromUserName,
+                        MessageType = NotifyMessageType.Text,
+                        MessageContentForText = new CgibinMessageCustomSendRequest.Types.TextMessage
+                        {
+                            Content = isValid ? $"{accessToken.AuthorizationCode}_from_api" : replyContent,
+                        }
+                    });
+
+                    if (isValid)
+                    {
+                        replyContent = string.Empty;
+                    }
+                }
+
+                replyMessageCache.Content = client.SerializeEventToXml(new TextMessageReply
+                {
+                    FromUserName = eventDto.ToUserName,
+                    ToUserName = eventDto.FromUserName,
+                    CreateTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    MessageType = ReplyMessageType.Text,
+                    Content = replyContent,
+                });
+
+                isReply = true;
+            }
+
+            if (isReply == true)
+            {
+                await _replyMessageCache.SetAsync(replyMessageKey, replyMessageCache, options: new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(1),
+                });
+
+                return replyMessageCache.Content;
+            }
+
+            Logger.LogWarning($"未处理的消息类型：{replyMessage.MessageType}，id：{replyMessage.Id}");
+            return "success";
         }
     }
 }

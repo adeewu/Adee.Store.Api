@@ -1,7 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Linq;
+using System.Linq.Expressions;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.Data;
@@ -105,6 +108,30 @@ namespace Adee.Store.EntityFrameworkCore
                     optionsBuilder.LogTo(msg => Logger.LogDebug(msg), LogLevel.Information);
                 }
             }
+        }
+
+        protected override bool ShouldFilterEntity<TEntity>(IMutableEntityType entityType)
+        {
+            if (typeof(IIsDisabled).IsAssignableFrom(typeof(TEntity)))
+            {
+                return true;
+            }
+
+            return base.ShouldFilterEntity<TEntity>(entityType);
+        }
+
+        protected override Expression<Func<TEntity, bool>> CreateFilterExpression<TEntity>()
+        {
+            var expression = base.CreateFilterExpression<TEntity>();
+
+            if (typeof(IIsDisabled).IsAssignableFrom(typeof(TEntity)))
+            {
+                Expression<Func<TEntity, bool>> isDisabledFilter = e => EF.Property<bool>(e, "IsDisabled") == false;
+
+                expression = expression == null ? isDisabledFilter : CombineExpressions(expression, isDisabledFilter);
+            }
+
+            return expression;
         }
     }
 }

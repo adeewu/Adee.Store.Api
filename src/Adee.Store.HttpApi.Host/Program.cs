@@ -3,42 +3,17 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
+using Serilog.Exceptions;
+using Serilog.Exceptions.Core;
 using System;
 
 namespace Adee.Store
 {
     public class Program
     {
-        public static int Main(string[] args)
+        public static void Main(string[] args)
         {
-            Log.Logger = new LoggerConfiguration()
-#if DEBUG
-                .MinimumLevel.Debug()
-#else
-                .MinimumLevel.Information()
-#endif
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-                .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
-                .Enrich.FromLogContext()
-                .WriteTo.Async(c => c.File("Logs/log-.log", rollingInterval: RollingInterval.Day))
-                .WriteTo.Async(c => c.Console())
-                .CreateLogger();
-
-            try
-            {
-                Log.Information("Starting Adee.Store.HttpApi.Host.");
-                CreateHostBuilder(args).Build().Run();
-                return 0;
-            }
-            catch (Exception ex)
-            {
-                Log.Fatal(ex, "Adee.Store.HttpApi.Host terminated unexpectedly!");
-                return 1;
-            }
-            finally
-            {
-                Log.CloseAndFlush();
-            }
+            CreateHostBuilder(args).Build().Run();
         }
 
         internal static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -52,6 +27,16 @@ namespace Adee.Store
                     webBuilder.UseStartup<Startup>();
                 })
                 .UseAutofac()
-                .UseSerilog();
+                .UseSerilog((context, loggerConfiguration) =>
+                {
+                    loggerConfiguration
+                        .ReadFrom
+                        .Configuration(context.Configuration)
+                        .Enrich.WithExceptionDetails()
+                        .Enrich.WithExceptionDetails(new DestructuringOptionsBuilder().WithDefaultDestructurers())
+                        .Enrich.FromLogContext()
+                        .WriteTo.Async(c => c.File("Logs/log-.log", rollingInterval: RollingInterval.Day, outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}"))
+                        .WriteTo.Async(c => c.Console(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}"));
+                });
     }
 }

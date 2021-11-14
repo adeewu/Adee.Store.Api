@@ -24,6 +24,7 @@ using Volo.Abp.AspNetCore.Mvc.UI.MultiTenancy;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.Shared;
 using Volo.Abp.AspNetCore.Serilog;
 using Volo.Abp.Autofac;
+using Volo.Abp.BackgroundJobs;
 using Volo.Abp.Caching;
 using Volo.Abp.Caching.StackExchangeRedis;
 using Volo.Abp.Localization;
@@ -68,6 +69,7 @@ namespace Adee.Store
             ConfigureRedis(context, configuration, hostingEnvironment);
             ConfigureCors(context, configuration);
             ConfigureSwaggerServices(context, configuration);
+            ConfigureBackgroudJob(context, hostingEnvironment);
         }
 
         private void ConfigureCache(IConfiguration configuration)
@@ -225,6 +227,17 @@ namespace Adee.Store
                         .AllowCredentials();
                 });
             });
+        }
+
+        private void ConfigureBackgroudJob(ServiceConfigurationContext context, IWebHostEnvironment hostingEnvironment)
+        {
+            if (hostingEnvironment.IsDevelopment())
+            {
+                context.Services.Configure<AbpBackgroundJobOptions>(options =>
+                {
+                    options.IsJobExecutionEnabled = false;
+                });
+            }
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

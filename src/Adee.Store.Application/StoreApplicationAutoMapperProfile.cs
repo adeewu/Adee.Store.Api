@@ -4,6 +4,8 @@ using Adee.Store.Products;
 using Adee.Store.Wechats.Components;
 using Adee.Store.Wechats.Components.Models;
 using Adee.Store.Wechats.Components.Repositorys;
+using Adee.Store.Wechats.OffiAccount;
+using Adee.Store.Wechats.OffiAccount.Messages.Repositorys;
 using AutoMapper;
 using SKIT.FlurlHttpClient.Wechat.Api.Events;
 using System.Collections.Generic;
@@ -64,6 +66,9 @@ namespace Adee.Store
 
             CreateMap<WechatComponentConfig, ComponentConfigCacheItem>()
                 .ForMember(p => p.AppId, config => config.MapFrom(src => src.ComponentAppId));
+
+            CreateMap<WechatOffiAccoutReplyMessage, ReplyMessageDto>();
+            CreateMap<CreateUpdateReplyMessageDto, WechatOffiAccoutReplyMessage>();
         }
     }
 }

@@ -1,10 +1,13 @@
 ﻿using System;
 using Volo.Abp.Domain.Entities.Auditing;
+using Volo.Abp.MultiTenancy;
 
 namespace Adee.Store.Wechats.OffiAccount.Messages.Repositorys
 {
-    public class WechatOffiAccoutReplyMessage : AuditedAggregateRoot<Guid>, IIsDisabled
+    public class WechatOffiAccoutReplyMessage : AuditedAggregateRoot<Guid>, IMultiTenant, IIsDisabled
     {
+        public WechatOffiAccoutReplyMessage() { }
+
         public WechatOffiAccoutReplyMessage(Guid id)
         {
             Id = id;

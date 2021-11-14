@@ -413,7 +413,7 @@ namespace Adee.Store.Wechats.Components
                     CreateTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
                     MessageType = ReplyMessageType.Text,
                     Content = replyMessage.MessageContent,
-                });
+                }, true);
 
                 isReply = true;
             }
@@ -430,7 +430,7 @@ namespace Adee.Store.Wechats.Components
                     {
                         MediaId = replyMessage.MessageContent,
                     }
-                });
+                }, true);
 
                 isReply = true;
             }
@@ -447,7 +447,7 @@ namespace Adee.Store.Wechats.Components
                     {
                         MediaId = replyMessage.MessageContent,
                     },
-                });
+                }, true);
 
                 isReply = true;
             }
@@ -461,7 +461,7 @@ namespace Adee.Store.Wechats.Components
                     CreateTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
                     MessageType = ReplyMessageType.Video,
                     Video = replyMessage.MessageContent.AsObject<VideoMessageReply.Types.Video>()
-                });
+                }, true);
 
                 isReply = true;
             }
@@ -475,7 +475,7 @@ namespace Adee.Store.Wechats.Components
                     CreateTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
                     MessageType = ReplyMessageType.Video,
                     Music = replyMessage.MessageContent.AsObject<MusicMessageReply.Types.Music>()
-                });
+                }, true);
 
                 isReply = true;
             }
@@ -501,10 +501,7 @@ namespace Adee.Store.Wechats.Components
                         }
                     });
 
-                    if (isValid)
-                    {
-                        replyContent = string.Empty;
-                    }
+                    if (isValid) return string.Empty;
                 }
 
                 replyMessageCache.Content = client.SerializeEventToXml(new TextMessageReply
@@ -514,7 +511,7 @@ namespace Adee.Store.Wechats.Components
                     CreateTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
                     MessageType = ReplyMessageType.Text,
                     Content = replyContent,
-                });
+                }, true);
 
                 isReply = true;
             }

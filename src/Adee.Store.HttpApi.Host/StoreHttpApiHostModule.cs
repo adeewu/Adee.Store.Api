@@ -125,7 +125,7 @@ namespace Adee.Store
 
                     options.Authority = authServer.Authority;
                     options.RequireHttpsMetadata = authServer.RequireHttpsMetadata;
-                    options.Audience = authServer.Authority;
+                    options.Audience = "Store";
 
                     if (hostingEnvironment.IsDevelopment())
                     {

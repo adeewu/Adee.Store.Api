@@ -61,6 +61,10 @@ namespace Adee.Store
                 });
             }
 
+            context.Services.Configure<AppOptions>(options => options = GetAppOptions(configuration));
+
+            context.Services.Configure<AuthServerOptions>(options => options = GetAuthServerOptions(configuration));
+
             ConfigureConventionalControllers();
             ConfigureAuthentication(context, configuration, hostingEnvironment);
             ConfigureLocalization();
@@ -117,9 +121,11 @@ namespace Adee.Store
             context.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
-                    options.Authority = configuration["AuthServer:Authority"];
-                    options.RequireHttpsMetadata = Convert.ToBoolean(configuration["AuthServer:RequireHttpsMetadata"]);
-                    options.Audience = "Store";
+                    var authServer = GetAuthServerOptions(configuration);
+
+                    options.Authority = authServer.Authority;
+                    options.RequireHttpsMetadata = authServer.RequireHttpsMetadata;
+                    options.Audience = authServer.Authority;
 
                     if (hostingEnvironment.IsDevelopment())
                     {
@@ -130,8 +136,9 @@ namespace Adee.Store
 
         private void ConfigureSwaggerServices(ServiceConfigurationContext context, IConfiguration configuration)
         {
+            var authServer = GetAuthServerOptions(configuration);
             context.Services.AddAbpSwaggerGenWithOAuth(
-                configuration["AuthServer:Authority"],
+                authServer.Authority,
                 new Dictionary<string, string>
                 {
                     {"Store", "Store API"}
@@ -211,15 +218,11 @@ namespace Adee.Store
         {
             context.Services.AddCors(options =>
             {
+                var appOptions = GetAppOptions(configuration);
                 options.AddDefaultPolicy(builder =>
                 {
                     builder
-                        .WithOrigins(
-                            configuration["App:CorsOrigins"]
-                                .Split(",", StringSplitOptions.RemoveEmptyEntries)
-                                .Select(o => o.RemovePostFix("/"))
-                                .ToArray()
-                        )
+                        .WithOrigins(appOptions.CorsOriginArray)
                         .WithAbpExposedHeaders()
                         .SetIsOriginAllowedToAllowWildcardSubdomains()
                         .AllowAnyHeader()
@@ -238,6 +241,33 @@ namespace Adee.Store
                     options.IsJobExecutionEnabled = false;
                 });
             }
+        }
+
+        private AuthServerOptions GetAuthServerOptions(IConfiguration configuration)
+        {
+            var options = configuration.GetSection("AuthServer").Get<AuthServerOptions>();
+
+            var versionName = configuration.GetValue("VERSION_NAME", string.Empty);
+            if (versionName.IsNullOrWhiteSpace() == false)
+            {
+                options.Authority = $"https://{versionName}-ids4.adee.huobsj.com";
+            }
+
+            return options;
+        }
+
+        private AppOptions GetAppOptions(IConfiguration configuration)
+        {
+            var options = configuration.GetSection("App").Get<AppOptions>();
+
+            var versionName = configuration.GetValue("VERSION_NAME", string.Empty);
+            if (versionName.IsNullOrWhiteSpace() == false)
+            {
+                options.SelfUrl = $"https://{versionName}-api.adee.huobsj.com";
+                options.CorsOrigins = $"{options.CorsOrigins},https://{versionName}-vue.adee.huobsj.com";
+            }
+
+            return options;
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
@@ -290,9 +320,9 @@ namespace Adee.Store
                     });
                 options.SwaggerEndpoint($"/swagger/{ApiGroupType.NoGroup.ToString()}/swagger.json", ApiGroupType.NoGroup.GetDescription());
 
-                var configuration = context.GetConfiguration();
-                options.OAuthClientId(configuration["AuthServer:SwaggerClientId"]);
-                options.OAuthClientSecret(configuration["AuthServer:SwaggerClientSecret"]);
+                var authServerOptions = GetAuthServerOptions(context.GetConfiguration());
+                options.OAuthClientId(authServerOptions.SwaggerClientId);
+                options.OAuthClientSecret(authServerOptions.SwaggerClientSecret);
                 options.OAuthScopes("Store");
             });
 

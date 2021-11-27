@@ -62,5 +62,23 @@ namespace Adee.Store.Attributes
         /// </summary>
         [Description("第三方平台接口")]
         WechatComponent,
+
+        /// <summary>
+        /// Identity Server接口
+        /// </summary>
+        [Description("Identity Server接口")]
+        IdentityServer,
+
+        /// <summary>
+        /// ElasticSearchs接口
+        /// </summary>
+        [Description("ElasticSearchs接口")]
+        ElasticSearch,
+
+        /// <summary>
+        /// 系统基础接口
+        /// </summary>
+        [Description("系统基础接口")]
+        SystemBase,
     }
 }

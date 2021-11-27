@@ -1,5 +1,4 @@
-﻿using Adee.Store.Wechats.OffiAccount;
-using System;
+﻿using System;
 using Volo.Abp.Application.Dtos;
 
 namespace Adee.Store.Wechats.OffiAccount

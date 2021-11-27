@@ -171,7 +171,18 @@ namespace Adee.Store
                             .Select(p => p.ApiGroupType.ToString())
                             .ToList();
 
-                        if (groupTypes.IsNull() && docName == ApiGroupType.NoGroup.ToString()) return true;
+                        if (groupTypes.IsNull())
+                        {
+                            //以Volo.Abp.、Page.Abp.开头归到Adb分组
+                            if (apiDesc.ActionDescriptor.DisplayName.StartsWith("Volo.Abp.")
+                            || apiDesc.ActionDescriptor.DisplayName.StartsWith("Pages.Abp."))
+                            {
+                                return docName == ApiGroupType.Abp.ToString();
+                            }
+
+                            //没有标记的归到未分组
+                            return docName == ApiGroupType.NoGroup.ToString();
+                        }
 
                         return groupTypes.Contains(docName);
                     });

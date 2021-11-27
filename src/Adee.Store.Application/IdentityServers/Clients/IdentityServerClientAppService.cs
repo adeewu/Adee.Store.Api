@@ -29,7 +29,7 @@ namespace Adee.Store.IdentityServers.Clients
         public async Task<PagedResultDto<ClientListOutput>> GetListAsync(ClientListInput input)
         {
             var list = await _idenityServerClientManager.GetListAsync(
-                input.SkipCount,
+                input.GetSkipCount(),
                 input.PageSize,
                 input.Filter,
                 true);

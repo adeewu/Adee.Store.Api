@@ -29,7 +29,7 @@ namespace Adee.Store.IdentityServers.ApiResources
         public async Task<PagedResultDto<ApiResourceOutput>> GetListAsync(ApiRseourceListInput input)
         {
             var list = await _idenityServerApiResourceManager.GetListAsync(
-                input.SkipCount,
+                input.GetSkipCount(),
                 input.PageSize,
                 input.Filter,
                 true);

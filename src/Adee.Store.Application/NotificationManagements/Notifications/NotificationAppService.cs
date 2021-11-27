@@ -88,7 +88,7 @@ namespace Adee.Store.NotificationManagement.Notifications
 
             var totalCount = await _dapperNotificationRepository.GetPageTextNotificationCountByUserIdAsync(_currentUser.Id.Value);
 
-            var list = await _dapperNotificationRepository.GetTextNotificationByUserIdAsync(_currentUser.Id.Value, listInput.PageSize, listInput.SkipCount);
+            var list = await _dapperNotificationRepository.GetTextNotificationByUserIdAsync(_currentUser.Id.Value, listInput.PageSize, listInput.GetSkipCount());
 
             return new PagedResultDto<NotificationListOutput>(totalCount, list);
         }
@@ -107,7 +107,7 @@ namespace Adee.Store.NotificationManagement.Notifications
 
             var totalCount = await _dapperNotificationRepository.GetPageBroadCastNotificationCountByUserIdAsync(_currentUser.Id.Value);
 
-            var list = await _dapperNotificationRepository.GetBroadCastNotificationByUserIdAsync(_currentUser.Id.Value, listInput.PageSize, listInput.SkipCount);
+            var list = await _dapperNotificationRepository.GetBroadCastNotificationByUserIdAsync(_currentUser.Id.Value, listInput.PageSize, listInput.GetSkipCount());
 
             return new PagedResultDto<NotificationListOutput>(totalCount, list);
         }

@@ -29,7 +29,7 @@ namespace Adee.Store.AuditLogs
             var list = await _auditLogRepository.GetListAsync(
                 input.Sorting,
                 input.PageSize,
-                input.SkipCount,
+                input.GetSkipCount(),
                 input.StartTime?.Date,
                 input.EndTime?.Date,
                 input.HttpMethod,

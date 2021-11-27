@@ -32,7 +32,7 @@ namespace Adee.Store.IdentityServers.ApiScopes
         public async Task<PagedResultDto<ApiScopeListOutput>> GetListAsync(ApiScopeListInput input)
         {
             var list = await _idenityServerApiScopeManager.GetListAsync(
-                input.SkipCount,
+                input.GetSkipCount(),
                 input.PageSize,
                 input.Filter,
                 false

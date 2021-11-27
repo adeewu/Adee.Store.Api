@@ -23,7 +23,10 @@ namespace Adee.Store
         /// <summary>
         /// 跳过多少条
         /// </summary>
-        public int SkipCount => (PageIndex - 1) * PageSize;
+        public int GetSkipCount()
+        {
+            return (PageIndex - 1) * PageSize;
+        }
 
         protected PageModel()
         {

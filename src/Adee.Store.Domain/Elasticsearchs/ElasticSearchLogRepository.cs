@@ -39,7 +39,7 @@ namespace Adee.Store.ElasticsearchRepository
 
             var result = await Client.SearchAsync<ElasticSearchLogOutput>(e => e
                 .Index(IndexName)
-                .From(input.SkipCount)
+                .From(input.GetSkipCount())
                 .Size(input.PageSize)
                 .Sort(s => s.Descending(sd => sd.CreationTime))
                 .Query(q => q.Bool(qb => qb.Filter(mustFilters))));

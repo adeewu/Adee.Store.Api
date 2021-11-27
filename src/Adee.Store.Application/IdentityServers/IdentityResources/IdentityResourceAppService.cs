@@ -30,7 +30,7 @@ namespace Adee.Store.IdentityServers.Mappers.IdentityResources
         public async Task<PagedResultDto<IdentityResourceListOutput>> GetListAsync(IdentityResourceListInput input)
         {
             var list = await _identityResourceManager.GetListAsync(
-                input.SkipCount,
+                input.GetSkipCount(),
                 input.PageSize,
                 input.Filter,
                 true

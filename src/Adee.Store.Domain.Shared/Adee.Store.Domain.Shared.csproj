@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+	  <PackageReference Include="EasyAbp.Abp.SettingUi.Domain.Shared" Version="$(EasyAbpSttingVersion)" />
 	<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(MicrosoftExtensionsDependencyModelVersion)" />
 	<PackageReference Include="NEST" Version="$(NESTVersion)" />
 	<PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />

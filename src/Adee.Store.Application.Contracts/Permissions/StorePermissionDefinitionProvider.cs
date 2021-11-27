@@ -34,6 +34,8 @@ namespace Adee.Store.Permissions
             salePermission.AddChild<StoreResource>(StorePermissions.ProductSales.Create, "上架商品");
             salePermission.AddChild<StoreResource>(StorePermissions.ProductSales.Update, "编辑商品销售");
             salePermission.AddChild<StoreResource>(StorePermissions.ProductSales.OffSale, "下架商品");
+
+            storeGroup.AddPermission<StoreResource>(StorePermissions.NotificationManagements.Default, "消息管理");
         }
 
         private static LocalizableString L(string name)

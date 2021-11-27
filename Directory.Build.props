@@ -30,6 +30,7 @@
 		<SwaggerUIVersion>6.2.3</SwaggerUIVersion>
 		<FreeSqlVersion>2.5.200</FreeSqlVersion>
 		<StackExchangeRedisVersion>5.0.*</StackExchangeRedisVersion>
+		<MicrosoftAspNetCoreSignalRStackExchangeRedisVersion>5.0.9</MicrosoftAspNetCoreSignalRStackExchangeRedisVersion>
 		<JwtBearerVersion>5.0.*</JwtBearerVersion>
 		<MicrosoftEntityFrameworkCoreToolsVersion>5.0.*</MicrosoftEntityFrameworkCoreToolsVersion>
 		<SKITFlurlHttpClientWechatApiVersion>1.12.0</SKITFlurlHttpClientWechatApiVersion>

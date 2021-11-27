@@ -48,5 +48,10 @@
         {
             public const string Default = GroupName + "." + nameof(Pays);
         }
+
+        public static class NotificationManagements
+        {
+            public const string Default = GroupName + nameof(NotificationManagements);
+        }
     }
 }

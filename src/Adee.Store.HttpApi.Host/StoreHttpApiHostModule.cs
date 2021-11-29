@@ -145,6 +145,7 @@ namespace Adee.Store
                 },
                 options =>
                 {
+                    options.SwaggerDoc(ApiGroupType.NoGroup.ToString(), new OpenApiInfo { Title = ApiGroupType.NoGroup.GetDescription(), Version = "v1" });
                     typeof(ApiGroupType)
                     .GetFields()
                     .Skip(2)
@@ -157,7 +158,20 @@ namespace Adee.Store
                     {
                         options.SwaggerDoc(p.Name, new OpenApiInfo { Title = p.Description, Version = "v1" });
                     });
-                    options.SwaggerDoc(ApiGroupType.NoGroup.ToString(), new OpenApiInfo { Title = ApiGroupType.NoGroup.GetDescription(), Version = "v1" });
+
+                    options.CustomOperationIds(apiDesc =>
+                    {
+                        var apiPaths = apiDesc
+                            .RelativePath
+                            .Replace("{", string.Empty)
+                            .Replace("}", string.Empty)
+                            .Split(new char[] { '/', '-' });
+
+                        return new List<string> { apiDesc.HttpMethod.ToLower() }
+                            .Union(apiPaths)
+                            .Select(p => System.Threading.Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(p))
+                            .JoinAsString(string.Empty);
+                    });
 
                     options.CustomSchemaIds(type => type.FullName);
                     options.DocumentFilter<SwaggerEnumFilter>();
@@ -317,6 +331,7 @@ namespace Adee.Store
             app.UseSwagger();
             app.UseAbpSwaggerUI(options =>
             {
+                options.SwaggerEndpoint($"/swagger/{ApiGroupType.NoGroup.ToString()}/swagger.json", ApiGroupType.NoGroup.GetDescription());
                 typeof(ApiGroupType)
                     .GetFields()
                     .Skip(2)
@@ -329,12 +344,15 @@ namespace Adee.Store
                     {
                         options.SwaggerEndpoint($"/swagger/{p.Name}/swagger.json", p.Description);
                     });
-                options.SwaggerEndpoint($"/swagger/{ApiGroupType.NoGroup.ToString()}/swagger.json", ApiGroupType.NoGroup.GetDescription());
 
                 var authServerOptions = GetAuthServerOptions(context.GetConfiguration());
                 options.OAuthClientId(authServerOptions.SwaggerClientId);
                 options.OAuthClientSecret(authServerOptions.SwaggerClientSecret);
                 options.OAuthScopes("Store");
+                options.EnableDeepLinking();
+                options.DisplayOperationId();
+                options.DisplayRequestDuration();
+                options.DefaultModelRendering(Swashbuckle.AspNetCore.SwaggerUI.ModelRendering.Model);
             });
 
             app.UseAuditing();

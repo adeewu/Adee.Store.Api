@@ -7,6 +7,13 @@ tasks:
       dotnet dev-certs https 
       dotnet restore
       dotnet build
+
 vscode:
   extensions:
     - muhammad-sammy.csharp
+
+ports:
+  - port: 44380
+    onOpen: open-preview
+  - port: 44381
+  - port: 44382

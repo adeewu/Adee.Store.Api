@@ -21,6 +21,7 @@
             },
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "https://localhost:44381",
                 "ASPNETCORE_Kestrel__Certificates__Default__Password": "changeit",
                 "ASPNETCORE_Kestrel__Certificates__Default__Path": "${workspaceFolder}/certs/localhost.p12"
             },
@@ -48,6 +49,7 @@
             },
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "https://localhost:44382",
                 "ASPNETCORE_Kestrel__Certificates__Default__Password": "changeit",
                 "ASPNETCORE_Kestrel__Certificates__Default__Path": "${workspaceFolder}/certs/localhost.p12"
             },

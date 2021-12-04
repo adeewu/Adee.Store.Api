@@ -40,6 +40,12 @@ namespace Adee.Store.Attributes
         NoGroup,
 
         /// <summary>
+        /// Abp框架
+        /// </summary>
+        [Description("Abp框架")]
+        Abp,
+
+        /// <summary>
         /// 支付接口
         /// </summary>
         [Description("支付接口")]
@@ -62,5 +68,29 @@ namespace Adee.Store.Attributes
         /// </summary>
         [Description("第三方平台接口")]
         WechatComponent,
+
+        /// <summary>
+        /// Identity Server接口
+        /// </summary>
+        [Description("Identity Server接口")]
+        IdentityServer,
+
+        /// <summary>
+        /// ElasticSearchs接口
+        /// </summary>
+        [Description("ElasticSearchs接口")]
+        ElasticSearch,
+
+        /// <summary>
+        /// 系统基础接口
+        /// </summary>
+        [Description("系统基础接口")]
+        SystemBase,
+
+        /// <summary>
+        /// 消息通知接口
+        /// </summary>
+        [Description("消息通知接口")]
+        Notification,
     }
 }

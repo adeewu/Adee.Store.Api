@@ -1,9 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="..\..\common.props" />
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>Adee.Store</RootNamespace>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\Adee.Store.Application.Contracts.xml</DocumentationFile>
   </PropertyGroup>
@@ -13,13 +13,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Volo.Abp.ObjectExtending" Version="4.4.0" />
-    <PackageReference Include="Volo.Abp.Account.Application.Contracts" Version="4.4.0" />
-    <PackageReference Include="Volo.Abp.Identity.Application.Contracts" Version="4.4.0" />
-    <PackageReference Include="Volo.Abp.PermissionManagement.Application.Contracts" Version="4.4.0" />
-    <PackageReference Include="Volo.Abp.TenantManagement.Application.Contracts" Version="4.4.0" />
-    <PackageReference Include="Volo.Abp.FeatureManagement.Application.Contracts" Version="4.4.0" />
-    <PackageReference Include="Volo.Abp.SettingManagement.Application.Contracts" Version="4.4.0" />
+	<PackageReference Include="EasyAbp.Abp.SettingUi.Application.Contracts" Version="$(EasyAbpSttingVersion)" />
+    <PackageReference Include="Volo.Abp.ObjectExtending" Version="$(AbpPackageVersion)" />
+    <PackageReference Include="Volo.Abp.Account.Application.Contracts" Version="$(AbpPackageVersion)" />
+    <PackageReference Include="Volo.Abp.Identity.Application.Contracts" Version="$(AbpPackageVersion)" />
+    <PackageReference Include="Volo.Abp.PermissionManagement.Application.Contracts" Version="$(AbpPackageVersion)" />
+    <PackageReference Include="Volo.Abp.TenantManagement.Application.Contracts" Version="$(AbpPackageVersion)" />
+    <PackageReference Include="Volo.Abp.FeatureManagement.Application.Contracts" Version="$(AbpPackageVersion)" />
+    <PackageReference Include="Volo.Abp.SettingManagement.Application.Contracts" Version="$(AbpPackageVersion)" />
   </ItemGroup>
 
 </Project>
